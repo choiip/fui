@@ -2,8 +2,9 @@
 #include <chrono>
 
 #include <core/ApplicationContext.hpp>
+#include <core/GlfwWindowManager.hpp>
+#include <core/RenderWindow.hpp>
 #include <core/Status.hpp>
-#include <GL/GlfwRenderWindow.hpp>
 #include <GL/GL3Context.hpp>
 #include <GL/glad.h>
 using namespace fui;
@@ -107,19 +108,19 @@ private:
 };
 
 int main() {
-    GlfwRenderWindow window;
+    GlfwWindowManager windowManager;
     GL3Context glContext;
 
-	auto st = window.create(1000, 600);
-    if (st != Status::OK) return -1;
-    glContext.init(&window);
+	auto window = windowManager.createWindow(1000, 600);
+    if (!window) return -1;
+    glContext.init(window);
 
-	window.setSwapInterval(0);
+	window->setSwapInterval(0);
 
     ExampleApp app(glContext.vg());
-    app.run(window);
+    app.run(*window);
 
     glContext.deinit();
-    window.destroy();
+    delete window;
     return 0;
 }

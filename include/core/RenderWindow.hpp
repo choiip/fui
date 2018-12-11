@@ -2,15 +2,9 @@
 
 namespace fui {
 
-enum class Status;
-
 class RenderWindow {
 public:
     virtual ~RenderWindow() = default;
-
-    virtual Status create(int width, int height) = 0;
-
-    virtual void destroy() = 0;
 
     virtual void* nativeWindow() = 0;
     

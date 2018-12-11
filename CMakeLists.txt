@@ -76,6 +76,7 @@ list(APPEND TINYUTF8_SOURCES
 ## fui
 list(APPEND FUI_SOURCES
   src/core/ApplicationContext.cpp
+  src/core/GlfwWindowManager.cpp  
   src/GL/GL3Context.cpp
   src/GL/GlfwRenderWindow.cpp
 )

@@ -8,11 +8,9 @@ namespace fui {
 
 class GlfwRenderWindow : public RenderWindow {
 public:
+    GlfwRenderWindow(GLFWwindow* window);
+    
     virtual ~GlfwRenderWindow();
-
-    virtual Status create(int width, int height) override;
-
-    virtual void destroy() override;
 
     virtual void* nativeWindow() override;
 
