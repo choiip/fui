@@ -14,6 +14,8 @@ public:
 
     virtual void* nativeWindow() override;
 
+    virtual NVGcontext* vgContext() override;
+
     virtual void getCursorPos(int& x, int& y) override;
 
     virtual void getWindowSize(int& width, int& height) override;

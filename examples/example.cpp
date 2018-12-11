@@ -3,6 +3,7 @@
 
 #include <core/ApplicationContext.hpp>
 #include <core/GlfwWindowManager.hpp>
+#include <core/GraphicsProfile.hpp>
 #include <core/RenderWindow.hpp>
 #include <core/Status.hpp>
 #include <GL/GL3Context.hpp>
@@ -109,9 +110,12 @@ private:
 
 int main() {
     GlfwWindowManager windowManager;
+	auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL, 3, 2);
+	if (!graphicsProfile) return -1;
+
     GL3Context glContext;
 
-	auto window = windowManager.createWindow(1000, 600);
+	auto window = windowManager.createWindow(1000, 600, *graphicsProfile);
     if (!window) return -1;
     glContext.init(window);
 
@@ -122,5 +126,6 @@ int main() {
 
     glContext.deinit();
     delete window;
+	delete graphicsProfile;
     return 0;
 }

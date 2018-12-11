@@ -1,5 +1,7 @@
 #pragma once
 
+struct NVGcontext;
+
 namespace fui {
 
 class RenderWindow {
@@ -8,6 +10,8 @@ public:
 
     virtual void* nativeWindow() = 0;
     
+    virtual NVGcontext* vgContext() = 0;
+
     virtual void getCursorPos(int& x, int& y) = 0;
 
     virtual void getWindowSize(int& width, int& height) = 0;

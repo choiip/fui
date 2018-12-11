@@ -78,6 +78,8 @@ list(APPEND FUI_SOURCES
   src/core/ApplicationContext.cpp
   src/core/GlfwWindowManager.cpp  
   src/GL/GL3Context.cpp
+  src/GL/GlfwGL3Profile.cpp
+  src/GL/GlfwGLES2Profile.cpp
   src/GL/GlfwRenderWindow.cpp
 )
 

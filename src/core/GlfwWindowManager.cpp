@@ -2,6 +2,8 @@
 #include <iostream>
 #include <GL/glad.h>
 #include <GLFW/glfw3.h>
+#include "GL/GlfwGL3Profile.hpp"
+#include "GL/GlfwGLES2Profile.hpp"
 #include "GL/GlfwRenderWindow.hpp"
 
 namespace fui {
@@ -34,14 +36,8 @@ GlfwWindowManager::~GlfwWindowManager() {
     glfwTerminate();
 }
 
-RenderWindow* GlfwWindowManager::createWindow(int width, int height) {
-#ifndef _WIN32 // don't require this on win32, and works with more cards
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#endif
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+RenderWindow* GlfwWindowManager::createWindow(int width, int height, const GraphicsProfile& graphicsProfile) {
+    graphicsProfile.prepare();
 
 	auto glfwWindow = glfwCreateWindow(width, height, "Title", NULL, NULL);
     if (!glfwWindow) {
@@ -62,6 +58,14 @@ RenderWindow* GlfwWindowManager::createWindow(int width, int height) {
     glfwSetMouseButtonCallback(glfwWindow, mouseButtonCallback);
 
     return new GlfwRenderWindow(glfwWindow);
+}
+
+GraphicsProfile* GlfwWindowManager::createGraphicsProfile(GraphicsAPI api, int major, int minor) {
+    if (api == GraphicsAPI::OPENGL)
+        return new GlfwGL3Profile();
+    if (api == GraphicsAPI::OPENGL_ES)
+        return new GlfwGLES2Profile();
+    return nullptr;
 }
 
 const std::unordered_map<GLFWwindow*, GlfwRenderWindow*>& GlfwWindowManager::getWindows() const {

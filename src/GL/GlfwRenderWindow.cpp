@@ -18,6 +18,10 @@ void* GlfwRenderWindow::nativeWindow() {
 	return _window;
 }
 
+NVGcontext* GlfwRenderWindow::vgContext() {
+	return nullptr;
+}
+
 void GlfwRenderWindow::getCursorPos(int& x, int& y) {
 	double dx, dy;
 	glfwGetCursorPos(_window, &dx, &dy);

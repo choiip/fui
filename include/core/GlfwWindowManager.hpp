@@ -19,7 +19,8 @@ private:
 public:
     GlfwWindowManager();
     virtual ~GlfwWindowManager();
-    virtual RenderWindow* createWindow(int width, int height) override;
+    virtual RenderWindow* createWindow(int width, int height, const GraphicsProfile& graphicsProfile) override;
+    virtual GraphicsProfile* createGraphicsProfile(GraphicsAPI api, int major, int minor) override;
 
     const std::unordered_map<GLFWwindow*, GlfwRenderWindow*>& getWindows() const;
 };
