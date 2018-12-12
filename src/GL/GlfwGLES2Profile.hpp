@@ -13,7 +13,7 @@ public:
 
     virtual void prepare() const override;
 
-    virtual RenderContext* createContext() const override;    
+    virtual RenderContext* createContext(void* nativeWindow) const override;    
 };
 
 }

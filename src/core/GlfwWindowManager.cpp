@@ -54,7 +54,7 @@ RenderWindow* GlfwWindowManager::createWindow(int width, int height, const Graph
 
 	glfwMakeContextCurrent(glfwWindow);
 
-    auto renderContext = graphicsProfile.createContext();
+    auto renderContext = graphicsProfile.createContext(glfwWindow);
     if (!renderContext) {
         glfwDestroyWindow(glfwWindow);
         std::cerr << ("Could not create render context!\n");
