@@ -11,6 +11,10 @@ namespace fui {
 
 template<> GlfwWindowManager* Singleton<GlfwWindowManager>::_singleton = 0; 
 
+static void errorCallback(int error, const char* description) {
+    std::cerr << ("GlfwWindowManager error: %s\n", description);
+}
+
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     const auto& windows = GlfwWindowManager::instance().getWindows();
     auto targetWindow = windows.find(window);
@@ -28,6 +32,8 @@ static void mouseButtonCallback(GLFWwindow* window, int button, int action, int 
 }
 
 GlfwWindowManager::GlfwWindowManager() {
+    glfwSetErrorCallback(errorCallback);
+
     if (!glfwInit()) {
 		std::cerr << ("Failed to init GLFW.\n");
 	}
