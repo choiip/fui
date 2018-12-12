@@ -5,6 +5,7 @@
 #include "core/RenderContext.hpp"
 #include "GL/GlfwGL3Profile.hpp"
 #include "GL/GlfwGLES2Profile.hpp"
+#include "vulkan/GlfwVulkanProfile.hpp"
 #include "GL/GlfwRenderWindow.hpp"
 
 namespace fui {
@@ -12,7 +13,7 @@ namespace fui {
 template<> GlfwWindowManager* Singleton<GlfwWindowManager>::_singleton = 0; 
 
 static void errorCallback(int error, const char* description) {
-    std::cerr << ("GlfwWindowManager error: %s\n", description);
+    std::cerr << "GlfwWindowManager error: " << description << '\n';
 }
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -45,14 +46,13 @@ GlfwWindowManager::~GlfwWindowManager() {
 
 RenderWindow* GlfwWindowManager::createWindow(int width, int height, const GraphicsProfile& graphicsProfile) {
     graphicsProfile.prepare();
-
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    
 	auto glfwWindow = glfwCreateWindow(width, height, "Title", NULL, NULL);
     if (!glfwWindow) {
         std::cerr << ("Could not create GLFW window!\n");
         return nullptr;
     } 
-
-	glfwMakeContextCurrent(glfwWindow);
 
     auto renderContext = graphicsProfile.createContext(glfwWindow);
     if (!renderContext) {
@@ -81,6 +81,8 @@ GraphicsProfile* GlfwWindowManager::createGraphicsProfile(GraphicsAPI api, int m
         return new GlfwGL3Profile();
     if (api == GraphicsAPI::OPENGL_ES)
         return new GlfwGLES2Profile();
+    if (api == GraphicsAPI::VULKAN)
+        return new GlfwVulkanProfile();        
     return nullptr;
 }
 

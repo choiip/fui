@@ -4,9 +4,6 @@
 
 namespace fui {
 
-class RenderWindow;
-enum class Status;
-
 class GLES2Context
 : public RenderContext {
 public:

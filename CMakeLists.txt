@@ -71,6 +71,10 @@ list(APPEND TINYUTF8_SOURCES
   src/tinyutf8/tinyutf8.cpp
 )
 
+## vulkan
+find_package(Vulkan)
+set(EXTRA_LIB Vulkan::Vulkan)
+
 ## fui
 list(APPEND FUI_SOURCES
   src/core/ApplicationContext.cpp
@@ -80,6 +84,9 @@ list(APPEND FUI_SOURCES
   src/GL/GlfwGL3Profile.cpp
   src/GL/GlfwGLES2Profile.cpp
   src/GL/GlfwRenderWindow.cpp
+  src/vulkan/GlfwVulkanProfile.cpp
+  src/vulkan/vku.c
+  src/vulkan/VulkanContext.cpp
 )
 
 add_library(fui STATIC ${GLAD_SOURCES} ${NANOVG_SOURCES} ${TINYUTF8_SOURCES} ${FUI_SOURCES})
@@ -91,7 +98,7 @@ endif()
 target_include_directories(fui PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(fui PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
-target_link_libraries(fui PUBLIC glfw)
+target_link_libraries(fui PUBLIC glfw ${EXTRA_LIB})
 
 ## examples
 add_executable(example examples/example.cpp examples/demo.c examples/perf.c)

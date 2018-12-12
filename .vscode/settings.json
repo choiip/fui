@@ -47,7 +47,11 @@
         "functional": "cpp",
         "iostream": "cpp",
         "ratio": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "perf.h": "c"
     },
-    "cmake.configureOnOpen": true
+    "cmake.configureOnOpen": true,
+    // "cmake.environment": {
+    //     "VULKAN_SDK": "${workspaceRoot}/vulkansdk"
+    // }
 }

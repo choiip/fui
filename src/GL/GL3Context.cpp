@@ -1,6 +1,5 @@
 #include "GL/GL3Context.hpp"
 #include <GL/glad.h>
-#include "nanovg/nanovg.h"
 #define NANOVG_GL3_IMPLEMENTATION
 #include "nanovg_gl.h"
 
