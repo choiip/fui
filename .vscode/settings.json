@@ -1,9 +1,7 @@
 {
     "cmake.buildDirectory": "${workspaceRoot}/build/${buildType}",
     "cmake.configureArgs": [
-        // "-Dglfw3_DIR=/home/alex/3rdParty/glfw/3.2.1/lib/cmake/glfw3",
-        // "-DCMAKE_TOOLCHAIN_FILE=/Users/alex/git/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "-DCMAKE_TOOLCHAIN_FILE=/home/alex/git/TCL/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        "-DCMAKE_TOOLCHAIN_FILE=${workspaceRoot}/vcpkg/scripts/buildsystems/vcpkg.cmake"
     ],
     "files.associations": {
         "*.fsh": "glsl",
