@@ -1,7 +1,8 @@
 #include "core/GlfwWindowManager.hpp"
 #include <iostream>
-#include <GL/glad.h>
+#include <memory>
 #include <GLFW/glfw3.h>
+#include "core/RenderContext.hpp"
 #include "GL/GlfwGL3Profile.hpp"
 #include "GL/GlfwGLES2Profile.hpp"
 #include "GL/GlfwRenderWindow.hpp"
@@ -47,17 +48,26 @@ RenderWindow* GlfwWindowManager::createWindow(int width, int height, const Graph
 
 	glfwMakeContextCurrent(glfwWindow);
 
-    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-        std::cerr << ("Could not initialize GLAD!\n");
-        return nullptr;
+    auto renderContext = graphicsProfile.createContext();
+    if (!renderContext) {
+        glfwDestroyWindow(glfwWindow);
+        std::cerr << ("Could not create render context!\n");
+        return nullptr;       
     }
-    glGetError();   // pull and ignore unhandled errors like GL_INVALID_ENUM
+
+    std::unique_ptr<GlfwRenderWindow> renderWindow(new GlfwRenderWindow(glfwWindow, renderContext));
+    if (!renderWindow) {
+        delete renderContext;
+        glfwDestroyWindow(glfwWindow);
+        std::cerr << ("Could not create render context!\n");
+        return nullptr;       
+    }
 
     // set callbacks
     glfwSetKeyCallback(glfwWindow, keyCallback);
     glfwSetMouseButtonCallback(glfwWindow, mouseButtonCallback);
 
-    return new GlfwRenderWindow(glfwWindow);
+    return renderWindow.release();
 }
 
 GraphicsProfile* GlfwWindowManager::createGraphicsProfile(GraphicsAPI api, int major, int minor) {

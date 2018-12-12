@@ -12,6 +12,8 @@ public:
     virtual GraphicsAPI api() const override { return GraphicsAPI::OPENGL_ES; }
 
     virtual void prepare() const override;
+
+    virtual RenderContext* createContext() const override;    
 };
 
 }

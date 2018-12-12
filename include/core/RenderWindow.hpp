@@ -1,16 +1,16 @@
 #pragma once
 
-struct NVGcontext;
-
 namespace fui {
+
+class RenderContext;
 
 class RenderWindow {
 public:
     virtual ~RenderWindow() = default;
 
-    virtual void* nativeWindow() = 0;
+    virtual void* nativeWindow() const = 0;
     
-    virtual NVGcontext* vgContext() = 0;
+    virtual RenderContext* renderContext() const = 0;
 
     virtual void getCursorPos(int& x, int& y) = 0;
 

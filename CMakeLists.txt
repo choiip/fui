@@ -58,14 +58,12 @@ list(APPEND GLAD_SOURCES
 
 ## glfw
 find_package(glfw3 3.2 REQUIRED)
-# add_subdirectory(glfw)
 
 ## nanovg
 list(APPEND NANOVG_SOURCES
   src/nanovg/nanovg.h 
   src/nanovg/nanovg.c
 )
-# set_source_files_properties(${NANOVG_SOURCES} PROPERTIES COMPILE_FLAGS )
 
 ## tinyutf8
 list(APPEND TINYUTF8_SOURCES
@@ -78,6 +76,7 @@ list(APPEND FUI_SOURCES
   src/core/ApplicationContext.cpp
   src/core/GlfwWindowManager.cpp  
   src/GL/GL3Context.cpp
+  src/GL/GLES2Context.cpp
   src/GL/GlfwGL3Profile.cpp
   src/GL/GlfwGLES2Profile.cpp
   src/GL/GlfwRenderWindow.cpp

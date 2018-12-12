@@ -6,15 +6,16 @@ struct GLFWwindow;
 
 namespace fui {
 
-class GlfwRenderWindow : public RenderWindow {
+class GlfwRenderWindow 
+: public RenderWindow {
 public:
-    GlfwRenderWindow(GLFWwindow* window);
+    GlfwRenderWindow(GLFWwindow* window, RenderContext* renderContext);
     
     virtual ~GlfwRenderWindow();
 
-    virtual void* nativeWindow() override;
+    virtual void* nativeWindow() const override;
 
-    virtual NVGcontext* vgContext() override;
+    virtual RenderContext* renderContext() const override;
 
     virtual void getCursorPos(int& x, int& y) override;
 
@@ -28,6 +29,7 @@ public:
 
 private:
 	GLFWwindow* _window;
+    RenderContext* _renderContext;
 };
 
 }

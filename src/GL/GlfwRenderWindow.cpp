@@ -1,10 +1,13 @@
 #include "GL/GlfwRenderWindow.hpp"
 #include <GLFW/glfw3.h>
 
+#include "core/RenderContext.hpp"
+
 namespace fui {
 
-GlfwRenderWindow::GlfwRenderWindow(GLFWwindow* window)
+GlfwRenderWindow::GlfwRenderWindow(GLFWwindow* window, RenderContext* renderContext)
 : _window(window)
+, _renderContext(renderContext)
 {}
 
 GlfwRenderWindow::~GlfwRenderWindow() {
@@ -12,14 +15,15 @@ GlfwRenderWindow::~GlfwRenderWindow() {
         glfwDestroyWindow(_window);
         _window = nullptr;
     }
+	delete _renderContext;
 }
 
-void* GlfwRenderWindow::nativeWindow() {
+void* GlfwRenderWindow::nativeWindow() const {
 	return _window;
 }
 
-NVGcontext* GlfwRenderWindow::vgContext() {
-	return nullptr;
+RenderContext* GlfwRenderWindow::renderContext() const {
+	return _renderContext;
 }
 
 void GlfwRenderWindow::getCursorPos(int& x, int& y) {

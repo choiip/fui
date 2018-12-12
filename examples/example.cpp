@@ -113,18 +113,16 @@ int main() {
 	auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL, 3, 2);
 	if (!graphicsProfile) return -1;
 
-    GL3Context glContext;
-
 	auto window = windowManager.createWindow(1000, 600, *graphicsProfile);
     if (!window) return -1;
-    glContext.init(window);
-
+    auto renderer = glGetString(GL_RENDERER);
+    auto vendor = glGetString(GL_VENDOR);
+    auto version = glGetString(GL_VERSION);
 	window->setSwapInterval(0);
 
-    ExampleApp app(glContext.vg());
+    ExampleApp app(window->renderContext()->vg());
     app.run(*window);
 
-    glContext.deinit();
     delete window;
 	delete graphicsProfile;
     return 0;

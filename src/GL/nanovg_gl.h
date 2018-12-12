@@ -1548,7 +1548,7 @@ static void glnvg__renderDelete(void* uptr)
 	free(gl);
 }
 
-
+inline
 #if defined NANOVG_GL2
 NVGcontext* nvgCreateGL2(int flags)
 #elif defined NANOVG_GL3
@@ -1594,6 +1594,7 @@ error:
 	return NULL;
 }
 
+inline
 #if defined NANOVG_GL2
 void nvgDeleteGL2(NVGcontext* ctx)
 #elif defined NANOVG_GL3
@@ -1607,6 +1608,7 @@ void nvgDeleteGLES3(NVGcontext* ctx)
 	nvgDeleteInternal(ctx);
 }
 
+inline
 #if defined NANOVG_GL2
 int nvglCreateImageFromHandleGL2(NVGcontext* ctx, GLuint textureId, int w, int h, int imageFlags)
 #elif defined NANOVG_GL3
@@ -1631,6 +1633,7 @@ int nvglCreateImageFromHandleGLES3(NVGcontext* ctx, GLuint textureId, int w, int
 	return tex->id;
 }
 
+inline
 #if defined NANOVG_GL2
 GLuint nvglImageHandleGL2(NVGcontext* ctx, int image)
 #elif defined NANOVG_GL3
