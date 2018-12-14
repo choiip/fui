@@ -6,34 +6,33 @@ struct GLFWwindow;
 
 namespace fui {
 
-class GlfwRenderWindow 
-: public RenderWindow {
+class GlfwRenderWindow : public RenderWindow {
 public:
-    GlfwRenderWindow(GLFWwindow* window, RenderContext* renderContext);
-    
-    virtual ~GlfwRenderWindow();
+  GlfwRenderWindow(GLFWwindow* window, RenderContext* renderContext);
 
-    virtual void* nativeWindow() const override;
+  virtual ~GlfwRenderWindow();
 
-    virtual RenderContext* renderContext() const override;
+  virtual void* nativeWindow() const override;
 
-    virtual void getCursorPos(int& x, int& y) override;
+  virtual RenderContext* renderContext() const override;
 
-    virtual void getWindowSize(int& width, int& height) override;
+  virtual void getCursorPos(int& x, int& y) override;
 
-    virtual void getDrawableSize(int& width, int& height) override;
+  virtual void getWindowSize(int& width, int& height) override;
 
-    virtual void hide() override;
+  virtual void getDrawableSize(int& width, int& height) override;
 
-    virtual void show() override;
+  virtual void hide() override;
 
-    virtual void setSwapInterval(int interval) override;
+  virtual void show() override;
 
-    virtual void swapBuffer() override;
+  virtual void setSwapInterval(int interval) override;
+
+  virtual void swapBuffer() override;
 
 private:
-	GLFWwindow* _window;
-    RenderContext* _renderContext;
+  GLFWwindow* _window;
+  RenderContext* _renderContext;
 };
 
-}
+} // namespace fui

@@ -4,16 +4,15 @@
 
 namespace fui {
 
-class GlfwGL3Profile 
-: public GraphicsProfile {
+class GlfwGL3Profile : public GraphicsProfile {
 public:
-    virtual ~GlfwGL3Profile() {}
+  virtual ~GlfwGL3Profile() {}
 
-    virtual GraphicsAPI api() const override { return GraphicsAPI::OPENGL; }
+  virtual GraphicsAPI api() const override { return GraphicsAPI::OPENGL; }
 
-    virtual void prepare() const override;
+  virtual void prepare() const override;
 
-    virtual RenderContext* createContext(void* nativeWindow) const override;
+  virtual RenderContext* createContext(void* nativeWindow) const override;
 };
 
-}
+} // namespace fui

@@ -53,5 +53,7 @@
     "cmake.configureOnOpen": true,
     // "cmake.environment": {
     //     "VULKAN_SDK": "${workspaceRoot}/vulkansdk"
-    // }
+    // },
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
 }

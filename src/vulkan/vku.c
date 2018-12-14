@@ -1,15 +1,16 @@
 #include "vulkan/vku.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 PFN_vkCreateDebugReportCallbackEXT _vkCreateDebugReportCallbackEXT;
 PFN_vkDebugReportMessageEXT _vkDebugReportMessageEXT;
 PFN_vkDestroyDebugReportCallbackEXT _vkDestroyDebugReportCallbackEXT;
 
-VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT report_object_type, uint64_t object,
-                                             size_t location, int32_t messageCode, const char *pLayerPrefix, const char *pMessage, void *pUserData) {
+VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT report_object_type,
+                                             uint64_t object, size_t location, int32_t messageCode,
+                                             const char* pLayerPrefix, const char* pMessage, void* pUserData) {
 
   printf("%s\n", pMessage);
   return VK_FALSE;
@@ -17,11 +18,14 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebu
 
 VkDebugReportCallbackEXT CreateDebugReport(VkInstance instance) {
   // load extensions
-  _vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)(vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT"));
+  _vkCreateDebugReportCallbackEXT =
+      (PFN_vkCreateDebugReportCallbackEXT)(vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT"));
   _vkDebugReportMessageEXT = (PFN_vkDebugReportMessageEXT)(vkGetInstanceProcAddr(instance, "vkDebugReportMessageEXT"));
-  _vkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)(vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT"));
+  _vkDestroyDebugReportCallbackEXT =
+      (PFN_vkDestroyDebugReportCallbackEXT)(vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT"));
   VkDebugReportCallbackCreateInfoEXT callbackInfo = {VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT};
-  callbackInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+  callbackInfo.flags =
+      VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
   callbackInfo.pfnCallback = &debugCallback;
   VkDebugReportCallbackEXT debug_report_callback;
   _vkCreateDebugReportCallbackEXT(instance, &callbackInfo, 0, &debug_report_callback);
@@ -44,14 +48,14 @@ VkInstance createVkInstance(const char** extensions, uint32_t extensionCount, in
   app_info.engineVersion = 1;
   app_info.apiVersion = VK_API_VERSION_1_0;
 
-  static const char *append_extensions[] = {
+  static const char* append_extensions[] = {
       VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
   };
-  uint32_t append_extensions_count = enableDebugLayer ?(sizeof(append_extensions) / sizeof(append_extensions[0])) : 0;
+  uint32_t append_extensions_count = enableDebugLayer ? (sizeof(append_extensions) / sizeof(append_extensions[0])) : 0;
 
   uint32_t enabledExtensionCount = extensionCount;
 
-  const char **enabledExtensions = (const char **)calloc(extensionCount + append_extensions_count, sizeof(char *));
+  const char** enabledExtensions = (const char**)calloc(extensionCount + append_extensions_count, sizeof(char*));
 
   for (int i = 0; i < extensionCount; ++i) {
     enabledExtensions[i] = extensions[i];
@@ -68,7 +72,7 @@ VkInstance createVkInstance(const char** extensions, uint32_t extensionCount, in
   if (enableDebugLayer) {
     uint32_t layerCount = 0;
     vkEnumerateInstanceLayerProperties(&layerCount, 0);
-    VkLayerProperties *layerprop = (VkLayerProperties *)malloc(sizeof(VkLayerProperties) * layerCount);
+    VkLayerProperties* layerprop = (VkLayerProperties*)malloc(sizeof(VkLayerProperties) * layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, layerprop);
     printf("supported layers:");
     for (int i = 0; i < layerCount; ++i) {
@@ -77,7 +81,7 @@ VkInstance createVkInstance(const char** extensions, uint32_t extensionCount, in
     printf("\n");
     free(layerprop);
 
-    static const char *instance_validation_layers[] = {
+    static const char* instance_validation_layers[] = {
         "VK_LAYER_LUNARG_standard_validation"
         //      "VK_LAYER_GOOGLE_threading",
         //      "VK_LAYER_GOOGLE_unique_objects",
@@ -110,8 +114,8 @@ VkInstance createVkInstance(const char** extensions, uint32_t extensionCount, in
   return inst;
 }
 
-VulkanDevice *createVulkanDevice(VkPhysicalDevice gpu) {
-  VulkanDevice *device = (VulkanDevice *)malloc(sizeof(VulkanDevice));
+VulkanDevice* createVulkanDevice(VkPhysicalDevice gpu) {
+  VulkanDevice* device = (VulkanDevice*)malloc(sizeof(VulkanDevice));
   memset(device, 0, sizeof(VulkanDevice));
 
   device->gpu = gpu;
@@ -121,7 +125,8 @@ VulkanDevice *createVulkanDevice(VkPhysicalDevice gpu) {
   vkGetPhysicalDeviceQueueFamilyProperties(gpu, &device->queueFamilyPropertiesCount, NULL);
   assert(device->queueFamilyPropertiesCount >= 1);
 
-  device->queueFamilyProperties = (VkQueueFamilyProperties *)malloc(device->queueFamilyPropertiesCount * sizeof(VkQueueFamilyProperties));
+  device->queueFamilyProperties =
+      (VkQueueFamilyProperties*)malloc(device->queueFamilyPropertiesCount * sizeof(VkQueueFamilyProperties));
 
   vkGetPhysicalDeviceQueueFamilyProperties(gpu, &device->queueFamilyPropertiesCount, device->queueFamilyProperties);
   assert(device->queueFamilyPropertiesCount >= 1);
@@ -139,7 +144,7 @@ VulkanDevice *createVulkanDevice(VkPhysicalDevice gpu) {
   queue_info.pQueuePriorities = queuePriorities;
   queue_info.queueFamilyIndex = device->graphicsQueueFamilyIndex;
 
-  const char *deviceExtensions[] = {
+  const char* deviceExtensions[] = {
       VK_KHR_SWAPCHAIN_EXTENSION_NAME,
   };
   VkDeviceCreateInfo deviceInfo = {VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
@@ -160,7 +165,7 @@ VulkanDevice *createVulkanDevice(VkPhysicalDevice gpu) {
 
   return device;
 }
-void destroyVulkanDevice(VulkanDevice *device) {
+void destroyVulkanDevice(VulkanDevice* device) {
   free(device->queueFamilyProperties);
 
   if (device->commandPool) {
@@ -172,7 +177,7 @@ void destroyVulkanDevice(VulkanDevice *device) {
   free(device);
 }
 
-VkCommandPool createCmdPool(VulkanDevice *device) {
+VkCommandPool createCmdPool(VulkanDevice* device) {
   VkResult res;
   /* Create a command pool to allocate our command buffer from */
   VkCommandPoolCreateInfo cmd_pool_info = {VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
@@ -198,7 +203,8 @@ VkCommandBuffer createCmdBuffer(VkDevice device, VkCommandPool cmd_pool) {
   return cmd_buffer;
 }
 
-VkBool32 memory_type_from_properties(VkPhysicalDeviceMemoryProperties memoryProps, uint32_t typeBits, VkFlags requirements_mask, uint32_t *typeIndex) {
+VkBool32 memory_type_from_properties(VkPhysicalDeviceMemoryProperties memoryProps, uint32_t typeBits,
+                                     VkFlags requirements_mask, uint32_t* typeIndex) {
   // Search memtypes to find first index with those properties
   for (uint32_t i = 0; i < memoryProps.memoryTypeCount; i++) {
     if ((typeBits & 1) == 1) {
@@ -213,7 +219,7 @@ VkBool32 memory_type_from_properties(VkPhysicalDeviceMemoryProperties memoryProp
   // No memory types matched, return failure
   return VK_FALSE;
 }
-DepthBuffer createDepthBuffer(const VulkanDevice *device, int width, int height) {
+DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height) {
   VkResult res;
   DepthBuffer depth;
   depth.format = VK_FORMAT_D24_UNORM_S8_UINT;
@@ -278,8 +284,8 @@ DepthBuffer createDepthBuffer(const VulkanDevice *device, int width, int height)
   mem_alloc.allocationSize = mem_reqs.size;
   /* Use the memory properties to determine the type of memory required */
 
-  VkBool32 pass =
-      memory_type_from_properties(device->memoryProperties, mem_reqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &mem_alloc.memoryTypeIndex);
+  VkBool32 pass = memory_type_from_properties(device->memoryProperties, mem_reqs.memoryTypeBits,
+                                              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &mem_alloc.memoryTypeIndex);
   assert(pass);
 
   /* Allocate memory */
@@ -298,10 +304,8 @@ DepthBuffer createDepthBuffer(const VulkanDevice *device, int width, int height)
   return depth;
 }
 
-void setupImageLayout(VkCommandBuffer cmdbuffer, VkImage image,
-                             VkImageAspectFlags aspectMask,
-                             VkImageLayout old_image_layout,
-                             VkImageLayout new_image_layout) {
+void setupImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask,
+                      VkImageLayout old_image_layout, VkImageLayout new_image_layout) {
 
   VkImageMemoryBarrier image_memory_barrier = {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
   image_memory_barrier.oldLayout = old_image_layout;
@@ -317,35 +321,30 @@ void setupImageLayout(VkCommandBuffer cmdbuffer, VkImage image,
   }
 
   if (new_image_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
-    image_memory_barrier.dstAccessMask =
-        VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    image_memory_barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
   }
 
   if (new_image_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
-    image_memory_barrier.dstAccessMask =
-        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    image_memory_barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
   }
 
   if (new_image_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
     /* Make sure any Copy or CPU writes to image are flushed */
-    image_memory_barrier.dstAccessMask =
-        VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+    image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
   }
 
-  VkImageMemoryBarrier *pmemory_barrier = &image_memory_barrier;
+  VkImageMemoryBarrier* pmemory_barrier = &image_memory_barrier;
 
   VkPipelineStageFlags src_stages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
   VkPipelineStageFlags dest_stages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
-  vkCmdPipelineBarrier(cmdbuffer, src_stages, dest_stages, 0, 0, NULL,
-                       0, NULL, 1, pmemory_barrier);
+  vkCmdPipelineBarrier(cmdbuffer, src_stages, dest_stages, 0, 0, NULL, 0, NULL, 1, pmemory_barrier);
 }
 
 SwapchainBuffers createSwapchainBuffers(VkDevice device, VkFormat format, VkCommandBuffer cmdbuffer, VkImage image) {
   VkResult res;
-  setupImageLayout(
-      cmdbuffer, image, VK_IMAGE_ASPECT_COLOR_BIT,
-      VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+  setupImageLayout(cmdbuffer, image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
+                   VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   VkImageSubresourceRange subresourceRange = {0};
   subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -424,14 +423,15 @@ VkRenderPass createRenderPass(VkDevice device, VkFormat color_format, VkFormat d
   return render_pass;
 }
 
-FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface, VkQueue queue, int winWidth, int winHeight, VkSwapchainKHR oldSwapchain) {
+FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface, VkQueue queue, int winWidth,
+                                int winHeight, VkSwapchainKHR oldSwapchain) {
 
   VkResult res;
 
   VkBool32 supportsPresent;
   vkGetPhysicalDeviceSurfaceSupportKHR(device->gpu, device->graphicsQueueFamilyIndex, surface, &supportsPresent);
   if (!supportsPresent) {
-    exit(-1); //does not supported.
+    exit(-1); // does not supported.
   }
   VkCommandBuffer setup_cmd_buffer = createCmdBuffer(device->device, device->commandPool);
 
@@ -447,7 +447,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface
     uint32_t formatCount;
     res = vkGetPhysicalDeviceSurfaceFormatsKHR(device->gpu, surface, &formatCount, NULL);
     assert(res == VK_SUCCESS);
-    VkSurfaceFormatKHR *surfFormats = (VkSurfaceFormatKHR *)malloc(formatCount * sizeof(VkSurfaceFormatKHR));
+    VkSurfaceFormatKHR* surfFormats = (VkSurfaceFormatKHR*)malloc(formatCount * sizeof(VkSurfaceFormatKHR));
     res = vkGetPhysicalDeviceSurfaceFormatsKHR(device->gpu, surface, &formatCount, surfFormats);
     assert(res == VK_SUCCESS);
     // If the format list includes just one entry of VK_FORMAT_UNDEFINED,
@@ -465,8 +465,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface
 
   // Check the surface capabilities and formats
   VkSurfaceCapabilitiesKHR surfCapabilities;
-  res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-      device->gpu, surface, &surfCapabilities);
+  res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device->gpu, surface, &surfCapabilities);
   assert(res == VK_SUCCESS);
 
   VkExtent2D buffer_size;
@@ -489,7 +488,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface
   vkGetPhysicalDeviceSurfacePresentModesKHR(device->gpu, surface, &presentModeCount, NULL);
   assert(presentModeCount > 0);
 
-  VkPresentModeKHR *presentModes = (VkPresentModeKHR *)malloc(sizeof(VkPresentModeKHR) * presentModeCount);
+  VkPresentModeKHR* presentModes = (VkPresentModeKHR*)malloc(sizeof(VkPresentModeKHR) * presentModeCount);
   vkGetPhysicalDeviceSurfacePresentModesKHR(device->gpu, surface, &presentModeCount, presentModes);
 
   for (size_t i = 0; i < presentModeCount; i++) {
@@ -504,8 +503,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface
   free(presentModes);
 
   VkSurfaceTransformFlagBitsKHR preTransform;
-  if (surfCapabilities.supportedTransforms &
-      VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) {
+  if (surfCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR) {
     preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
   } else {
     preTransform = surfCapabilities.currentTransform;
@@ -514,10 +512,8 @@ FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface
   // Determine the number of VkImage's to use in the swap chain (we desire to
   // own only 1 image at a time, besides the images being displayed and
   // queued for display):
-  uint32_t desiredNumberOfSwapchainImages =
-      surfCapabilities.minImageCount + 1;
-  if ((surfCapabilities.maxImageCount > 0) &&
-      (desiredNumberOfSwapchainImages > surfCapabilities.maxImageCount)) {
+  uint32_t desiredNumberOfSwapchainImages = surfCapabilities.minImageCount + 1;
+  if ((surfCapabilities.maxImageCount > 0) && (desiredNumberOfSwapchainImages > surfCapabilities.maxImageCount)) {
     // Application must settle for fewer images than desired:
     desiredNumberOfSwapchainImages = surfCapabilities.maxImageCount;
   }
@@ -538,8 +534,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface
   swapchainInfo.clipped = VK_TRUE;
 
   VkSwapchainKHR swap_chain;
-  res = vkCreateSwapchainKHR(device->device, &swapchainInfo, NULL,
-                             &swap_chain);
+  res = vkCreateSwapchainKHR(device->device, &swapchainInfo, NULL, &swap_chain);
   assert(res == VK_SUCCESS);
 
   if (oldSwapchain != VK_NULL_HANDLE) {
@@ -547,21 +542,17 @@ FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface
   }
 
   uint32_t swapchain_image_count;
-  res = vkGetSwapchainImagesKHR(device->device, swap_chain,
-                                &swapchain_image_count, NULL);
+  res = vkGetSwapchainImagesKHR(device->device, swap_chain, &swapchain_image_count, NULL);
   assert(res == VK_SUCCESS);
 
-  VkImage *swapchainImages =
-      (VkImage *)malloc(swapchain_image_count * sizeof(VkImage));
+  VkImage* swapchainImages = (VkImage*)malloc(swapchain_image_count * sizeof(VkImage));
 
   assert(swapchainImages);
 
-  res = vkGetSwapchainImagesKHR(device->device, swap_chain,
-                                &swapchain_image_count,
-                                swapchainImages);
+  res = vkGetSwapchainImagesKHR(device->device, swap_chain, &swapchain_image_count, swapchainImages);
   assert(res == VK_SUCCESS);
 
-  SwapchainBuffers *swap_chain_buffers = (SwapchainBuffers *)malloc(swapchain_image_count * sizeof(SwapchainBuffers));
+  SwapchainBuffers* swap_chain_buffers = (SwapchainBuffers*)malloc(swapchain_image_count * sizeof(SwapchainBuffers));
   for (uint32_t i = 0; i < swapchain_image_count; i++) {
     swap_chain_buffers[i] = createSwapchainBuffers(device->device, colorFormat, setup_cmd_buffer, swapchainImages[i]);
   }
@@ -579,14 +570,12 @@ FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface
   fb_info.layers = 1;
   uint32_t i;
 
-  VkFramebuffer *framebuffers = (VkFramebuffer *)malloc(swapchain_image_count *
-                                                        sizeof(VkFramebuffer));
+  VkFramebuffer* framebuffers = (VkFramebuffer*)malloc(swapchain_image_count * sizeof(VkFramebuffer));
   assert(framebuffers);
 
   for (i = 0; i < swapchain_image_count; i++) {
     attachments[0] = swap_chain_buffers[i].view;
-    res = vkCreateFramebuffer(device->device, &fb_info, NULL,
-                              &framebuffers[i]);
+    res = vkCreateFramebuffer(device->device, &fb_info, NULL, &framebuffers[i]);
     assert(res == VK_SUCCESS);
   }
 
@@ -612,14 +601,15 @@ FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface
   buffer.depth = depth;
 
   VkSemaphoreCreateInfo presentCompleteSemaphoreCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-  res = vkCreateSemaphore(device->device, &presentCompleteSemaphoreCreateInfo, NULL, &buffer.present_complete_semaphore);
+  res =
+      vkCreateSemaphore(device->device, &presentCompleteSemaphoreCreateInfo, NULL, &buffer.present_complete_semaphore);
   assert(res == VK_SUCCESS);
 
   res = vkCreateSemaphore(device->device, &presentCompleteSemaphoreCreateInfo, NULL, &buffer.render_complete_semaphore);
 
   return buffer;
 }
-void destroyFrameBuffers(const VulkanDevice *device, FrameBuffers *buffer) {
+void destroyFrameBuffers(const VulkanDevice* device, FrameBuffers* buffer) {
 
   if (buffer->present_complete_semaphore != VK_NULL_HANDLE) {
     vkDestroySemaphore(device->device, buffer->present_complete_semaphore, NULL);

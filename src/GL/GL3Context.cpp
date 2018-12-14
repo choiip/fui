@@ -6,11 +6,8 @@
 namespace fui {
 
 GL3Context::GL3Context(NVGcontext* vg)
-: RenderContext(vg)
-{}
+: RenderContext(vg) {}
 
-GL3Context::~GL3Context() {
-	nvgDeleteGL3(vg());
-}
+GL3Context::~GL3Context() { nvgDeleteGL3(vg()); }
 
-}
+} // namespace fui

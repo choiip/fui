@@ -6,29 +6,27 @@ namespace fui {
 
 class RenderContext;
 
-class RenderWindow 
-: public EventWindow 
-{
+class RenderWindow : public EventWindow {
 public:
-    virtual ~RenderWindow() = default;
+  virtual ~RenderWindow() = default;
 
-    virtual void* nativeWindow() const = 0;
-    
-    virtual RenderContext* renderContext() const = 0;
+  virtual void* nativeWindow() const = 0;
 
-    virtual void getCursorPos(int& x, int& y) = 0;
+  virtual RenderContext* renderContext() const = 0;
 
-    virtual void getWindowSize(int& width, int& height) = 0;
+  virtual void getCursorPos(int& x, int& y) = 0;
 
-    virtual void getDrawableSize(int& width, int& height) = 0;
+  virtual void getWindowSize(int& width, int& height) = 0;
 
-    virtual void hide() = 0;
+  virtual void getDrawableSize(int& width, int& height) = 0;
 
-    virtual void show() = 0;
+  virtual void hide() = 0;
 
-    virtual void setSwapInterval(int interval) = 0;
+  virtual void show() = 0;
 
-    virtual void swapBuffer() = 0;
+  virtual void setSwapInterval(int interval) = 0;
+
+  virtual void swapBuffer() = 0;
 };
 
-}
+} // namespace fui

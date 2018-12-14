@@ -6,11 +6,8 @@
 namespace fui {
 
 GLES2Context::GLES2Context(NVGcontext* vg)
-: RenderContext(vg)
-{}
+: RenderContext(vg) {}
 
-GLES2Context::~GLES2Context() {
-	nvgDeleteGLES2(vg());
-}
+GLES2Context::~GLES2Context() { nvgDeleteGLES2(vg()); }
 
-}
+} // namespace fui

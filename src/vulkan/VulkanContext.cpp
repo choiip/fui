@@ -1,6 +1,6 @@
 #include "VulkanContext.hpp"
-#include <vulkan/vulkan.h>
 #include "vku.h"
+#include <vulkan/vulkan.h>
 #define NANOVG_VULKAN_IMPLEMENTATION
 #include "nanovg_vk.h"
 
@@ -8,21 +8,20 @@ namespace fui {
 
 VulkanContext::VulkanContext(NVGcontext* vg, Resource& resource)
 : RenderContext(vg)
-, _resource(resource)
-{}
+, _resource(resource) {}
 
 VulkanContext::~VulkanContext() {
-	nvgDeleteVk(vg());
+  nvgDeleteVk(vg());
 
-	destroyFrameBuffers(_resource.device, &_resource.frameBuffer);
+  destroyFrameBuffers(_resource.device, &_resource.frameBuffer);
 
-	destroyVulkanDevice(_resource.device);
+  destroyVulkanDevice(_resource.device);
 
 #ifndef NDEBUG
-	DestroyDebugReport(_resource.instance, _resource.debugCallback);
+  DestroyDebugReport(_resource.instance, _resource.debugCallback);
 #endif
-	vkDestroySurfaceKHR(_resource.instance, _resource.surface, NULL);
-	vkDestroyInstance(_resource.instance, NULL);	
+  vkDestroySurfaceKHR(_resource.instance, _resource.surface, NULL);
+  vkDestroyInstance(_resource.instance, NULL);
 }
 
-}
+} // namespace fui

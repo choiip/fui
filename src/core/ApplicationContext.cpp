@@ -7,26 +7,22 @@
 namespace fui {
 
 ApplicationContext::ApplicationContext()
-: window(nullptr)
-{
-}
+: window(nullptr) {}
 
 ApplicationContext::~ApplicationContext() = default;
 
-void ApplicationContext::run (RenderWindow& window) {
-    auto nativeWindow = static_cast<GLFWwindow*>(window.nativeWindow());
-    this->window = &window;
+void ApplicationContext::run(RenderWindow& window) {
+  auto nativeWindow = static_cast<GLFWwindow*>(window.nativeWindow());
+  this->window = &window;
 
-    onEnter();
-	while (!glfwWindowShouldClose(nativeWindow)) {
-        onDraw();
-        glfwPollEvents();
-    }
-    onExit();
+  onEnter();
+  while (!glfwWindowShouldClose(nativeWindow)) {
+    onDraw();
+    glfwPollEvents();
+  }
+  onExit();
 }
 
-Status ApplicationContext::onEnter() {
-    return Status::OK;
-}
+Status ApplicationContext::onEnter() { return Status::OK; }
 
-}
+} // namespace fui

@@ -6,11 +6,12 @@ namespace fui {
 
 class RenderContext {
 public:
-    RenderContext(NVGcontext* vg) : _vg(vg) {}
-    NVGcontext* vg() const { return _vg; }
+  RenderContext(NVGcontext* vg)
+  : _vg(vg) {}
+  NVGcontext* vg() const { return _vg; }
 
 private:
-    NVGcontext* _vg = nullptr;
+  NVGcontext* _vg = nullptr;
 };
 
-}
+} // namespace fui
