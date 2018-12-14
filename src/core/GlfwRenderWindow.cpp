@@ -12,7 +12,8 @@ GlfwRenderWindow::GlfwRenderWindow(GLFWwindow* window, RenderContext* renderCont
 
 GlfwRenderWindow::~GlfwRenderWindow() {
   if (_window) {
-    glfwDestroyWindow(_window);
+    if (!glfwWindowShouldClose(_window))
+      glfwDestroyWindow(_window);
     _window = nullptr;
   }
   delete _renderContext;
@@ -32,6 +33,8 @@ void GlfwRenderWindow::getCursorPos(int& x, int& y) {
 void GlfwRenderWindow::getWindowSize(int& width, int& height) { glfwGetWindowSize(_window, &width, &height); }
 
 void GlfwRenderWindow::getDrawableSize(int& width, int& height) { glfwGetFramebufferSize(_window, &width, &height); }
+
+void GlfwRenderWindow::close() { glfwSetWindowShouldClose(_window, GLFW_TRUE); }
 
 void GlfwRenderWindow::hide() { glfwHideWindow(_window); }
 

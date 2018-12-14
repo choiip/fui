@@ -22,6 +22,8 @@ public:
 
   virtual void getDrawableSize(int& width, int& height) override;
 
+  virtual void close() override;
+
   virtual void hide() override;
 
   virtual void show() override;

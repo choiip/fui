@@ -20,6 +20,8 @@ public:
 
   virtual void getDrawableSize(int& width, int& height) = 0;
 
+  virtual void close() = 0;
+
   virtual void hide() = 0;
 
   virtual void show() = 0;

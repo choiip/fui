@@ -24,6 +24,11 @@ public:
   ExampleApp(RenderWindow* renderWindow)
   : vg(renderWindow->renderContext()->vg())
   , cpuTime(0) {
+    renderWindow->onKey([renderWindow](int key, int action, int mods) {
+      if (key == FUI_KEY_ESCAPE) {
+        renderWindow->close();
+      }
+    });
     renderWindow->onMouseMove([this](int xpos, int ypos) {
       this->mx = xpos;
       this->my = ypos;
@@ -70,8 +75,7 @@ protected:
     nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
 
     auto blowup = 0;
-    renderDemo(vg, mx, my, winWidth, winHeight, t.time_since_epoch().count(),
-               blowup, &data);
+    renderDemo(vg, mx, my, winWidth, winHeight, t.time_since_epoch().count(), blowup, &data);
 
     renderGraph(vg, 5, 5, &fps);
     renderGraph(vg, 5 + 200 + 5, 5, &cpuGraph);
@@ -148,8 +152,7 @@ protected:
     nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
 
     auto blowup = 0;
-    renderDemo(vg, mx, my, winWidth, winHeight, t.time_since_epoch().count(),
-               blowup, &data);
+    renderDemo(vg, mx, my, winWidth, winHeight, t.time_since_epoch().count(), blowup, &data);
 
     renderGraph(vg, 5, 5, &fps);
     renderGraph(vg, 5 + 200 + 5, 5, &cpuGraph);
@@ -169,18 +172,15 @@ protected:
   }
 
 private:
-  void prepareFrame(VkDevice device, VkCommandBuffer cmd_buffer,
-                    FrameBuffers* fb) {
+  void prepareFrame(VkDevice device, VkCommandBuffer cmd_buffer, FrameBuffers* fb) {
     VkResult res;
 
     // Get the index of the next available swapchain image:
-    res = vkAcquireNextImageKHR(device, fb->swap_chain, UINT64_MAX,
-                                fb->present_complete_semaphore, 0,
+    res = vkAcquireNextImageKHR(device, fb->swap_chain, UINT64_MAX, fb->present_complete_semaphore, 0,
                                 &fb->current_buffer);
     assert(res == VK_SUCCESS);
 
-    const VkCommandBufferBeginInfo cmd_buf_info = {
-        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
+    const VkCommandBufferBeginInfo cmd_buf_info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
     res = vkBeginCommandBuffer(cmd_buffer, &cmd_buf_info);
     assert(res == VK_SUCCESS);
 
@@ -219,16 +219,14 @@ private:
     vkCmdSetScissor(cmd_buffer, 0, 1, &scissor);
   }
 
-  void submitFrame(VkDevice device, VkQueue queue, VkCommandBuffer cmd_buffer,
-                   FrameBuffers* fb) {
+  void submitFrame(VkDevice device, VkQueue queue, VkCommandBuffer cmd_buffer, FrameBuffers* fb) {
     VkResult res;
 
     vkCmdEndRenderPass(cmd_buffer);
 
     vkEndCommandBuffer(cmd_buffer);
 
-    VkPipelineStageFlags pipe_stage_flags =
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    VkPipelineStageFlags pipe_stage_flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
     VkSubmitInfo submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
     submit_info.pNext = NULL;
@@ -266,8 +264,7 @@ private:
 
 int main() {
   GlfwWindowManager windowManager;
-  auto graphicsProfile =
-      windowManager.createGraphicsProfile(GraphicsAPI::OPENGL, 3, 2);
+  auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL, 3, 2);
   if (!graphicsProfile)
     return -1;
 
@@ -282,8 +279,6 @@ int main() {
   ExampleApp app(window);
   window->show();
   app.run(*window);
-
-  delete window;
 
   return 0;
 }

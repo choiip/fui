@@ -16,10 +16,20 @@ static void errorCallback(int error, const char* description) {
   std::cerr << "GlfwWindowManager error: " << description << '\n';
 }
 
+static void windowCloseCallback(GLFWwindow* window) {
+  const auto& windows = GlfwWindowManager::instance().getWindows();
+  auto targetWindow = windows.find(window);
+  if (targetWindow != windows.end()) {
+  }
+  delete targetWindow->second;
+  const_cast<std::unordered_map<GLFWwindow*, GlfwRenderWindow*>&>(windows).erase(window);
+}
+
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
   const auto& windows = GlfwWindowManager::instance().getWindows();
   auto targetWindow = windows.find(window);
   if (targetWindow != windows.end()) {
+    targetWindow->second->onKeyEvent(key, action, mods);
   }
 }
 
@@ -74,6 +84,7 @@ RenderWindow* GlfwWindowManager::createWindow(int width, int height, const Graph
   }
 
   // set callbacks
+  glfwSetWindowCloseCallback(glfwWindow, windowCloseCallback);
   glfwSetKeyCallback(glfwWindow, keyCallback);
   glfwSetMouseButtonCallback(glfwWindow, mouseButtonCallback);
   glfwSetCursorPosCallback(glfwWindow, cursorPosCallback);
