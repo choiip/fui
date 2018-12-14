@@ -341,16 +341,12 @@ void setupImageLayout(VkCommandBuffer cmdbuffer, VkImage image,
                        0, NULL, 1, pmemory_barrier);
 }
 
-SwapchainBuffers createSwapchainBuffers(const VulkanDevice *device, VkFormat format, VkCommandBuffer cmdbuffer, VkImage image) {
-
+SwapchainBuffers createSwapchainBuffers(VkDevice device, VkFormat format, VkCommandBuffer cmdbuffer, VkImage image) {
   VkResult res;
-  SwapchainBuffers buffer;
-  VkImageViewCreateInfo color_attachment_view = {VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
-  color_attachment_view.format = format;
-  color_attachment_view.components.r = VK_COMPONENT_SWIZZLE_R;
-  color_attachment_view.components.g = VK_COMPONENT_SWIZZLE_G;
-  color_attachment_view.components.b = VK_COMPONENT_SWIZZLE_B;
-  color_attachment_view.components.a = VK_COMPONENT_SWIZZLE_A;
+  setupImageLayout(
+      cmdbuffer, image, VK_IMAGE_ASPECT_COLOR_BIT,
+      VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
   VkImageSubresourceRange subresourceRange = {0};
   subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
   subresourceRange.baseMipLevel = 0;
@@ -358,19 +354,20 @@ SwapchainBuffers createSwapchainBuffers(const VulkanDevice *device, VkFormat for
   subresourceRange.baseArrayLayer = 0;
   subresourceRange.layerCount = 1;
 
+  VkImageViewCreateInfo color_attachment_view = {VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+  color_attachment_view.format = format;
+  color_attachment_view.components.r = VK_COMPONENT_SWIZZLE_R;
+  color_attachment_view.components.g = VK_COMPONENT_SWIZZLE_G;
+  color_attachment_view.components.b = VK_COMPONENT_SWIZZLE_B;
+  color_attachment_view.components.a = VK_COMPONENT_SWIZZLE_A;
   color_attachment_view.subresourceRange = subresourceRange;
   color_attachment_view.viewType = VK_IMAGE_VIEW_TYPE_2D;
+  color_attachment_view.image = image;
 
+  SwapchainBuffers buffer;
   buffer.image = image;
 
-  setupImageLayout(
-      cmdbuffer, image, VK_IMAGE_ASPECT_COLOR_BIT,
-      VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-
-  color_attachment_view.image = buffer.image;
-
-  res = vkCreateImageView(device->device, &color_attachment_view, NULL,
-                          &buffer.view);
+  res = vkCreateImageView(device, &color_attachment_view, NULL, &buffer.view);
   assert(res == VK_SUCCESS);
   return buffer;
 }
@@ -426,6 +423,7 @@ VkRenderPass createRenderPass(VkDevice device, VkFormat color_format, VkFormat d
   assert(res == VK_SUCCESS);
   return render_pass;
 }
+
 FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface, VkQueue queue, int winWidth, int winHeight, VkSwapchainKHR oldSwapchain) {
 
   VkResult res;
@@ -565,7 +563,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface
 
   SwapchainBuffers *swap_chain_buffers = (SwapchainBuffers *)malloc(swapchain_image_count * sizeof(SwapchainBuffers));
   for (uint32_t i = 0; i < swapchain_image_count; i++) {
-    swap_chain_buffers[i] = createSwapchainBuffers(device, colorFormat, setup_cmd_buffer, swapchainImages[i]);
+    swap_chain_buffers[i] = createSwapchainBuffers(device->device, colorFormat, setup_cmd_buffer, swapchainImages[i]);
   }
   free(swapchainImages);
 

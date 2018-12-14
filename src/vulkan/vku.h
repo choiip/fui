@@ -66,7 +66,7 @@ DepthBuffer createDepthBuffer(const VulkanDevice *device, int width, int height)
 
 VkRenderPass createRenderPass(VkDevice device, VkFormat color_format, VkFormat depth_format);
 
-SwapchainBuffers createSwapchainBuffers(const VulkanDevice *device, VkFormat format, VkCommandBuffer cmdbuffer, VkImage image);
+SwapchainBuffers createSwapchainBuffers(VkDevice device, VkFormat format, VkCommandBuffer cmdbuffer, VkImage image);
 
 FrameBuffers createFrameBuffers(const VulkanDevice *device, VkSurfaceKHR surface, VkQueue queue, int winWidth, int winHeight, VkSwapchainKHR oldSwapchain);
 

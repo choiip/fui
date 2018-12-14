@@ -45,11 +45,6 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
 #endif
 
 	VkResult res;
-	res = glfwCreateWindowSurface(resource.instance, window, 0, &resource.surface);
-	if (VK_SUCCESS != res) {
-		std::cerr << ("glfwCreateWindowSurface failed\n");
-		return nullptr;
-	}
 
 	uint32_t gpu_count = 1;
 	res = vkEnumeratePhysicalDevices(resource.instance, &gpu_count, &resource.gpu);
@@ -63,6 +58,13 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
 	glfwGetWindowSize(window, &winWidth, &winHeight);
 
 	vkGetDeviceQueue(device->device, device->graphicsQueueFamilyIndex, 0, &resource.queue);
+
+	res = glfwCreateWindowSurface(resource.instance, window, 0, &resource.surface);
+	if (VK_SUCCESS != res) {
+		std::cerr << ("glfwCreateWindowSurface failed\n");
+		return nullptr;
+	}
+		
 	resource.frameBuffer = createFrameBuffers(device, resource.surface, resource.queue, winWidth, winHeight, 0);
 	resource.cmdBuffer = createCmdBuffer(device->device, device->commandPool);
 

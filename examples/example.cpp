@@ -257,19 +257,21 @@ private:
 
 int main() {
     GlfwWindowManager windowManager;
-	auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::VULKAN, 3, 2);
+	auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL, 3, 2);
 	if (!graphicsProfile) return -1;
 
 	auto window = windowManager.createWindow(1000, 600, *graphicsProfile);
+	delete graphicsProfile;
+
     if (!window) return -1;
 
 	window->setSwapInterval(0);
 
-    VulkanExampleApp app(window->renderContext());
+    ExampleApp app(window->renderContext());
 	window->show();
     app.run(*window);
 
     delete window;
-	delete graphicsProfile;
+
     return 0;
 }
