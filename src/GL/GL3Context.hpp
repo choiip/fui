@@ -4,9 +4,6 @@
 
 namespace fui {
 
-class RenderWindow;
-enum class Status;
-
 class GL3Context
 : public RenderContext {
 public:

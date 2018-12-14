@@ -23,6 +23,10 @@ public:
 
     virtual void getDrawableSize(int& width, int& height) override;
 
+    virtual void hide() override;
+
+    virtual void show() override;
+
     virtual void setSwapInterval(int interval) override;
 
     virtual void swapBuffer() override;

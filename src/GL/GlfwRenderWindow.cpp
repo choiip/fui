@@ -41,6 +41,14 @@ void GlfwRenderWindow::getDrawableSize(int& width, int& height) {
 	glfwGetFramebufferSize(_window, &width, &height);
 }
 
+void GlfwRenderWindow::hide() {
+	glfwHideWindow(_window);
+}
+
+void GlfwRenderWindow::show() {
+	glfwShowWindow(_window);
+}
+
 void GlfwRenderWindow::setSwapInterval(int interval) {
     glfwSwapInterval(interval);
 }

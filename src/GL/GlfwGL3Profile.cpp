@@ -25,6 +25,8 @@ void GlfwGL3Profile::prepare() const {
 }
 
 RenderContext* GlfwGL3Profile::createContext(void* nativeWindow) const {
+	GLFWwindow* window = (GLFWwindow*)nativeWindow;
+	glfwMakeContextCurrent(window);
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
         std::cerr << ("Could not initialize GLAD!\n");
         return nullptr;

@@ -1,6 +1,5 @@
 #include "GL/GLES2Context.hpp"
 #include <GL/glad.h>
-#include "nanovg/nanovg.h"
 #define NANOVG_GLES2_IMPLEMENTATION
 #include "nanovg_gl.h"
 
