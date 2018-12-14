@@ -2,11 +2,11 @@
 #include <iostream>
 #include <memory>
 #include <GLFW/glfw3.h>
+#include "core/GlfwRenderWindow.hpp"
 #include "core/RenderContext.hpp"
 #include "GL/GlfwGL3Profile.hpp"
 #include "GL/GlfwGLES2Profile.hpp"
 #include "vulkan/GlfwVulkanProfile.hpp"
-#include "GL/GlfwRenderWindow.hpp"
 
 namespace fui {
 
@@ -30,6 +30,14 @@ static void mouseButtonCallback(GLFWwindow* window, int button, int action, int 
     if (targetWindow != windows.end()) {
 
     }
+}
+
+static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
+    const auto& windows = GlfwWindowManager::instance().getWindows();
+    auto targetWindow = windows.find(window);
+    if (targetWindow != windows.end()) {
+        targetWindow->second->onMouseMoveEvent((int)xpos, (int)ypos);
+    }    
 }
 
 GlfwWindowManager::GlfwWindowManager() {
@@ -72,7 +80,9 @@ RenderWindow* GlfwWindowManager::createWindow(int width, int height, const Graph
     // set callbacks
     glfwSetKeyCallback(glfwWindow, keyCallback);
     glfwSetMouseButtonCallback(glfwWindow, mouseButtonCallback);
+    glfwSetCursorPosCallback(glfwWindow, cursorPosCallback);
 
+    _windows.insert(std::make_pair(glfwWindow, renderWindow.get()));
     return renderWindow.release();
 }
 

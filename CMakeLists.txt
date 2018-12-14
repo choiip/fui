@@ -78,12 +78,12 @@ set(EXTRA_LIB Vulkan::Vulkan)
 ## fui
 list(APPEND FUI_SOURCES
   src/core/ApplicationContext.cpp
+  src/core/GlfwRenderWindow.cpp
   src/core/GlfwWindowManager.cpp  
   src/GL/GL3Context.cpp
   src/GL/GLES2Context.cpp
   src/GL/GlfwGL3Profile.cpp
   src/GL/GlfwGLES2Profile.cpp
-  src/GL/GlfwRenderWindow.cpp
   src/vulkan/GlfwVulkanProfile.cpp
   src/vulkan/vku.c
   src/vulkan/VulkanContext.cpp

@@ -1,4 +1,5 @@
-#include "GL/GlfwRenderWindow.hpp"
+#include "core/GlfwRenderWindow.hpp"
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include "core/RenderContext.hpp"

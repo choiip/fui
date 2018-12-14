@@ -1,10 +1,14 @@
 #pragma once
 
+#include "EventWindow.hpp"
+
 namespace fui {
 
 class RenderContext;
 
-class RenderWindow {
+class RenderWindow 
+: public EventWindow 
+{
 public:
     virtual ~RenderWindow() = default;
 

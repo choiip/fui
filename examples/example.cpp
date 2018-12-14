@@ -20,10 +20,14 @@ protected:
     typedef std::chrono::steady_clock clock;
     typedef clock::time_point time_point;
 public:
-    ExampleApp(RenderContext* renderContext)
-    : vg(renderContext->vg())
+    ExampleApp(RenderWindow* renderWindow)
+    : vg(renderWindow->renderContext()->vg())
     , cpuTime(0)
     {
+		renderWindow->onMouseMove([this](int xpos, int ypos) {
+			this->mx = xpos;
+			this->my = ypos;
+		});
     }
 
 protected:
@@ -39,7 +43,6 @@ protected:
     }
 
     virtual void onDraw() override {
-        int mx, my;
         time_point t;
         double dt;
 		int winWidth, winHeight;
@@ -54,7 +57,6 @@ protected:
 
 		// startGPUTimer(&gpuTimer);
 
-		window->getCursorPos(mx, my);
 		window->getWindowSize(winWidth, winHeight);
 		window->getDrawableSize(fbWidth, fbHeight);
 		// Calculate pixel ration for hi-dpi devices.
@@ -105,14 +107,15 @@ protected:
     PerfGraph fps, cpuGraph, gpuGraph;
     time_point prevt;
     double cpuTime;
+	int mx, my;
 };
 
 class VulkanExampleApp : public ExampleApp {
 public:
-    VulkanExampleApp(RenderContext* renderContext) 
-	: ExampleApp(renderContext) 
+    VulkanExampleApp(RenderWindow* renderWindow) 
+	: ExampleApp(renderWindow) 
 	{
-		_vulkanContext = static_cast<VulkanContext*>(renderContext);
+		_vulkanContext = static_cast<VulkanContext*>(renderWindow->renderContext());
 	}
 protected:    
 	virtual void onDraw() override {
@@ -267,7 +270,7 @@ int main() {
 
 	window->setSwapInterval(0);
 
-    ExampleApp app(window->renderContext());
+    ExampleApp app(window);
 	window->show();
     app.run(*window);
 
