@@ -53,7 +53,7 @@ typedef struct FrameBuffers {
 
 } FrameBuffers;
 
-VkInstance createVkInstance(int enableDebugLayer);
+VkInstance createVkInstance(const char** extensions, uint32_t extensionCount, int enableDebugLayer);
 VulkanDevice *createVulkanDevice(VkPhysicalDevice gpu);
 void destroyVulkanDevice(VulkanDevice *device);
 

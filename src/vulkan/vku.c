@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
 
 PFN_vkCreateDebugReportCallbackEXT _vkCreateDebugReportCallbackEXT;
 PFN_vkDebugReportMessageEXT _vkDebugReportMessageEXT;
@@ -36,41 +34,37 @@ void DestroyDebugReport(VkInstance instance, VkDebugReportCallbackEXT debugRepor
   }
 }
 
-VkInstance createVkInstance(int enableDebugLayer) {
+VkInstance createVkInstance(const char** extensions, uint32_t extensionCount, int enableDebugLayer) {
 
   // initialize the VkApplicationInfo structure
   VkApplicationInfo app_info = {VK_STRUCTURE_TYPE_APPLICATION_INFO};
   app_info.pApplicationName = "NanoVG";
   app_info.applicationVersion = 1;
-  app_info.pEngineName = "NanoVG";
+  app_info.pEngineName = "fui";
   app_info.engineVersion = 1;
   app_info.apiVersion = VK_API_VERSION_1_0;
 
   static const char *append_extensions[] = {
       VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
   };
-  uint32_t append_extensions_count = sizeof(append_extensions) / sizeof(append_extensions[0]);
-  if (!enableDebugLayer) {
-    append_extensions_count = 0;
-  }
+  uint32_t append_extensions_count = enableDebugLayer ?(sizeof(append_extensions) / sizeof(append_extensions[0])) : 0;
 
-  uint32_t extensions_count = 0;
-  const char **glfw_extensions = glfwGetRequiredInstanceExtensions(&extensions_count);
+  uint32_t enabledExtensionCount = extensionCount;
 
-  const char **extensions = (const char **)calloc(extensions_count + append_extensions_count, sizeof(char *));
+  const char **enabledExtensions = (const char **)calloc(extensionCount + append_extensions_count, sizeof(char *));
 
-  for (int i = 0; i < extensions_count; ++i) {
-    extensions[i] = glfw_extensions[i];
+  for (int i = 0; i < extensionCount; ++i) {
+    enabledExtensions[i] = extensions[i];
   }
   for (int i = 0; i < append_extensions_count; ++i) {
-    extensions[extensions_count++] = append_extensions[i];
+    enabledExtensions[enabledExtensionCount++] = append_extensions[i];
   }
 
   // initialize the VkInstanceCreateInfo structure
   VkInstanceCreateInfo inst_info = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
   inst_info.pApplicationInfo = &app_info;
-  inst_info.enabledExtensionCount = extensions_count;
-  inst_info.ppEnabledExtensionNames = extensions;
+  inst_info.enabledExtensionCount = enabledExtensionCount;
+  inst_info.ppEnabledExtensionNames = enabledExtensions;
   if (enableDebugLayer) {
     uint32_t layerCount = 0;
     vkEnumerateInstanceLayerProperties(&layerCount, 0);
@@ -104,7 +98,7 @@ VkInstance createVkInstance(int enableDebugLayer) {
   VkResult res;
   res = vkCreateInstance(&inst_info, NULL, &inst);
 
-  free(extensions);
+  free(enabledExtensions);
 
   if (res == VK_ERROR_INCOMPATIBLE_DRIVER) {
     printf("cannot find a compatible Vulkan ICD\n");

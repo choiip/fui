@@ -34,11 +34,13 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
 	GLFWwindow* window = (GLFWwindow*)nativeWindow;
 
 	VulkanContext::Resource resource;
+	uint32_t extensionCount = 0;
+  	const char **extensions = glfwGetRequiredInstanceExtensions(&extensionCount);
 
 #ifdef NDEBUG
-	resource.instance = createVkInstance(false);
+	resource.instance = createVkInstance(extensions, extensionCount, false);
 #else
-	resource.instance = createVkInstance(true);
+	resource.instance = createVkInstance(extensions, extensionCount, true);
 	resource.debugCallback = CreateDebugReport(resource.instance);
 #endif
 
