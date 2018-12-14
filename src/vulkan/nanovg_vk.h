@@ -1255,7 +1255,7 @@ static int vknvg_renderCreateTexture(void *uptr, int type, int w, int h, int ima
   tex->image = mappableImage;
   tex->view = image_view;
   tex->mem = mappableMemory;
-  tex->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  tex->imageLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
   tex->type = type;
   tex->flags = imageFlags;
   if (data) {
