@@ -6,7 +6,7 @@ namespace fui {
 
 class GLES2Context : public RenderContext {
 public:
-  GLES2Context(NVGcontext* vg);
+  explicit GLES2Context(NVGcontext* vg);
   ~GLES2Context();
 };
 

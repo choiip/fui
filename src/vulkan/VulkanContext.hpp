@@ -24,10 +24,10 @@ public:
   VulkanContext(NVGcontext* vg, Resource& resource);
   ~VulkanContext();
 
-  VulkanDevice* device() { return _resource.device; }
-  VkQueue queue() { return _resource.queue; }
+  VulkanDevice* device() const { return _resource.device; }
+  VkQueue queue() const { return _resource.queue; }
   FrameBuffers* frameBuffer() { return &_resource.frameBuffer; }
-  VkCommandBuffer cmdBuffer() { return _resource.cmdBuffer; }
+  VkCommandBuffer cmdBuffer() const { return _resource.cmdBuffer; }
 
 private:
   Resource _resource;

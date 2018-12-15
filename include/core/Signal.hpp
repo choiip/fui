@@ -27,7 +27,7 @@ template <typename Result> struct CollectorLast {
     last_ = r;
     return true;
   }
-  CollectorResult result() { return last_; }
+  CollectorResult result() const { return last_; }
 
 private:
   Result last_;
@@ -144,7 +144,7 @@ private:
 
 public:
   /// ProtoSignal constructor, connects default callback if non-NULL.
-  ProtoSignal(const CbFunction& method)
+  explicit ProtoSignal(const CbFunction& method)
   : callback_ring_(NULL) {
     if (method != NULL) {
       ensure_ring();
@@ -222,7 +222,7 @@ struct Signal /*final*/ : internal::ProtoSignal<SignalSignature, Collector> {
   typedef internal::ProtoSignal<SignalSignature, Collector> ProtoSignal;
   typedef typename ProtoSignal::CbFunction CbFunction;
   /// Signal constructor, supports a default callback as argument.
-  Signal(const CbFunction& method = CbFunction())
+  explicit Signal(const CbFunction& method = CbFunction())
   : ProtoSignal(method) {}
 };
 
@@ -245,7 +245,7 @@ template <typename Result> struct CollectorUntil0 {
   typedef Result CollectorResult;
   explicit CollectorUntil0()
   : result_() {}
-  const CollectorResult& result() { return result_; }
+  const CollectorResult& result() const { return result_; }
   inline bool operator()(Result r) {
     result_ = r;
     return result_ ? true : false;
@@ -260,7 +260,7 @@ template <typename Result> struct CollectorWhile0 {
   typedef Result CollectorResult;
   explicit CollectorWhile0()
   : result_() {}
-  const CollectorResult& result() { return result_; }
+  const CollectorResult& result() const { return result_; }
   inline bool operator()(Result r) {
     result_ = r;
     return result_ ? false : true;
@@ -274,7 +274,7 @@ private:
 /// emission in a std::vector.
 template <typename Result> struct CollectorVector {
   typedef std::vector<Result> CollectorResult;
-  const CollectorResult& result() { return result_; }
+  const CollectorResult& result() const { return result_; }
   inline bool operator()(Result r) {
     result_.push_back(r);
     return true;

@@ -6,7 +6,7 @@ namespace fui {
 
 class RenderContext {
 public:
-  RenderContext(NVGcontext* vg)
+  explicit RenderContext(NVGcontext* vg)
   : _vg(vg) {}
   NVGcontext* vg() const { return _vg; }
 

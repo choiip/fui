@@ -28,7 +28,12 @@ option(ENABLE_CPPCHECK "Enable testing with cppcheck" FALSE)
 if(ENABLE_CPPCHECK)
   find_program(CPPCHECK cppcheck)
   if(CPPCHECK)
-    set(CMAKE_CXX_CPPCHECK ${CPPCHECK} --suppress=syntaxError --enable=all --inconclusive)
+    list(APPEND CPPCHECK_SUPPRESS
+      --suppress=*:*/glad.h
+      --suppress=*:*/nanovg.h
+      --suppress=*:*/tinyutf8.h
+    )
+    set(CMAKE_CXX_CPPCHECK ${CPPCHECK} --enable=style --inconclusive ${CPPCHECK_SUPPRESS})
   else()
     message(SEND_ERROR "cppcheck requested but executable not found")
   endif()

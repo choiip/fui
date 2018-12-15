@@ -6,7 +6,7 @@ namespace fui {
 
 class GL3Context : public RenderContext {
 public:
-  GL3Context(NVGcontext* vg);
+  explicit GL3Context(NVGcontext* vg);
   ~GL3Context();
 };
 

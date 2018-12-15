@@ -1168,7 +1168,6 @@ static GLNVGblend glnvg__blendCompositeOperation(NVGcompositeOperationState op)
 static void glnvg__renderFlush(void* uptr)
 {
 	GLNVGcontext* gl = (GLNVGcontext*)uptr;
-	int i;
 
 	if (gl->ncalls > 0) {
 
@@ -1224,7 +1223,7 @@ static void glnvg__renderFlush(void* uptr)
 		glBindBuffer(GL_UNIFORM_BUFFER, gl->fragBuf);
 #endif
 
-		for (i = 0; i < gl->ncalls; i++) {
+		for (int i = 0; i < gl->ncalls; i++) {
 			GLNVGcall* call = &gl->calls[i];
 			glnvg__blendFuncSeparate(gl,&call->blendFunc);
 			if (call->type == GLNVG_FILL)
@@ -1579,7 +1578,7 @@ NVGcontext* nvgCreateGLES3(int flags)
 	params.renderTriangles = glnvg__renderTriangles;
 	params.renderDelete = glnvg__renderDelete;
 	params.userPtr = gl;
-	params.edgeAntiAlias = flags & NVG_ANTIALIAS ? 1 : 0;
+	params.edgeAntiAlias = (flags & NVG_ANTIALIAS) ? 1 : 0;
 
 	gl->flags = flags;
 
@@ -1610,13 +1609,13 @@ void nvgDeleteGLES3(NVGcontext* ctx)
 
 inline
 #if defined NANOVG_GL2
-int nvglCreateImageFromHandleGL2(NVGcontext* ctx, GLuint textureId, int w, int h, int imageFlags)
+int nvglCreateImageFromHandleGL2(NVGcontext* ctx, GLuint textureId, int w, int h, int flags)
 #elif defined NANOVG_GL3
-int nvglCreateImageFromHandleGL3(NVGcontext* ctx, GLuint textureId, int w, int h, int imageFlags)
+int nvglCreateImageFromHandleGL3(NVGcontext* ctx, GLuint textureId, int w, int h, int flags)
 #elif defined NANOVG_GLES2
-int nvglCreateImageFromHandleGLES2(NVGcontext* ctx, GLuint textureId, int w, int h, int imageFlags)
+int nvglCreateImageFromHandleGLES2(NVGcontext* ctx, GLuint textureId, int w, int h, int flags)
 #elif defined NANOVG_GLES3
-int nvglCreateImageFromHandleGLES3(NVGcontext* ctx, GLuint textureId, int w, int h, int imageFlags)
+int nvglCreateImageFromHandleGLES3(NVGcontext* ctx, GLuint textureId, int w, int h, int flags)
 #endif
 {
 	GLNVGcontext* gl = (GLNVGcontext*)nvgInternalParams(ctx)->userPtr;
@@ -1626,7 +1625,7 @@ int nvglCreateImageFromHandleGLES3(NVGcontext* ctx, GLuint textureId, int w, int
 
 	tex->type = NVG_TEXTURE_RGBA;
 	tex->tex = textureId;
-	tex->flags = imageFlags;
+	tex->flags = flags;
 	tex->width = w;
 	tex->height = h;
 

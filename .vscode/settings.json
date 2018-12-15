@@ -48,12 +48,15 @@
         "iostream": "cpp",
         "ratio": "cpp",
         "cinttypes": "cpp",
-        "perf.h": "c"
+        "perf.h": "c",
+        "__config": "cpp",
+        "__nullptr": "cpp",
+        "algorithm": "cpp"
     },
     "cmake.configureOnOpen": true,
-    // "cmake.environment": {
-    //     "VULKAN_SDK": "${workspaceRoot}/vulkansdk"
-    // },
+    "cmake.environment": {
+        "VULKAN_SDK": "${workspaceRoot}/vulkansdk"
+    },
     "editor.formatOnSave": true,
     "editor.tabSize": 2,
 }
