@@ -6,7 +6,9 @@
 #include "core/RenderContext.hpp"
 #include "GL/GlfwGL3Profile.hpp"
 #include "GL/GlfwGLES2Profile.hpp"
+#ifdef FUI_ENABLE_VULKAN
 #include "vulkan/GlfwVulkanProfile.hpp"
+#endif
 
 namespace fui {
 
@@ -94,12 +96,16 @@ RenderWindow* GlfwWindowManager::createWindow(int width, int height, const Graph
 }
 
 GraphicsProfile* GlfwWindowManager::createGraphicsProfile(GraphicsAPI api, int major, int minor) {
+#ifndef __EMSCRIPTEN__
   if (api == GraphicsAPI::OPENGL)
     return new GlfwGL3Profile();
+#endif
   if (api == GraphicsAPI::OPENGL_ES)
     return new GlfwGLES2Profile();
+#ifdef FUI_ENABLE_VULKAN
   if (api == GraphicsAPI::VULKAN)
     return new GlfwVulkanProfile();
+#endif
   return nullptr;
 }
 

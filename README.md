@@ -14,3 +14,13 @@ UI framework
 
 ### Ubuntu
 > apt-get install -y cppcheck clang-format clang-tidy
+
+# Setup docker image for Emscirpten build
+## Install build script
+> docker run --rm dockcross/browser-asmjs > ~/bin/dockcross-browser-asmjs
+
+> chmod +x ~/bin/dockcross-browser-asmjs
+
+## Run build script
+> ~/bin/dockcross-browser-asmjs cmake -GNinja -Bbuild/web/ -H.
+
