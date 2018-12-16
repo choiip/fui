@@ -24,3 +24,6 @@ UI framework
 ## Run build script
 > ~/bin/dockcross-browser-asmjs cmake -GNinja -Bbuild/web/ -H.
 
+## Build
+> ~/bin/dockcross-browser-asmjs cmake --build build/web/
+

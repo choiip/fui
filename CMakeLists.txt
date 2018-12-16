@@ -122,14 +122,4 @@ target_include_directories(fui PRIVATE ${PROJECT_SOURCE_DIR}/src)
 target_link_libraries(fui PUBLIC glfw ${EXTRA_LIB})
 
 ## examples
-add_executable(example examples/example.cpp examples/demo.c examples/perf.c)
-
-target_include_directories(example PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(example PRIVATE ${PROJECT_SOURCE_DIR}/src)
-
-target_link_libraries(example fui)
-
-if (EMSCRIPTEN)
-  set_target_properties(example PROPERTIES LINK_FLAGS "-s USE_GLFW=3 --preload-file ${CMAKE_CURRENT_LIST_DIR}/examples/assets@examples/assets/")
-  set_target_properties(example PROPERTIES SUFFIX ".html")
-endif()
+add_subdirectory(examples)
