@@ -12,6 +12,8 @@ set(CMAKE_MODULE_PATH
   "${PROJECT_SOURCE_DIR}/cmake"
 )
 
+include(CMakeDependentOption)
+
 ##
 ## Compiler flags
 ##
@@ -24,6 +26,7 @@ set (CMAKE_CXX_STANDARD 17)
 ##
 option(ENABLE_CLANG_TIDY "Enable testing with clang-tidy" FALSE)
 option(ENABLE_CPPCHECK "Enable testing with cppcheck" FALSE)
+cmake_dependent_option(WITH_VULKAN "Build with vulkan." TRUE "NOT EMSCRIPTEN" FALSE)
 
 if(ENABLE_CPPCHECK)
   find_program(CPPCHECK cppcheck)
@@ -62,7 +65,9 @@ list(APPEND GLAD_SOURCES
 )
 
 ## glfw
-find_package(glfw3 3.2 REQUIRED)
+if (NOT EMSCRIPTEN)
+  find_package(glfw3 3.2 REQUIRED)
+endif()
 
 ## nanovg
 list(APPEND NANOVG_SOURCES
@@ -77,8 +82,10 @@ list(APPEND TINYUTF8_SOURCES
 )
 
 ## vulkan
-find_package(Vulkan)
-set(EXTRA_LIB Vulkan::Vulkan)
+if (WITH_VULKAN)
+  find_package(Vulkan)
+  set(EXTRA_LIB Vulkan::Vulkan)
+endif()
 
 ## fui
 list(APPEND FUI_SOURCES
@@ -89,15 +96,24 @@ list(APPEND FUI_SOURCES
   src/GL/GLES2Context.cpp
   src/GL/GlfwGL3Profile.cpp
   src/GL/GlfwGLES2Profile.cpp
+)
+
+if (WITH_VULKAN)
+list (APPEND FUI_SOURCES
   src/vulkan/GlfwVulkanProfile.cpp
   src/vulkan/vku.c
   src/vulkan/VulkanContext.cpp
 )
+endif()
 
 add_library(fui STATIC ${GLAD_SOURCES} ${NANOVG_SOURCES} ${TINYUTF8_SOURCES} ${FUI_SOURCES})
 
 if (FUI_BUILD_SHARED)
-  target_compile_definitions(fui GLAD_GLAPI_EXPORT)
+  target_compile_definitions(fui PUBLIC GLAD_GLAPI_EXPORT)
+endif()
+
+if (WITH_VULKAN)
+  target_compile_definitions(fui PUBLIC FUI_ENABLE_VULKAN)
 endif()
 
 target_include_directories(fui PUBLIC ${PROJECT_SOURCE_DIR}/include)
@@ -106,9 +122,4 @@ target_include_directories(fui PRIVATE ${PROJECT_SOURCE_DIR}/src)
 target_link_libraries(fui PUBLIC glfw ${EXTRA_LIB})
 
 ## examples
-add_executable(example examples/example.cpp examples/demo.c examples/perf.c)
-
-target_include_directories(example PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(example PRIVATE ${PROJECT_SOURCE_DIR}/src)
-
-target_link_libraries(example fui)
+add_subdirectory(examples)

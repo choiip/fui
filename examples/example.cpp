@@ -7,10 +7,11 @@
 #include <core/GraphicsProfile.hpp>
 #include <core/RenderWindow.hpp>
 #include <core/Status.hpp>
+#ifdef FUI_ENABLE_VULKAN
 #include <vulkan/VulkanContext.hpp>
+#endif
 using namespace fui;
 #include <GL/glad.h>
-#include <vulkan/vku.h>
 
 #include "demo.h"
 #include "perf.h"
@@ -26,6 +27,7 @@ public:
   , cpuTime(0) {
     renderWindow->onKey([renderWindow](int key, int action, int mods) {
       if (key == FUI_KEY_ESCAPE) {
+        std::cout << "Window closing...\n";
         renderWindow->close();
       }
     });
@@ -41,9 +43,11 @@ protected:
       std::cerr << "loadDemoData error\n";
       return Status::UNKNOWN_ERROR;
     }
+
+    // window->setSwapInterval(0);
     // initGPUTimer(&gpuTimer);
     prevt = clock::now();
-
+    window->show();
     return Status::OK;
   }
 
@@ -113,7 +117,7 @@ protected:
   double cpuTime;
   int mx, my;
 };
-
+#ifdef FUI_ENABLE_VULKAN
 class VulkanExampleApp : public ExampleApp {
 public:
   VulkanExampleApp(RenderWindow* renderWindow)
@@ -261,10 +265,11 @@ private:
 private:
   VulkanContext* _vulkanContext;
 };
+#endif
 
 int main() {
   GlfwWindowManager windowManager;
-  auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL, 3, 2);
+  auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL_ES, 3, 2);
   if (!graphicsProfile)
     return -1;
 
@@ -274,10 +279,7 @@ int main() {
   if (!window)
     return -1;
 
-  window->setSwapInterval(0);
-
   ExampleApp app(window);
-  window->show();
   app.run(*window);
 
   return 0;

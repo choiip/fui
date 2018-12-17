@@ -32,7 +32,7 @@ RenderContext* GlfwGLES2Profile::createContext(void* nativeWindow) const {
 
   auto vg = nvgCreateGLES2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
   if (vg == NULL) {
-    std::cerr << ("Could not init nanovg.\n");
+    std::cerr << ("Could not init nanovg (GLES2).\n");
     return nullptr;
   }
 

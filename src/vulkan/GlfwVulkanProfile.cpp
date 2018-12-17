@@ -74,7 +74,7 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
 
   auto vg = nvgCreateVk(createInfo, NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
   if (vg == NULL) {
-    std::cerr << ("Could not init nanovg.\n");
+    std::cerr << ("Could not init nanovg (Vulkan).\n");
     return nullptr;
   }
 
