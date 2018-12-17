@@ -27,3 +27,8 @@ UI framework
 ## Build
 > ~/bin/dockcross-browser-asmjs cmake --build build/web/
 
+# Known issues
+In firefox, suppose a texture initialize without data provided (i.e. glTexImage2D(..., NULL)). The the subsequence call on glTexSubImage2D on that texture with partial upload of data will generate the following warning:
+WebGL warning: texSubImage2D: Texture has not been initialized prior to a partial upload, forcing the browser to clear it. This may be slow.
+WebGL warning: texSubImage2D: This operation requires zeroing texture data. This is slow.
+
