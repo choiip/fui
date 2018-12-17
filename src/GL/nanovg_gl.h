@@ -984,7 +984,6 @@ static void glnvg__setUniforms(GLNVGcontext* gl, int uniformOffset, int image)
 	if (image != 0) {
 		GLNVGtexture* tex = glnvg__findTexture(gl, image);
 		glnvg__bindTexture(gl, tex != NULL ? tex->tex : 0);
-		glnvg__checkError(gl, "tex paint tex");
 	} else {
 		glnvg__bindTexture(gl, gl->emptyTexture);
 	}
@@ -1110,8 +1109,9 @@ static void glnvg__triangles(GLNVGcontext* gl, GLNVGcall* call)
 {
 	glnvg__setUniforms(gl, call->uniformOffset, call->image);
 	glnvg__checkError(gl, "triangles fill");
-
-	glDrawArrays(GL_TRIANGLES, call->triangleOffset, call->triangleCount);
+	if (call->triangleCount > 0) {
+		glDrawArrays(GL_TRIANGLES, call->triangleOffset, call->triangleCount);
+	}
 }
 
 static void glnvg__renderCancel(void* uptr) {
