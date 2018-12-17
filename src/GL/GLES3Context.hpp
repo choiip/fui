@@ -6,10 +6,10 @@ namespace fui {
 
 enum class Status;
 
-class GLES2Context : public RenderContext {
+class GLES3Context : public RenderContext {
 public:
-  GLES2Context();
-  ~GLES2Context();
+  GLES3Context();
+  ~GLES3Context();
 
   Status initVG();
 };

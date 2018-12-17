@@ -10,9 +10,7 @@
 #include "vku.h"
 #include <GLFW/glfw3.h>
 
-#define NANOVG_VULKAN_IMPLEMENTATION
-#include "nanovg_vk.h"
-
+#include "core/Status.hpp"
 #include "VulkanContext.hpp"
 
 namespace fui {
@@ -66,22 +64,12 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
   resource.frameBuffer = createFrameBuffers(device, resource.surface, resource.queue, winWidth, winHeight, 0);
   resource.cmdBuffer = createCmdBuffer(device->device, device->commandPool);
 
-  VKNVGCreateInfo createInfo = {0};
-  createInfo.device = device->device;
-  createInfo.gpu = device->gpu;
-  createInfo.renderpass = resource.frameBuffer.render_pass;
-  createInfo.cmdBuffer = resource.cmdBuffer;
-
-  auto vg = nvgCreateVk(createInfo, NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-  if (vg == NULL) {
-    std::cerr << ("Could not init nanovg (Vulkan).\n");
+  std::unique_ptr<VulkanContext> context(new VulkanContext(resource));
+  if (!context) {
+    std::cerr << ("Could not create render context.\n");
     return nullptr;
   }
-
-  std::unique_ptr<VulkanContext> context(new VulkanContext(vg, resource));
-  if (!context) {
-    nvgDeleteVk(vg);
-    std::cerr << ("Could not create render context.\n");
+  if (context->initVG() != Status::OK) {
     return nullptr;
   }
 

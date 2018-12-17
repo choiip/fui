@@ -4,10 +4,14 @@
 
 namespace fui {
 
+enum class Status;
+
 class GL3Context : public RenderContext {
 public:
-  explicit GL3Context(NVGcontext* vg);
+  GL3Context();
   ~GL3Context();
+
+  Status initVG();
 };
 
 } // namespace fui

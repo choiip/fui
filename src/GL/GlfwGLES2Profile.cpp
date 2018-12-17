@@ -4,11 +4,9 @@
 #include <iostream>
 #include <memory>
 
-#include "nanovg/nanovg.h"
-#define NANOVG_GLES2_IMPLEMENTATION
-#include "nanovg_gl.h"
-
+#include "core/Status.hpp"
 #include "GL/GLES2Context.hpp"
+#include "GL/GLES3Context.hpp"
 
 namespace fui {
 
@@ -30,20 +28,33 @@ RenderContext* GlfwGLES2Profile::createContext(void* nativeWindow) const {
   }
   glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
 
-  auto vg = nvgCreateGLES2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-  if (vg == NULL) {
-    std::cerr << ("Could not init nanovg (GLES2).\n");
-    return nullptr;
+  int glMajor = 0;
+  glfwGetVersion(&glMajor, NULL, NULL);
+
+  if (glMajor == 3) {
+    std::unique_ptr<GLES3Context> context(new GLES3Context);
+    if (!context) {
+      std::cerr << ("Could not create render context.\n");
+      return nullptr;
+    }
+    if (context->initVG() != Status::OK) {
+      return nullptr;
+    }
+    return context.release();    
   }
 
-  std::unique_ptr<GLES2Context> context(new GLES2Context(vg));
-  if (!context) {
-    nvgDeleteGLES2(vg);
-    std::cerr << ("Could not create render context.\n");
-    return nullptr;
+  if (glMajor == 2) {
+    std::unique_ptr<GLES2Context> context(new GLES2Context);
+    if (!context) {
+      std::cerr << ("Could not create render context.\n");
+      return nullptr;
+    }
+    if (context->initVG() != Status::OK) {
+      return nullptr;
+    }
+    return context.release();    
   }
-
-  return context.release();
+  return nullptr;
 }
 
 } // namespace fui

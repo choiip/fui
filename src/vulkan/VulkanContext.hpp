@@ -5,6 +5,8 @@
 
 namespace fui {
 
+enum class Status;
+
 class VulkanContext : public RenderContext {
 public:
   struct Resource {
@@ -21,8 +23,10 @@ public:
   };
 
 public:
-  VulkanContext(NVGcontext* vg, Resource& resource);
+  VulkanContext(Resource& resource);
   ~VulkanContext();
+
+  Status initVG();
 
   VulkanDevice* device() const { return _resource.device; }
   VkQueue queue() const { return _resource.queue; }

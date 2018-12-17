@@ -237,7 +237,7 @@ struct GLNVGcontext {
 	int textureId;
 	GLuint emptyTexture;
 	GLuint vertBuf;
-#if defined NANOVG_GL3
+#if defined (NANOVG_GL3) || defined (NANOVG_GLES3)
 	GLuint vertArr;
 #endif
 #if NANOVG_GL_USE_UNIFORMBUFFER
@@ -688,7 +688,7 @@ static int glnvg__renderCreate(void* uptr)
 	glnvg__getUniforms(&gl->shader);
 
 	// Create dynamic vertex array
-#if defined NANOVG_GL3
+#if defined (NANOVG_GL3) || defined (NANOVG_GLES3)
 	glGenVertexArrays(1, &gl->vertArr);
 #endif
 	glGenBuffers(1, &gl->vertBuf);
@@ -1206,7 +1206,7 @@ static void glnvg__renderFlush(void* uptr)
 #endif
 
 		// Upload vertex data
-#if defined NANOVG_GL3
+#if defined (NANOVG_GL3) || defined (NANOVG_GLES3)
 		glBindVertexArray(gl->vertArr);
 #endif
 		glBindBuffer(GL_ARRAY_BUFFER, gl->vertBuf);
@@ -1239,7 +1239,7 @@ static void glnvg__renderFlush(void* uptr)
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
-#if defined NANOVG_GL3
+#if defined (NANOVG_GL3) || defined (NANOVG_GLES3)
 		glBindVertexArray(0);
 #endif
 		glDisable(GL_CULL_FACE);
@@ -1523,7 +1523,7 @@ static void glnvg__renderDelete(void* uptr)
 
 	glnvg__deleteShader(&gl->shader);
 
-#if NANOVG_GL3
+#if (NANOVG_GL3) || defined (NANOVG_GLES3)
 #if NANOVG_GL_USE_UNIFORMBUFFER
 	if (gl->fragBuf != 0)
 		glDeleteBuffers(1, &gl->fragBuf);

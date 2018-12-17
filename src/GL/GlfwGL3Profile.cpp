@@ -5,10 +5,7 @@
 #include <iostream>
 #include <memory>
 
-#include "nanovg/nanovg.h"
-#define NANOVG_GL3_IMPLEMENTATION
-#include "nanovg_gl.h"
-
+#include "core/Status.hpp"
 #include "GL/GL3Context.hpp"
 
 namespace fui {
@@ -34,16 +31,12 @@ RenderContext* GlfwGL3Profile::createContext(void* nativeWindow) const {
   }
   glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
 
-  auto vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-  if (vg == NULL) {
-    std::cerr << ("Could not init nanovg (GL3).\n");
+  std::unique_ptr<GL3Context> context(new GL3Context);
+  if (!context) {
+    std::cerr << ("Could not create render context.\n");
     return nullptr;
   }
-
-  std::unique_ptr<GL3Context> context(new GL3Context(vg));
-  if (!context) {
-    nvgDeleteGL3(vg);
-    std::cerr << ("Could not create render context.\n");
+  if (context->initVG() != Status::OK) {
     return nullptr;
   }
 

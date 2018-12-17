@@ -94,6 +94,7 @@ list(APPEND FUI_SOURCES
   src/core/GlfwWindowManager.cpp  
   src/GL/GL3Context.cpp
   src/GL/GLES2Context.cpp
+  src/GL/GLES3Context.cpp  
   src/GL/GlfwGL3Profile.cpp
   src/GL/GlfwGLES2Profile.cpp
 )
