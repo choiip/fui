@@ -235,6 +235,7 @@ struct GLNVGcontext {
 	int ntextures;
 	int ctextures;
 	int textureId;
+	GLuint emptyTexture;
 	GLuint vertBuf;
 #if defined NANOVG_GL3
 	GLuint vertArr;
@@ -985,7 +986,7 @@ static void glnvg__setUniforms(GLNVGcontext* gl, int uniformOffset, int image)
 		glnvg__bindTexture(gl, tex != NULL ? tex->tex : 0);
 		glnvg__checkError(gl, "tex paint tex");
 	} else {
-		glnvg__bindTexture(gl, 0);
+		glnvg__bindTexture(gl, gl->emptyTexture);
 	}
 }
 
@@ -1560,6 +1561,8 @@ NVGcontext* nvgCreateGLES3(int flags)
 {
 	NVGparams params;
 	NVGcontext* ctx = NULL;
+	const unsigned char emptyTextureData[2*2*4] = { 0 };
+	int emptyTextureId = 0;
 	GLNVGcontext* gl = (GLNVGcontext*)malloc(sizeof(GLNVGcontext));
 	if (gl == NULL) goto error;
 	memset(gl, 0, sizeof(GLNVGcontext));
@@ -1581,6 +1584,9 @@ NVGcontext* nvgCreateGLES3(int flags)
 	params.edgeAntiAlias = (flags & NVG_ANTIALIAS) ? 1 : 0;
 
 	gl->flags = flags;
+
+	emptyTextureId = glnvg__renderCreateTexture(gl, NVG_TEXTURE_RGBA, 2, 2, NVG_IMAGE_NEAREST, emptyTextureData);
+	gl->emptyTexture = glnvg__findTexture(gl, emptyTextureId)->tex;
 
 	ctx = nvgCreateInternal(&params);
 	if (ctx == NULL) goto error;
