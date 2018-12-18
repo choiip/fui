@@ -1,6 +1,6 @@
 #include <chrono>
 #include <iostream>
-
+#include <memory>
 #include <GL/GL3Context.hpp>
 #include <core/ApplicationContext.hpp>
 #include <core/GlfwWindowManager.hpp>
@@ -36,6 +36,7 @@ public:
       this->my = ypos;
     });
   }
+  virtual ~ExampleApp() {}
 
 protected:
   virtual Status onEnter() override {
@@ -124,10 +125,10 @@ public:
   : ExampleApp(renderWindow) {
     _vulkanContext = static_cast<VulkanContext*>(renderWindow->renderContext());
   }
+  virtual ~VulkanExampleApp() {}
 
 protected:
   virtual void onDraw() override {
-    int mx, my;
     time_point t;
     double dt;
     int winWidth, winHeight;
@@ -140,7 +141,6 @@ protected:
     dt = (t - prevt).count() / (double)(1000 * 1000 * 1000);
     prevt = t;
 
-    window->getCursorPos(mx, my);
     window->getWindowSize(winWidth, winHeight);
     window->getDrawableSize(fbWidth, fbHeight);
     // Calculate pixel ration for hi-dpi devices.
@@ -269,7 +269,7 @@ private:
 
 int main() {
   GlfwWindowManager windowManager;
-  auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL_ES, 3, 2);
+  auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL, 3, 2);
   if (!graphicsProfile)
     return -1;
 
@@ -279,8 +279,8 @@ int main() {
   if (!window)
     return -1;
 
-  ExampleApp app(window);
-  app.run(*window);
+  std::unique_ptr<ApplicationContext> app(new ExampleApp(window));
+  app->run(*window);
 
   return 0;
 }
