@@ -29,7 +29,11 @@ RenderContext* GlfwGLES2Profile::createContext(void* nativeWindow) const {
   glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
 
   int glMajor = 0;
+#ifdef __EMSCRIPTEN__
+  glMajor = 2;
+#else
   glfwGetVersion(&glMajor, NULL, NULL);
+#endif
 
   if (glMajor == 3) {
     std::unique_ptr<GLES3Context> context(new GLES3Context);
