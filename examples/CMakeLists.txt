@@ -19,3 +19,15 @@ endif()
 add_executable(widgetSample widgetSample.cpp)
 
 target_link_libraries(widgetSample fui)
+
+## load font sample
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_executable(loadFontSample loadFontSample.cpp FontDescriptor.h FontManagerLinux.cc)
+  target_link_libraries(loadFontSample fui fontconfig)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  add_executable(loadFontSample loadFontSample.cpp FontDescriptor.h FontManagerWindows.cc)
+  target_link_libraries(loadFontSample fui)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  add_executable(loadFontSample loadFontSample.cpp FontDescriptor.h FontManagerMac.mm)
+  target_link_libraries(loadFontSample fui)
+endif()
