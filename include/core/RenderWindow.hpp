@@ -1,14 +1,19 @@
 #pragma once
 
 #include "EventWindow.hpp"
+#include "widget/WidgetContainer.hpp"
 
 namespace fui {
 
 class RenderContext;
 
-class RenderWindow : public EventWindow {
+class RenderWindow : public EventWindow, public WidgetContainer {
 public:
+  RenderWindow();
+
   virtual ~RenderWindow() = default;
+
+  void drawGui();
 
   virtual void* nativeWindow() const = 0;
 

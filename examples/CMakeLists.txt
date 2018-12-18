@@ -14,3 +14,8 @@ if (EMSCRIPTEN)
     SUFFIX ".html"
   )
 endif()
+
+## widget sample
+add_executable(widgetSample widgetSample.cpp)
+
+target_link_libraries(widgetSample fui)

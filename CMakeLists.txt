@@ -92,11 +92,15 @@ list(APPEND FUI_SOURCES
   src/core/ApplicationContext.cpp
   src/core/GlfwRenderWindow.cpp
   src/core/GlfwWindowManager.cpp  
+  src/core/RenderWindow.cpp
   src/GL/GL3Context.cpp
   src/GL/GLES2Context.cpp
   src/GL/GLES3Context.cpp  
   src/GL/GlfwGL3Profile.cpp
   src/GL/GlfwGLES2Profile.cpp
+  src/widget/Button.cpp
+  src/widget/Widget.cpp
+  src/widget/WidgetContainer.cpp
 )
 
 if (WITH_VULKAN)
