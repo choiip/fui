@@ -15,7 +15,11 @@ Status GLES2Context::initVG() {
   if (_vg != nullptr) {
     nvgDeleteGLES2(_vg);
   }
-  _vg = nvgCreateGLES2(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+  int flag = NVG_ANTIALIAS | NVG_STENCIL_STROKES;
+#ifdef NDEBUG
+  flag |= NVG_DEBUG;
+#endif
+  _vg = nvgCreateGLES2(flag);
   if (_vg == NULL) {
     std::cerr << ("Could not init nanovg (GLES2).\n");
     return Status::UNKNOWN_ERROR;

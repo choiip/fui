@@ -34,8 +34,11 @@ Status VulkanContext::initVG() {
   createInfo.gpu = _resource.gpu;
   createInfo.renderpass = _resource.frameBuffer.render_pass;
   createInfo.cmdBuffer = _resource.cmdBuffer;
-
-  _vg = nvgCreateVk(createInfo, NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+  int flag = NVG_ANTIALIAS | NVG_STENCIL_STROKES;
+#ifdef NDEBUG
+  flag |= NVG_DEBUG;
+#endif
+  _vg = nvgCreateVk(createInfo, flag);
   if (_vg == NULL) {
     std::cerr << ("Could not init nanovg (Vulkan).\n");
     return Status::UNKNOWN_ERROR;

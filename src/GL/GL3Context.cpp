@@ -15,7 +15,11 @@ Status GL3Context::initVG() {
   if (_vg != nullptr) {
     nvgDeleteGL3(_vg);
   }
-  _vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+  int flag = NVG_ANTIALIAS | NVG_STENCIL_STROKES;
+#ifdef NDEBUG
+  flag |= NVG_DEBUG;
+#endif  
+  _vg = nvgCreateGL3(flag);
   if (_vg == NULL) {
     std::cerr << ("Could not init nanovg (GL3).\n");
     return Status::UNKNOWN_ERROR;
