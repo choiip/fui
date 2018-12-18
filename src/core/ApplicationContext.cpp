@@ -2,35 +2,35 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 #endif
-#include "core/RenderWindow.hpp"
+#include "core/AbstractWindowManager.hpp"
 #include "core/Status.hpp"
-
-#include <GLFW/glfw3.h>
 
 namespace fui {
 
-static void mainLoop(void* context) {
-  auto appContext = static_cast<ApplicationContext*>(context);
-  appContext->drawOnce();
-  glfwPollEvents();
+struct MainLoopArgument {
+  ApplicationContext* appContext;
+  AbstractWindowManager* windowManager;
+};
+
+static void mainLoop(void* argu) {
+  auto mainLoopArgu = static_cast<MainLoopArgument*>(argu);
+  mainLoopArgu->appContext->drawOnce();
+  mainLoopArgu->windowManager->pollEvent();
 }
 
-ApplicationContext::ApplicationContext()
-: window(nullptr) {}
+ApplicationContext::ApplicationContext() {}
 
 ApplicationContext::~ApplicationContext() = default;
 
-void ApplicationContext::run(RenderWindow& window) {
-  auto nativeWindow = static_cast<GLFWwindow*>(window.nativeWindow());
-  this->window = &window;
-
+void ApplicationContext::run(AbstractWindowManager& windowManager) {
+  MainLoopArgument argu = { this, &windowManager };
   onEnter();
 
 #if __EMSCRIPTEN__
-  emscripten_set_main_loop_arg(mainLoop, this, 0, 1);
+  emscripten_set_main_loop_arg(mainLoop, &argu, 0, 1);
 #else
-  while (!glfwWindowShouldClose(nativeWindow)) {
-    mainLoop(this);
+  while (not windowManager.shouldQuit()) {
+    mainLoop(&argu);
   }
 #endif
   onExit();

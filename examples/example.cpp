@@ -23,7 +23,8 @@ protected:
 
 public:
   ExampleApp(RenderWindow* renderWindow)
-  : vg(renderWindow->renderContext()->vg())
+  : window(renderWindow)
+  , vg(renderWindow->renderContext()->vg())
   , cpuTime(0) {
     renderWindow->onKey([renderWindow](int key, int action, int mods) {
       if (key == FUI_KEY_ESCAPE) {
@@ -111,8 +112,9 @@ protected:
 
   virtual void onExit() override { freeDemoData(vg, &data); }
 
-  DemoData data;
+  RenderWindow* window;
   NVGcontext* vg;
+  DemoData data;
   PerfGraph fps, cpuGraph, gpuGraph;
   time_point prevt;
   double cpuTime;
@@ -280,7 +282,7 @@ int main() {
     return -1;
 
   std::unique_ptr<ApplicationContext> app(new ExampleApp(window));
-  app->run(*window);
+  app->run(windowManager);
 
   return 0;
 }

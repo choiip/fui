@@ -21,7 +21,10 @@ public:
   virtual ~GlfwWindowManager();
   virtual RenderWindow* createWindow(int width, int height, const GraphicsProfile& graphicsProfile) override;
   virtual GraphicsProfile* createGraphicsProfile(GraphicsAPI api, int major, int minor) override;
+  virtual void pollEvent() override;
+  virtual bool shouldQuit() override;
 
+  bool hasRunableWindow() const;
   const std::unordered_map<GLFWwindow*, GlfwRenderWindow*>& getWindows() const;
 };
 

@@ -109,6 +109,23 @@ GraphicsProfile* GlfwWindowManager::createGraphicsProfile(GraphicsAPI api, int m
   return nullptr;
 }
 
+void GlfwWindowManager::pollEvent() {
+  glfwPollEvents();
+}
+
+bool GlfwWindowManager::shouldQuit() {
+  return not hasRunableWindow();
+}
+
+bool GlfwWindowManager::hasRunableWindow() const {
+  for (auto&& w: _windows) {
+    if (!glfwWindowShouldClose(w.first)) {
+      return true;
+    } 
+  }
+  return false;
+}
+
 const std::unordered_map<GLFWwindow*, GlfwRenderWindow*>& GlfwWindowManager::getWindows() const { return _windows; }
 
 } // namespace fui

@@ -2,22 +2,20 @@
 
 namespace fui {
 
-class RenderWindow;
+class AbstractWindowManager;
 enum class Status;
 
 class ApplicationContext {
 public:
   ApplicationContext();
   virtual ~ApplicationContext();
-  void run(RenderWindow& window);
+  void run(AbstractWindowManager& windowManager);
   void drawOnce();
 
 protected:
   virtual Status onEnter();
   virtual void onDraw();
   virtual void onExit();
-
-  RenderWindow* window;
 };
 
 } // namespace fui
