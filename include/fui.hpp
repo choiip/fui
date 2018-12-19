@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/ApplicationContext.hpp>
+#include <core/Cursor.hpp>
 #include <core/GlfwWindowManager.hpp>
 #include <core/GraphicsProfile.hpp>
 #include <core/RenderWindow.hpp>

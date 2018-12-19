@@ -8,6 +8,7 @@ namespace fui {
 
 GlfwRenderWindow::GlfwRenderWindow(GLFWwindow* window, RenderContext* renderContext)
 : _window(window)
+, _cursor(window)
 , _renderContext(renderContext) {}
 
 GlfwRenderWindow::~GlfwRenderWindow() {
@@ -20,6 +21,8 @@ GlfwRenderWindow::~GlfwRenderWindow() {
 }
 
 void* GlfwRenderWindow::nativeWindow() const { return _window; }
+
+Cursor* GlfwRenderWindow::cursor() { return &_cursor; }
 
 RenderContext* GlfwRenderWindow::renderContext() const { return _renderContext; }
 

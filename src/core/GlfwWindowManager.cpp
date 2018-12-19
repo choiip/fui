@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <GLFW/glfw3.h>
+#include "core/GlfwCursor.hpp"
 #include "core/GlfwRenderWindow.hpp"
 #include "core/RenderContext.hpp"
 #include "GL/GlfwGL3Profile.hpp"

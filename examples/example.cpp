@@ -1,12 +1,8 @@
 #include <chrono>
 #include <iostream>
 #include <memory>
+#include <fui.hpp>
 #include <GL/GL3Context.hpp>
-#include <core/ApplicationContext.hpp>
-#include <core/GlfwWindowManager.hpp>
-#include <core/GraphicsProfile.hpp>
-#include <core/RenderWindow.hpp>
-#include <core/Status.hpp>
 #ifdef FUI_ENABLE_VULKAN
 #include <vulkan/VulkanContext.hpp>
 #endif

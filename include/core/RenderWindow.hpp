@@ -5,9 +5,12 @@
 
 namespace fui {
 
+class Cursor;
 class RenderContext;
 
-class RenderWindow : public EventWindow, public WidgetContainer {
+class RenderWindow
+: public EventWindow
+, public WidgetContainer {
 public:
   RenderWindow();
 
@@ -16,6 +19,8 @@ public:
   void drawGui();
 
   virtual void* nativeWindow() const = 0;
+
+  virtual Cursor* cursor() = 0;
 
   virtual RenderContext* renderContext() const = 0;
 

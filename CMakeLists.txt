@@ -90,6 +90,7 @@ endif()
 ## fui
 list(APPEND FUI_SOURCES
   src/core/ApplicationContext.cpp
+  src/core/GlfwCursor.cpp
   src/core/GlfwRenderWindow.cpp
   src/core/GlfwWindowManager.cpp  
   src/core/RenderWindow.cpp

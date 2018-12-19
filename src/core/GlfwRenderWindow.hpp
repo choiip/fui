@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/RenderWindow.hpp"
+#include "core/GlfwCursor.hpp"
 
 struct GLFWwindow;
 
@@ -13,6 +14,8 @@ public:
   virtual ~GlfwRenderWindow();
 
   virtual void* nativeWindow() const override;
+
+  virtual Cursor* cursor() override;
 
   virtual RenderContext* renderContext() const override;
 
@@ -34,6 +37,7 @@ public:
 
 private:
   GLFWwindow* _window;
+  GlfwCursor _cursor;
   RenderContext* _renderContext;
 };
 

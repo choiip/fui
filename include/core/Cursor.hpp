@@ -1,0 +1,31 @@
+#pragma once
+
+namespace fui {
+
+class Cursor {
+public:
+  enum class Shape {
+    ARROW = 0,
+    IBEAM,
+    WAIT,
+    CROSSHAIR,
+    WAITARROW,
+    SIZENWSE,
+    SIZENESW,
+    SIZEWE,
+    SIZENS,
+    SIZEALL,
+    NO,
+    HAND,
+  };
+
+  virtual ~Cursor() {}
+
+  virtual void hide() = 0;
+
+  virtual void show() = 0;
+
+  virtual void setShape(Shape shape) = 0;
+};
+
+} // namespace fui
