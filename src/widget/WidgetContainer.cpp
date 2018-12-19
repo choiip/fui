@@ -27,7 +27,9 @@ void WidgetContainer::removeChild(Widget* widget) {
 
 void WidgetContainer::draw(RenderContext& renderContext) {
   for (auto&& w : _children) {
-    w->draw(renderContext);
+    if (w->visible()) {
+      w->draw(renderContext);
+    }
   }
 }
 

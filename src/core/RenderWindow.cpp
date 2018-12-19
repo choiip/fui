@@ -5,12 +5,11 @@
 namespace fui {
 
 RenderWindow::RenderWindow()
-: WidgetContainer(nullptr)
-{}
+: WidgetContainer(nullptr) {}
 
 void RenderWindow::drawGui() {
   auto ctx = renderContext();
-  if (ctx) {
+  if (ctx && _visible) {
     int winWidth, winHeight, fbWidth, fbHeight;
     getWindowSize(winWidth, winHeight);
     getDrawableSize(fbWidth, fbHeight);
@@ -20,8 +19,8 @@ void RenderWindow::drawGui() {
     auto vg = ctx->vg();
     nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
     WidgetContainer::draw(*ctx);
-    nvgEndFrame(vg);  
+    nvgEndFrame(vg);
   }
 }
 
-}
+} // namespace fui
