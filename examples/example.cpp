@@ -36,6 +36,10 @@ public:
       this->mx = xpos;
       this->my = ypos;
     });
+    renderWindow->onResize([this](int width, int height) {
+      winWidth = width;
+      winHeight = height;
+    });
   }
   virtual ~ExampleApp() {}
 
@@ -50,13 +54,14 @@ protected:
     // initGPUTimer(&gpuTimer);
     prevt = clock::now();
     window->show();
+    window->getWindowSize(winWidth, winHeight);
     return Status::OK;
   }
 
   virtual void onDraw() override {
     time_point t;
     double dt;
-    int winWidth, winHeight;
+
     int fbWidth, fbHeight;
     float pxRatio;
     float gpuTimes[3];
@@ -68,7 +73,6 @@ protected:
 
     // startGPUTimer(&gpuTimer);
 
-    window->getWindowSize(winWidth, winHeight);
     window->getDrawableSize(fbWidth, fbHeight);
     // Calculate pixel ration for hi-dpi devices.
     pxRatio = (float)fbWidth / (float)winWidth;
@@ -118,7 +122,7 @@ protected:
   PerfGraph fps, cpuGraph, gpuGraph;
   time_point prevt;
   double cpuTime;
-  int mx, my;
+  int mx, my, winWidth = 0, winHeight = 0;
 };
 #ifdef FUI_ENABLE_VULKAN
 class VulkanExampleApp : public ExampleApp {

@@ -18,36 +18,43 @@ static void errorCallback(int error, const char* description) {
   std::cerr << "GlfwWindowManager error: " << description << '\n';
 }
 
-static void windowCloseCallback(GLFWwindow* window) {
-  const auto& windows = GlfwWindowManager::instance().getWindows();
-  auto targetWindow = windows.find(window);
-  if (targetWindow != windows.end()) {
-  }
-  delete targetWindow->second;
-  const_cast<std::unordered_map<GLFWwindow*, GlfwRenderWindow*>&>(windows).erase(window);
-}
-
-static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-  const auto& windows = GlfwWindowManager::instance().getWindows();
-  auto targetWindow = windows.find(window);
-  if (targetWindow != windows.end()) {
-    targetWindow->second->onKeyEvent(key, action, mods);
-  }
-}
-
-static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-  const auto& windows = GlfwWindowManager::instance().getWindows();
-  auto targetWindow = windows.find(window);
-  if (targetWindow != windows.end()) {
-  }
-}
-
-static void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
-  const auto& windows = GlfwWindowManager::instance().getWindows();
-  auto targetWindow = windows.find(window);
-  if (targetWindow != windows.end()) {
-    targetWindow->second->onMouseMoveEvent((int)xpos, (int)ypos);
-  }
+static void setupCallbacks(GLFWwindow* glfwWindow, RenderWindow* renderWindow) {
+  glfwSetWindowCloseCallback(glfwWindow, [](GLFWwindow* window) {
+    const auto& windows = GlfwWindowManager::instance().getWindows();
+    auto targetWindow = windows.find(window);
+    if (targetWindow != windows.end()) {
+      delete targetWindow->second;
+      const_cast<std::unordered_map<GLFWwindow*, GlfwRenderWindow*>&>(windows).erase(targetWindow);
+    }
+  });
+  glfwSetWindowSizeCallback(glfwWindow, [](GLFWwindow* window, int width, int height) {
+    const auto& windows = GlfwWindowManager::instance().getWindows();
+    auto targetWindow = windows.find(window);
+    if (targetWindow != windows.end()) {
+      targetWindow->second->onResizeEvent(width, height);
+    }
+  });
+  glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+    const auto& windows = GlfwWindowManager::instance().getWindows();
+    auto targetWindow = windows.find(window);
+    if (targetWindow != windows.end()) {
+      targetWindow->second->onKeyEvent(key, action, mods);
+    }
+  });
+  glfwSetMouseButtonCallback(glfwWindow, [](GLFWwindow* window, int button, int action, int mods) {
+    const auto& windows = GlfwWindowManager::instance().getWindows();
+    auto targetWindow = windows.find(window);
+    if (targetWindow != windows.end()) {
+      targetWindow->second->onMouseButtonEvent(button, action, mods);
+    }
+  });
+  glfwSetCursorPosCallback(glfwWindow, [](GLFWwindow* window, double xpos, double ypos) {
+    const auto& windows = GlfwWindowManager::instance().getWindows();
+    auto targetWindow = windows.find(window);
+    if (targetWindow != windows.end()) {
+      targetWindow->second->onMouseMoveEvent((int)xpos, (int)ypos);
+    }
+  });
 }
 
 GlfwWindowManager::GlfwWindowManager() {
@@ -86,10 +93,7 @@ RenderWindow* GlfwWindowManager::createWindow(int width, int height, const Graph
   }
 
   // set callbacks
-  glfwSetWindowCloseCallback(glfwWindow, windowCloseCallback);
-  glfwSetKeyCallback(glfwWindow, keyCallback);
-  glfwSetMouseButtonCallback(glfwWindow, mouseButtonCallback);
-  glfwSetCursorPosCallback(glfwWindow, cursorPosCallback);
+  setupCallbacks(glfwWindow, renderWindow.get());
 
   _windows.insert(std::make_pair(glfwWindow, renderWindow.get()));
   return renderWindow.release();
@@ -109,23 +113,19 @@ GraphicsProfile* GlfwWindowManager::createGraphicsProfile(GraphicsAPI api, int m
   return nullptr;
 }
 
-void GlfwWindowManager::pollEvent() {
-  glfwPollEvents();
-}
+void GlfwWindowManager::pollEvent() { glfwPollEvents(); }
 
-bool GlfwWindowManager::shouldQuit() {
-  return not hasRunableWindow();
-}
+bool GlfwWindowManager::shouldQuit() { return not hasRunableWindow(); }
 
 bool GlfwWindowManager::hasRunableWindow() const {
-  for (auto&& w: _windows) {
+  for (auto&& w : _windows) {
     if (!glfwWindowShouldClose(w.first)) {
       return true;
-    } 
+    }
   }
   return false;
 }
 
-const std::unordered_map<GLFWwindow*, GlfwRenderWindow*>& GlfwWindowManager::getWindows() const { return _windows; }
+auto GlfwWindowManager::getWindows() const -> const decltype(_windows)& { return _windows; }
 
 } // namespace fui

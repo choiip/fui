@@ -25,7 +25,7 @@ public:
   virtual bool shouldQuit() override;
 
   bool hasRunableWindow() const;
-  const std::unordered_map<GLFWwindow*, GlfwRenderWindow*>& getWindows() const;
+  auto getWindows() const -> const decltype(_windows)&;
 };
 
 } // namespace fui
