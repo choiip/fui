@@ -35,11 +35,17 @@ static int convertWidth(float unit) {
 }
 
 FontDescriptor *createFontDescriptor(CTFontDescriptorRef descriptor) {
+  // reference: https://developer.apple.com/documentation/coretext/ctfontdescriptor/font_attribute_constants
   NSURL *url = (NSURL *) CTFontDescriptorCopyAttribute(descriptor, kCTFontURLAttribute);
   NSString *psName = (NSString *) CTFontDescriptorCopyAttribute(descriptor, kCTFontNameAttribute);  
   NSString *family = (NSString *) CTFontDescriptorCopyAttribute(descriptor, kCTFontFamilyNameAttribute);
   NSString *style = (NSString *) CTFontDescriptorCopyAttribute(descriptor, kCTFontStyleNameAttribute);
-  
+  NSArray *languages = (NSArray *) CTFontDescriptorCopyAttribute (descriptor, kCTFontLanguagesAttribute);
+  NSString *lang = [[NSString alloc] init];
+  for (NSString* l in languages) {
+    lang = [lang stringByAppendingString:l];
+  }
+
   NSDictionary *traits = (NSDictionary *) CTFontDescriptorCopyAttribute(descriptor, kCTFontTraitsAttribute);
   NSNumber *weightVal = traits[(id)kCTFontWeightTrait];
   FontWeight weight = (FontWeight) convertWeight([weightVal floatValue]);
@@ -55,6 +61,7 @@ FontDescriptor *createFontDescriptor(CTFontDescriptorRef descriptor) {
     [psName UTF8String],
     [family UTF8String],
     [style UTF8String],
+    [lang UTF8String],
     weight,
     width,
     (symbolicTraits & kCTFontItalicTrait) != 0,
@@ -97,19 +104,24 @@ CTFontDescriptorRef getFontDescriptor(FontDescriptor *desc) {
   NSMutableDictionary *attrs = [NSMutableDictionary dictionary];
   CTFontSymbolicTraits symbolicTraits = 0;
 
-  if (desc->postscriptName) {
-    NSString *postscriptName = [NSString stringWithUTF8String:desc->postscriptName];
+  if (!desc->postscriptName.empty()) {
+    NSString *postscriptName = [NSString stringWithUTF8String:desc->postscriptName.c_str()];
     attrs[(id)kCTFontNameAttribute] = postscriptName;
   }
 
-  if (desc->family) {
-    NSString *family = [NSString stringWithUTF8String:desc->family];
+  if (!desc->family.empty()) {
+    NSString *family = [NSString stringWithUTF8String:desc->family.c_str()];
     attrs[(id)kCTFontFamilyNameAttribute] = family;
   }
 
-  if (desc->style) {
-    NSString *style = [NSString stringWithUTF8String:desc->style];
+  if (!desc->style.empty()) {
+    NSString *style = [NSString stringWithUTF8String:desc->style.c_str()];
     attrs[(id)kCTFontStyleNameAttribute] = style;
+  }
+
+  if (!desc->lang.empty()) {
+    NSString *lang = [NSString stringWithUTF8String:desc->lang.c_str()];
+    attrs[(id)kCTFontLanguagesAttribute] = [lang componentsSeparatedByString: @";"];
   }
 
   // build symbolic traits

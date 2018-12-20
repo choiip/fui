@@ -284,7 +284,7 @@ int fons__tt_loadFont(FONScontext *context, FONSttFontImpl *font, unsigned char 
 	FONS_NOTUSED(dataSize);
 
 	font->font.userdata = context;
-	stbError = stbtt_InitFont(&font->font, data, 0);
+	stbError = stbtt_InitFont(&font->font, data, stbtt_GetFontOffsetForIndex(data, 0));
 	return stbError;
 }
 

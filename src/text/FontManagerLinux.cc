@@ -107,22 +107,39 @@ FontWidth convertWidth(int width) {
 FontDescriptor *createFontDescriptor(FcPattern *pattern) {
   FcChar8 *path, *psName, *family, *style;
   int weight, width, slant, spacing;
-
+  FcLangSet *langSet;
+  FcStrSet *ss;
+  FcStrList *sl;
+  char *s;
+  std::string lang;
   FcPatternGetString(pattern, FC_FILE, 0, &path);
   FcPatternGetString(pattern, FC_POSTSCRIPT_NAME, 0, &psName);
   FcPatternGetString(pattern, FC_FAMILY, 0, &family);
   FcPatternGetString(pattern, FC_STYLE, 0, &style);
+  FcPatternGetLangSet(pattern, FC_LANG, 0, &langSet);
 
   FcPatternGetInteger(pattern, FC_WEIGHT, 0, &weight);
   FcPatternGetInteger(pattern, FC_WIDTH, 0, &width);
   FcPatternGetInteger(pattern, FC_SLANT, 0, &slant);
   FcPatternGetInteger(pattern, FC_SPACING, 0, &spacing);
 
+  ss = FcLangSetGetLangs(langSet);
+  sl = FcStrListCreate (ss);
+  FcStrListFirst (sl);
+  while (s = (char*)FcStrListNext (sl)) {
+    lang += s;
+    lang += ';';
+  }
+
+  FcStrListDone (sl);
+  FcStrSetDestroy (ss);
+
   return new FontDescriptor(
     (char *) path,
     (char *) psName,
     (char *) family,
     (char *) style,
+    lang,
     convertWeight(weight),
     convertWidth(width),
     slant == FC_SLANT_ITALIC,
@@ -146,7 +163,7 @@ ResultSet getAvailableFonts() {
   FcInit();
 
   FcPattern *pattern = FcPatternCreate();
-  FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_POSTSCRIPT_NAME, FC_FAMILY, FC_STYLE, FC_WEIGHT, FC_WIDTH, FC_SLANT, FC_SPACING, NULL);
+  FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_POSTSCRIPT_NAME, FC_FAMILY, FC_STYLE, FC_LANG, FC_WEIGHT, FC_WIDTH, FC_SLANT, FC_SPACING, NULL);
   FcFontSet *fs = FcFontList(NULL, pattern, os);
   ResultSet res = getResultSet(fs);
   
@@ -170,6 +187,20 @@ FcPattern *createPattern(FontDescriptor *desc) {
   if (!desc->style.empty())
     FcPatternAddString(pattern, FC_STYLE, (const FcChar8 *) desc->style.c_str());
 
+  if (!desc->lang.empty()) {
+    FcLangSet* langSet = FcLangSetCreate();
+    std::size_t current, previous = 0;
+    current = desc->lang.find_first_of(';');
+    while (current != std::string::npos) {
+      FcLangSetAdd(langSet, (const FcChar8 *) desc->lang.substr(previous, current - previous).c_str());
+      previous = current + 1;
+      current = desc->lang.find_first_of(';', previous);
+    }
+    FcLangSetAdd(langSet, (const FcChar8 *) desc->lang.substr(previous).c_str());
+
+    FcPatternAddLangSet(pattern, FC_LANG, langSet);
+  }
+
   if (desc->italic)
     FcPatternAddInteger(pattern, FC_SLANT, FC_SLANT_ITALIC);
 
@@ -187,7 +218,7 @@ FcPattern *createPattern(FontDescriptor *desc) {
 
 ResultSet findFonts(FontDescriptor *desc) {
   FcPattern *pattern = createPattern(desc);
-  FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_POSTSCRIPT_NAME, FC_FAMILY, FC_STYLE, FC_WEIGHT, FC_WIDTH, FC_SLANT, FC_SPACING, NULL);
+  FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_POSTSCRIPT_NAME, FC_FAMILY, FC_STYLE, FC_LANG, FC_WEIGHT, FC_WIDTH, FC_SLANT, FC_SPACING, NULL);
   FcFontSet *fs = FcFontList(NULL, pattern, os);
   ResultSet res = getResultSet(fs);
 

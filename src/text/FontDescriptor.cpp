@@ -10,11 +10,12 @@ FontDescriptor::FontDescriptor() {
 }
 
 FontDescriptor::FontDescriptor(const char *path, const char *postscriptName, const char *family, const char *style, 
-                FontWeight weight, FontWidth width, bool italic, bool monospace)
+                const std::string& lang, FontWeight weight, FontWidth width, bool italic, bool monospace)
 : path(path)
 , postscriptName(postscriptName)
 , family(family)
 , style(style)
+, lang(lang)
 , weight(weight)
 , width(width)
 , italic(italic)
@@ -26,6 +27,7 @@ FontDescriptor::FontDescriptor(FontDescriptor *desc)
 , postscriptName(desc->postscriptName)
 , family(desc->family)
 , style(desc->style)
+, lang(desc->lang)
 , weight(desc->weight)
 , width(desc->width)
 , italic(desc->italic)

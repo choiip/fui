@@ -37,6 +37,7 @@ public:
   std::string postscriptName;
   std::string family;
   std::string style;
+  std::string lang;
   FontWeight weight;
   FontWidth width;
   bool italic;
@@ -45,7 +46,7 @@ public:
   FontDescriptor();
   
   FontDescriptor(const char *path, const char *postscriptName, const char *family, const char *style, 
-                 FontWeight weight, FontWidth width, bool italic, bool monospace);
+                 const std::string& lang, FontWeight weight, FontWidth width, bool italic, bool monospace);
 
   FontDescriptor(FontDescriptor *desc);
 };
