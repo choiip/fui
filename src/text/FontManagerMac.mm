@@ -1,6 +1,7 @@
 #include <Foundation/Foundation.h>
 #include <CoreText/CoreText.h>
-#include "FontDescriptor.h"
+#include "text/FontDescriptor.hpp"
+using namespace fui;
 
 // converts a CoreText weight (-1 to +1) to a standard weight (100 to 900)
 static int convertWeight(float weight) {
@@ -68,18 +69,18 @@ FontDescriptor *createFontDescriptor(CTFontDescriptorRef descriptor) {
   return res;
 }
 
-ResultSet *getAvailableFonts() {
+ResultSet getAvailableFonts() {
   // cache font collection for fast use in future calls
   static CTFontCollectionRef collection = NULL;
   if (collection == NULL)
     collection = CTFontCollectionCreateFromAvailableFonts(NULL);
   
   NSArray *matches = (NSArray *) CTFontCollectionCreateMatchingFontDescriptors(collection);  
-  ResultSet *results = new ResultSet();
+  ResultSet results;
   
   for (id m in matches) {
     CTFontDescriptorRef match = (CTFontDescriptorRef) m;
-    results->push_back(createFontDescriptor(match));
+    results.push_back(createFontDescriptor(match));
   }
   
   [matches release];
@@ -155,10 +156,10 @@ int metricForMatch(CTFontDescriptorRef match, FontDescriptor *desc) {
   return metric;
 }
 
-ResultSet *findFonts(FontDescriptor *desc) {
+ResultSet findFonts(FontDescriptor *desc) {
   CTFontDescriptorRef descriptor = getFontDescriptor(desc);
   NSArray *matches = (NSArray *) CTFontDescriptorCreateMatchingFontDescriptors(descriptor, NULL);
-  ResultSet *results = new ResultSet();
+  ResultSet results;
   
   NSArray *sorted = [matches sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
     int ma = metricForMatch((CTFontDescriptorRef) a, desc);
@@ -171,7 +172,7 @@ ResultSet *findFonts(FontDescriptor *desc) {
     int mb = metricForMatch((CTFontDescriptorRef) m, desc);
     
     if (mb < 10000) {
-      results->push_back(createFontDescriptor(match));
+      results.push_back(createFontDescriptor(match));
     }
   }
   

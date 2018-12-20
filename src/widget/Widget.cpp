@@ -16,6 +16,14 @@ Widget::~Widget() {
   }
 }
 
+void Widget::setStyle(const std::shared_ptr<WidgetStyle>& style) {
+  _style = style;
+}
+
 void Widget::draw(RenderContext& renderContext) {}
+
+const WidgetStyle& Widget::style() const {
+  return (_style ? *(const WidgetStyle*)_style.get() : _parent->style());
+}
 
 } // namespace fui

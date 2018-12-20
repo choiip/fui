@@ -11,6 +11,10 @@ public:
 
 protected:
   virtual Status onEnter() override {
+    // load fonts
+
+
+    // Gui
     int x = 10, y = 10;
     _renderWindow->addChild<Button>("1st Button")
         ->backgroundColor({0.f, 0.3f, 0.5f, 1.f})
@@ -28,6 +32,7 @@ protected:
         ->size({140, 28});
     y += 40;
 
+    // Events
     _renderWindow->onKey([this](int key, int action, int mods) {
       if (key == FUI_KEY_ESCAPE) {
         std::cout << "Window closing...\n";
@@ -35,6 +40,7 @@ protected:
       }
     });
 
+    // Show window
     _renderWindow->show();
     return Status::OK;
   }

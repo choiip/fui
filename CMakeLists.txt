@@ -77,14 +77,14 @@ list(APPEND NANOVG_SOURCES
 
 ## tinyutf8
 list(APPEND TINYUTF8_SOURCES
-  src/tinyutf8/tinyutf8.h 
-  src/tinyutf8/tinyutf8.cpp
+  src/text/tinyutf8.h 
+  src/text/tinyutf8.cpp
 )
 
 ## vulkan
 if (WITH_VULKAN)
   find_package(Vulkan)
-  set(EXTRA_LIB Vulkan::Vulkan)
+  list(APPEND EXTRA_LIB Vulkan::Vulkan)
 endif()
 
 ## fui
@@ -99,10 +99,21 @@ list(APPEND FUI_SOURCES
   src/GL/GLES3Context.cpp  
   src/GL/GlfwGL3Profile.cpp
   src/GL/GlfwGLES2Profile.cpp
+  src/text/FontDescriptor.cpp
   src/widget/Button.cpp
   src/widget/Widget.cpp
   src/widget/WidgetContainer.cpp
+  src/widget/WidgetStyle.cpp
 )
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  list(APPEND FUI_SOURCES src/text/FontManagerLinux.cc)
+  list(APPEND EXTRA_LIB fontconfig)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  list(APPEND FUI_SOURCES src/text/FontManagerWindow.cc)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  list(APPEND FUI_SOURCES src/text/FontManagerMac.mm)
+endif()
 
 if (WITH_VULKAN)
 list (APPEND FUI_SOURCES

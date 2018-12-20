@@ -1,8 +1,9 @@
 #define WINVER 0x0600
-#include "FontDescriptor.h"
 #include <dwrite.h>
 #include <dwrite_1.h>
 #include <unordered_set>
+#include "text/FontDescriptor.hpp"
+using namespace fui;
 
 // throws a JS error when there is some exception in DirectWrite
 #define HR(hr) \
@@ -154,8 +155,8 @@ FontDescriptor *resultFromFont(IDWriteFont *font) {
   return res;
 }
 
-ResultSet *getAvailableFonts() {
-  ResultSet *res = new ResultSet();
+ResultSet getAvailableFonts() {
+  ResultSet res;
   int count = 0;
 
   IDWriteFactory *factory = NULL;
@@ -189,7 +190,7 @@ ResultSet *getAvailableFonts() {
 
       FontDescriptor *result = resultFromFont(font);
       if (psNames.count(result->postscriptName) == 0) {
-        res->push_back(resultFromFont(font));
+        res.push_back(resultFromFont(font));
         psNames.insert(result->postscriptName);
       }
     }
@@ -228,13 +229,13 @@ bool resultMatches(FontDescriptor *result, FontDescriptor *desc) {
   return true;
 }
 
-ResultSet *findFonts(FontDescriptor *desc) {
-  ResultSet *fonts = getAvailableFonts();
+ResultSet findFonts(FontDescriptor *desc) {
+  ResultSet fonts = getAvailableFonts();
 
-  for (ResultSet::iterator it = fonts->begin(); it != fonts->end();) {
+  for (ResultSet::iterator it = fonts.begin(); it != fonts.end();) {
     if (!resultMatches(*it, desc)) {
       delete *it;
-      it = fonts->erase(it);
+      it = fonts.erase(it);
     } else {
       it++;
     }
@@ -244,12 +245,10 @@ ResultSet *findFonts(FontDescriptor *desc) {
 }
 
 FontDescriptor *findFont(FontDescriptor *desc) {
-  ResultSet *fonts = findFonts(desc);
+  ResultSet fonts = findFonts(desc);
 
   // if we didn't find anything, try again with only the font traits, no string names
-  if (fonts->size() == 0) {
-    delete fonts;
-
+  if (fonts.empty()) {
     FontDescriptor *fallback = new FontDescriptor(
       NULL, NULL, NULL, NULL, 
       desc->weight, desc->width, desc->italic, false
@@ -260,8 +259,7 @@ FontDescriptor *findFont(FontDescriptor *desc) {
 
   // ok, nothing. shouldn't happen often. 
   // just return the first available font
-  if (fonts->size() == 0) {
-    delete fonts;
+  if (fonts.empty()) {
     fonts = getAvailableFonts();
   }
 
@@ -269,12 +267,10 @@ FontDescriptor *findFont(FontDescriptor *desc) {
   // copy and return the first result
   if (fonts->size() > 0) {
     FontDescriptor *res = new FontDescriptor(fonts->front());
-    delete fonts;
     return res;
   }
 
   // whoa, weird. no fonts installed or something went wrong.
-  delete fonts;
   return NULL;
 }
 

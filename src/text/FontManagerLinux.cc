@@ -1,5 +1,8 @@
+#include <stdlib.h>
+#include <string.h>
 #include <fontconfig/fontconfig.h>
-#include "FontDescriptor.h"
+#include "text/FontDescriptor.hpp"
+using namespace fui;
 
 int convertWeight(FontWeight weight) {
   switch (weight) {
@@ -127,25 +130,25 @@ FontDescriptor *createFontDescriptor(FcPattern *pattern) {
   );
 }
 
-ResultSet *getResultSet(FcFontSet *fs) {
-  ResultSet *res = new ResultSet();
+ResultSet getResultSet(FcFontSet *fs) {
+  ResultSet res;
   if (!fs)
     return res;
 
   for (int i = 0; i < fs->nfont; i++) {
-    res->push_back(createFontDescriptor(fs->fonts[i]));
+    res.push_back(createFontDescriptor(fs->fonts[i]));
   }
 
   return res;
 }
 
-ResultSet *getAvailableFonts() {
+ResultSet getAvailableFonts() {
   FcInit();
 
   FcPattern *pattern = FcPatternCreate();
   FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_POSTSCRIPT_NAME, FC_FAMILY, FC_STYLE, FC_WEIGHT, FC_WIDTH, FC_SLANT, FC_SPACING, NULL);
   FcFontSet *fs = FcFontList(NULL, pattern, os);
-  ResultSet *res = getResultSet(fs);
+  ResultSet res = getResultSet(fs);
   
   FcPatternDestroy(pattern);
   FcObjectSetDestroy(os);
@@ -154,19 +157,18 @@ ResultSet *getAvailableFonts() {
   return res;
 }
 
-
 FcPattern *createPattern(FontDescriptor *desc) {
   FcInit();
   FcPattern *pattern = FcPatternCreate();
 
-  if (desc->postscriptName)
-    FcPatternAddString(pattern, FC_POSTSCRIPT_NAME, (FcChar8 *) desc->postscriptName);
+  if (!desc->postscriptName.empty())
+    FcPatternAddString(pattern, FC_POSTSCRIPT_NAME, (const FcChar8 *) desc->postscriptName.c_str());
 
-  if (desc->family)
-    FcPatternAddString(pattern, FC_FAMILY, (FcChar8 *) desc->family);
+  if (!desc->family.empty())
+    FcPatternAddString(pattern, FC_FAMILY, (const FcChar8 *) desc->family.c_str());
 
-  if (desc->style)
-    FcPatternAddString(pattern, FC_STYLE, (FcChar8 *) desc->style);
+  if (!desc->style.empty())
+    FcPatternAddString(pattern, FC_STYLE, (const FcChar8 *) desc->style.c_str());
 
   if (desc->italic)
     FcPatternAddInteger(pattern, FC_SLANT, FC_SLANT_ITALIC);
@@ -183,11 +185,11 @@ FcPattern *createPattern(FontDescriptor *desc) {
   return pattern;
 }
 
-ResultSet *findFonts(FontDescriptor *desc) {
+ResultSet findFonts(FontDescriptor *desc) {
   FcPattern *pattern = createPattern(desc);
   FcObjectSet *os = FcObjectSetBuild(FC_FILE, FC_POSTSCRIPT_NAME, FC_FAMILY, FC_STYLE, FC_WEIGHT, FC_WIDTH, FC_SLANT, FC_SPACING, NULL);
   FcFontSet *fs = FcFontList(NULL, pattern, os);
-  ResultSet *res = getResultSet(fs);
+  ResultSet res = getResultSet(fs);
 
   FcFontSetDestroy(fs);
   FcPatternDestroy(pattern);
