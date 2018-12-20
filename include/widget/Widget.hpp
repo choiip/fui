@@ -23,10 +23,10 @@ public:
 
 protected:
   /// The position relative to the parent widget.
-  FUI_WIDGET_PROPERTY(Vector2i, position);
+  FUI_WIDGET_PROPERTY(Vector2i, position, ConstantVector2i::Zero);
 
   /// The size of the widget.
-  FUI_WIDGET_PROPERTY(Vector2i, size);
+  FUI_WIDGET_PROPERTY(Vector2i, size, ConstantVector2i::Zero);
 
   /**
    * \brief Set the fixed size of this widget
@@ -37,13 +37,13 @@ protected:
    * size; this is done with a call to \ref setSize or a call to \ref
    * performLayout() in the parent widget.
    */
-  FUI_WIDGET_PROPERTY(Vector2i, fixedSize);
+  FUI_WIDGET_PROPERTY(Vector2i, fixedSize, ConstantVector2i::Zero);
 
   /**
    * Whether or not this Widget is currently visible.  When a Widget is not
    * currently visible, no time is wasted executing its drawing method.
    */
-  FUI_WIDGET_PROPERTY(bool, visible);
+  FUI_WIDGET_PROPERTY(bool, visible, true);
 
   /**
    * Whether or not this Widget is currently enabled.  Various different kinds
@@ -51,10 +51,10 @@ protected:
    * accepted.  For example, when ``mEnabled == false``, the state of a
    * CheckBox cannot be changed, or a TextBox will not allow new input.
    */
-  FUI_WIDGET_PROPERTY(bool, enabled);
+  FUI_WIDGET_PROPERTY(bool, enabled, true);
 
   /// Whether or not this widget is currently focused
-  FUI_WIDGET_PROPERTY(bool, focused);
+  FUI_WIDGET_PROPERTY(bool, focused, false);
 
 private:
   WidgetContainer* _parent;

@@ -38,7 +38,7 @@ protected:
   FUI_WIDGET_EVENT(void(bool), Toggled);
 
   /// The caption of this Button.
-  FUI_WIDGET_PROPERTY(Text, caption);
+  FUI_WIDGET_PROPERTY(Text, caption, "");
 
   /**
    * \brief The icon of this Button (``0`` means no icon).
@@ -51,22 +51,22 @@ protected:
    * reciprocal counterpart :func:`hauwan::nvgIsFontIcon`.
    * \endrst
    */
-  FUI_WIDGET_PROPERTY(int, icon);
+  FUI_WIDGET_PROPERTY(int, icon, 0);
 
   /// The position to draw the icon at.
-  FUI_WIDGET_PROPERTY(IconPosition, iconPosition);
+  FUI_WIDGET_PROPERTY(IconPosition, iconPosition, IconPosition::LeftCentered);
 
   /// Whether or not this Button is currently pushed.
-  FUI_WIDGET_PROPERTY(bool, pushed);
+  FUI_WIDGET_PROPERTY(bool, pushed, false);
 
   /// The current flags of this button (see \ref hauwan::Button::Flags for options).
-  FUI_WIDGET_PROPERTY(Flags, flags);
+  FUI_WIDGET_PROPERTY(Flags, flags, Flags::NormalButton);
 
   /// The background color of this Button.
-  FUI_WIDGET_PROPERTY(Color, backgroundColor);
+  FUI_WIDGET_PROPERTY(Color, backgroundColor, ConstantColor::Black);
 
   /// The color of the caption text of this Button.
-  FUI_WIDGET_PROPERTY(Color, textColor);
+  FUI_WIDGET_PROPERTY(Color, textColor, ConstantColor::Black);
 };
 
 } // namespace fui
