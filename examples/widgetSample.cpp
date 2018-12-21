@@ -13,20 +13,22 @@ protected:
   virtual Status onEnter() override {
     // load fonts
 
-
     // Gui
     int x = 10, y = 10;
     _renderWindow->addChild<Button>("1st Button")
+        ->icon(ENTYPO_ICON_CLOUD)
         ->backgroundColor({0.f, 0.3f, 0.5f, 1.f})
         ->position({x, y})
         ->size({140, 28});
     y += 40;
     _renderWindow->addChild<Button>("2nd Button")
+        ->icon(ENTYPO_ICON_NEWS)
         ->backgroundColor({0.f, 0.3f, 0.5f, 1.f})
         ->position({x, y})
         ->size({140, 28});
     y += 40;
     _renderWindow->addChild<Button>("3rd Button")
+        ->icon(ENTYPO_ICON_SIGNAL)
         ->backgroundColor({0.f, 0.3f, 0.5f, 1.f})
         ->position({x, y})
         ->size({140, 28});

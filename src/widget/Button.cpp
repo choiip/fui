@@ -3,7 +3,51 @@
 #include "nanovg/nanovg.h"
 #include "widget/WidgetStyle.hpp"
 
+#define ICON_LOGIN 0xE740
+
 namespace fui {
+
+static char* cpToUTF8(int cp, char* str) {
+  int n = 0;
+  if (cp < 0x80)
+    n = 1;
+  else if (cp < 0x800)
+    n = 2;
+  else if (cp < 0x10000)
+    n = 3;
+  else if (cp < 0x200000)
+    n = 4;
+  else if (cp < 0x4000000)
+    n = 5;
+  else if (cp <= 0x7fffffff)
+    n = 6;
+  str[n] = '\0';
+  switch (n) {
+  case 6:
+    str[5] = 0x80 | (cp & 0x3f);
+    cp = cp >> 6;
+    cp |= 0x4000000;
+  case 5:
+    str[4] = 0x80 | (cp & 0x3f);
+    cp = cp >> 6;
+    cp |= 0x200000;
+  case 4:
+    str[3] = 0x80 | (cp & 0x3f);
+    cp = cp >> 6;
+    cp |= 0x10000;
+  case 3:
+    str[2] = 0x80 | (cp & 0x3f);
+    cp = cp >> 6;
+    cp |= 0x800;
+  case 2:
+    str[1] = 0x80 | (cp & 0x3f);
+    cp = cp >> 6;
+    cp |= 0xc0;
+  case 1:
+    str[0] = cp;
+  }
+  return str;
+}
 
 Button::Button(WidgetContainer* parent, const Text& caption)
 : Widget(parent)
@@ -21,7 +65,7 @@ void Button::draw(RenderContext& renderContext) {
   NVGcolor col = {_backgroundColor.r, _backgroundColor.g, _backgroundColor.b, _backgroundColor.a};
   bool isblack = isBlack(_backgroundColor);
   const char* text = _caption.c_str();
-  int preicon = 0;
+  int preicon = _icon;
 
   NVGpaint bg;
   char icon[8];
@@ -50,7 +94,7 @@ void Button::draw(RenderContext& renderContext) {
   if (preicon != 0) {
     nvgFontSize(vg, h * 1.3f);
     nvgFontFaceId(vg, buttonStyle.fontIcons);
-    // iw = nvgTextBounds(vg, 0,0, cpToUTF8(preicon,icon), NULL, NULL);
+    iw = nvgTextBounds(vg, 0, 0, cpToUTF8(preicon, icon), NULL, NULL);
     iw += h * 0.15f;
   }
 
@@ -59,7 +103,7 @@ void Button::draw(RenderContext& renderContext) {
     nvgFontFaceId(vg, buttonStyle.fontIcons);
     nvgFillColor(vg, nvgRGBA(255, 255, 255, 96));
     nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-    // nvgText(vg, x+w*0.5f-tw*0.5f-iw*0.75f, y+h*0.5f, cpToUTF8(preicon,icon), NULL);
+    nvgText(vg, x + w * 0.5f - tw * 0.5f - iw * 0.75f, y + h * 0.5f, cpToUTF8(preicon, icon), NULL);
   }
 
   nvgFontSize(vg, 20.0f);

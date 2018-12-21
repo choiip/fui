@@ -58,6 +58,16 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
+## build in fonts
+set(BUILD_IN_FONT_HEADER ${PROJECT_BINARY_DIR}/include/builtin/EntypoTFF.h)
+add_custom_command(OUTPUT ${BUILD_IN_FONT_HEADER}
+                   COMMAND ${CMAKE_COMMAND}
+                   ARGS -DINFILE=${CMAKE_CURRENT_SOURCE_DIR}/src/text/entypo.ttf -DOUTFILE=${BUILD_IN_FONT_HEADER} -DVARNAME=EntypoTFF -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/File2c.cmake
+                   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/text/entypo.ttf
+                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                   COMMENT "Building fonts - ${BUILD_IN_FONT_HEADER}"
+                   PRE_BUILD VERBATIM)
+
 ## glad
 list(APPEND GLAD_SOURCES
   include/GL/glad.h 
@@ -89,14 +99,15 @@ endif()
 
 ## fui
 list(APPEND FUI_SOURCES
+  ${BUILD_IN_FONT_HEADER}
   src/core/ApplicationContext.cpp
   src/core/GlfwCursor.cpp
   src/core/GlfwRenderWindow.cpp
-  src/core/GlfwWindowManager.cpp  
+  src/core/GlfwWindowManager.cpp
   src/core/RenderWindow.cpp
   src/GL/GL3Context.cpp
   src/GL/GLES2Context.cpp
-  src/GL/GLES3Context.cpp  
+  src/GL/GLES3Context.cpp
   src/GL/GlfwGL3Profile.cpp
   src/GL/GlfwGLES2Profile.cpp
   src/text/FontDescriptor.cpp
@@ -134,7 +145,7 @@ if (WITH_VULKAN)
 endif()
 
 target_include_directories(fui PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(fui PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_include_directories(fui PRIVATE ${PROJECT_BINARY_DIR}/include ${PROJECT_SOURCE_DIR}/src)
 
 target_link_libraries(fui PUBLIC glfw ${EXTRA_LIB})
 
