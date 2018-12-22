@@ -19,3 +19,9 @@ endif()
 add_executable(widgetSample widgetSample.cpp)
 
 target_link_libraries(widgetSample fui)
+
+## load font sample
+add_executable(loadFontSample loadFontSample.cpp)
+
+target_link_libraries(loadFontSample fui)
+

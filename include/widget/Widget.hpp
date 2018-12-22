@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include "core/MathDef.hpp"
 #include "WidgetMacro.hpp"
@@ -9,6 +10,7 @@ namespace fui {
 typedef std::string Text;
 
 class WidgetContainer;
+class WidgetStyle;
 class RenderContext;
 
 class Widget {
@@ -17,11 +19,15 @@ public:
 
   virtual ~Widget();
 
-  WidgetContainer* parent() { return _parent; }
+  WidgetContainer* parent() const { return _parent; }
 
+  void setStyle(const std::shared_ptr<WidgetStyle>& style);
+  
   virtual void draw(RenderContext& renderContext);
 
 protected:
+  const WidgetStyle& style() const;
+
   /// The position relative to the parent widget.
   FUI_WIDGET_PROPERTY(Vector2i, position, ConstantVector2i::Zero);
 
@@ -58,6 +64,8 @@ protected:
 
 private:
   WidgetContainer* _parent;
+  std::shared_ptr<WidgetStyle> _style;
+
 };
 
 } // namespace fui
