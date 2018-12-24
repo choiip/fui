@@ -1,4 +1,3 @@
-#include <iostream>
 #include <memory>
 #include <GL/glad.h>
 #include <fui.hpp>
@@ -37,7 +36,7 @@ protected:
     // Events
     _renderWindow->onKey([this](int key, int action, int mods) {
       if (key == FUI_KEY_ESCAPE) {
-        std::cout << "Window closing...\n";
+        LOGD << "Window closing...";
         _renderWindow->close();
       }
     });
@@ -68,6 +67,9 @@ private:
 };
 
 int main() {
+  Logger logger;
+  LOGD << "Sample start";
+
   GlfwWindowManager windowManager;
   auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL, 3, 2);
   if (!graphicsProfile)

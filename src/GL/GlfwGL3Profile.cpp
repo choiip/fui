@@ -2,9 +2,8 @@
 #include <GL/glad.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-#include <iostream>
 #include <memory>
-
+#include "core/Log.hpp"
 #include "core/Status.hpp"
 #include "GL/GL3Context.hpp"
 
@@ -26,14 +25,14 @@ RenderContext* GlfwGL3Profile::createContext(void* nativeWindow) const {
   GLFWwindow* window = (GLFWwindow*)nativeWindow;
   glfwMakeContextCurrent(window);
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    std::cerr << ("Could not initialize GLAD!\n");
+    LOGE << "Could not initialize GLAD!";
     return nullptr;
   }
   glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
 
   std::unique_ptr<GL3Context> context(new GL3Context);
   if (!context) {
-    std::cerr << ("Could not create render context.\n");
+    LOGE << "Could not create render context.";
     return nullptr;
   }
   if (context->initVG() != Status::OK) {

@@ -1,9 +1,8 @@
 #include "GlfwGLES2Profile.hpp"
 #include <GL/glad.h>
 #include <GLFW/glfw3.h>
-#include <iostream>
 #include <memory>
-
+#include "core/Log.hpp"
 #include "core/Status.hpp"
 #include "GL/GLES2Context.hpp"
 #include "GL/GLES3Context.hpp"
@@ -23,7 +22,7 @@ RenderContext* GlfwGLES2Profile::createContext(void* nativeWindow) const {
   GLFWwindow* window = (GLFWwindow*)nativeWindow;
   glfwMakeContextCurrent(window);
   if (!gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress)) {
-    std::cerr << ("Could not initialize GLAD!\n");
+    LOGE << "Could not initialize GLAD!";
     return nullptr;
   }
   glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
@@ -38,7 +37,7 @@ RenderContext* GlfwGLES2Profile::createContext(void* nativeWindow) const {
   if (glMajor == 3) {
     std::unique_ptr<GLES3Context> context(new GLES3Context);
     if (!context) {
-      std::cerr << ("Could not create render context.\n");
+      LOGE << "Could not create render context.";
       return nullptr;
     }
     if (context->initVG() != Status::OK) {
@@ -50,7 +49,7 @@ RenderContext* GlfwGLES2Profile::createContext(void* nativeWindow) const {
   if (glMajor == 2) {
     std::unique_ptr<GLES2Context> context(new GLES2Context);
     if (!context) {
-      std::cerr << ("Could not create render context.\n");
+      LOGE << "Could not create render context.";
       return nullptr;
     }
     if (context->initVG() != Status::OK) {

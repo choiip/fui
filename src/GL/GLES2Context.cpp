@@ -1,8 +1,8 @@
 #include "GL/GLES2Context.hpp"
-#include <iostream>
 #include <GL/glad.h>
 #define NANOVG_GLES2_IMPLEMENTATION
 #include "nanovg_gl.h"
+#include "core/Log.hpp"
 #include "core/Status.hpp"
 
 namespace fui {
@@ -21,7 +21,7 @@ Status GLES2Context::initVG() {
 #endif
   _vg = nvgCreateGLES2(flag);
   if (_vg == NULL) {
-    std::cerr << ("Could not init nanovg (GLES2).\n");
+    LOGE << "Could not init nanovg (GLES2).";
     return Status::UNKNOWN_ERROR;
   }
   return Status::OK;

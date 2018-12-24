@@ -100,6 +100,7 @@ endif()
 ## fui
 list(APPEND FUI_SOURCES
   ${BUILD_IN_FONT_HEADER}
+  src/core/Log.cpp
   src/core/ApplicationContext.cpp
   src/core/GlfwCursor.cpp
   src/core/GlfwRenderWindow.cpp
