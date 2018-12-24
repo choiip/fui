@@ -4,6 +4,7 @@
 #include <core/Cursor.hpp>
 #include <core/GlfwWindowManager.hpp>
 #include <core/GraphicsProfile.hpp>
+#include <core/Log.hpp>
 #include <core/RenderWindow.hpp>
 #include <core/Status.hpp>
 

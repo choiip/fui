@@ -68,6 +68,9 @@ private:
 };
 
 int main() {
+  Logger logger;
+  LOGD << "Sample start";
+
   GlfwWindowManager windowManager;
   auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL, 3, 2);
   if (!graphicsProfile)
