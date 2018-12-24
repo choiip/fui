@@ -26,7 +26,7 @@ private:
 template<Logger::Level LOGLEVEL>
 class LogStream : public std::ostringstream {
 public:
-  LogStream(Logger& logger) : _logger(logger) {}
+  explicit LogStream(Logger& logger) : _logger(logger) {}
   ~LogStream() { _logger.log(LOGLEVEL, std::ostringstream::str()); }
   template <typename T>
   LogStream& operator<<(const T& v) {
@@ -42,6 +42,6 @@ private:
 
 }
 
-#define LOGE LogStream<Logger::Level::ERROR>(Logger::instance())()
-#define LOGW LogStream<Logger::Level::WARN>(Logger::instance())()
-#define LOGD LogStream<Logger::Level::DEBUG>(Logger::instance())()
+#define LOGE fui::LogStream<fui::Logger::Level::ERROR>(fui::Logger::instance())()
+#define LOGW fui::LogStream<fui::Logger::Level::WARN>(fui::Logger::instance())()
+#define LOGD fui::LogStream<fui::Logger::Level::DEBUG>(fui::Logger::instance())()

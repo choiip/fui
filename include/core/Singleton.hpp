@@ -28,4 +28,8 @@ public:
     return *_singleton;
   }
 };
+
+template <typename T>
+T* Singleton<T>::_singleton = nullptr;
+ 
 } // namespace fui

@@ -4,12 +4,15 @@
 #include <fui.hpp>
 using namespace fui;
 
-std::ostream& operator<<(std::ostream& os, const FontDescriptor& desc) {
+namespace std {
+std::ostream& operator<<(std::ostream& os, const fui::FontDescriptor& desc) {
     os << "" << desc.family << "\t" << desc.italic << " " << desc.monospace << " " << desc.path << "\t"
               << desc.postscriptName << "\t" << desc.style << "\t" << desc.weight << "\t" << desc.width << '\n';
     os << desc.lang;
     return os;            
 }
+}
+
 int main() {
   Logger logger;
   auto fontDescriptors = getAvailableFonts();

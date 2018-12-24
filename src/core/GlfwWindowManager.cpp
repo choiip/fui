@@ -13,8 +13,6 @@
 
 namespace fui {
 
-template <> GlfwWindowManager* Singleton<GlfwWindowManager>::_singleton = 0;
-
 static void errorCallback(int error, const char* description) {
   LOGE << "GlfwWindowManager error: " << description << '\n';
 }

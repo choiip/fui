@@ -24,8 +24,6 @@
 
 namespace fui {
 
-template <> Logger* Singleton<Logger>::_singleton = 0;
-
 Logger::Logger() {
   _handler = ([](Level level, const std::string& message) {
     switch (level) {
