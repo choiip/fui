@@ -1,9 +1,9 @@
 #include "VulkanContext.hpp"
-#include <iostream>
 #include "vku.h"
 #include <vulkan/vulkan.h>
 #define NANOVG_VULKAN_IMPLEMENTATION
 #include "nanovg_vk.h"
+#include "core/Log.hpp"
 #include "core/Status.hpp"
 
 namespace fui {
@@ -40,7 +40,7 @@ Status VulkanContext::initVG() {
 #endif
   _vg = nvgCreateVk(createInfo, flag);
   if (_vg == NULL) {
-    std::cerr << ("Could not init nanovg (Vulkan).\n");
+    LOGE << "Could not init nanovg (Vulkan).";
     return Status::UNKNOWN_ERROR;
   }
 

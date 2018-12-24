@@ -1,9 +1,9 @@
 #include "core/GlfwWindowManager.hpp"
-#include <iostream>
 #include <memory>
 #include <GLFW/glfw3.h>
 #include "core/GlfwCursor.hpp"
 #include "core/GlfwRenderWindow.hpp"
+#include "core/Log.hpp"
 #include "core/RenderContext.hpp"
 #include "GL/GlfwGL3Profile.hpp"
 #include "GL/GlfwGLES2Profile.hpp"
@@ -16,7 +16,7 @@ namespace fui {
 template <> GlfwWindowManager* Singleton<GlfwWindowManager>::_singleton = 0;
 
 static void errorCallback(int error, const char* description) {
-  std::cerr << "GlfwWindowManager error: " << description << '\n';
+  LOGE << "GlfwWindowManager error: " << description << '\n';
 }
 
 static void setupCallbacks(GLFWwindow* glfwWindow, RenderWindow* renderWindow) {
@@ -62,7 +62,7 @@ GlfwWindowManager::GlfwWindowManager() {
   glfwSetErrorCallback(errorCallback);
 
   if (!glfwInit()) {
-    std::cerr << ("Failed to init GLFW.\n");
+    LOGE << "Failed to init GLFW.";
   }
 }
 
@@ -74,14 +74,14 @@ RenderWindow* GlfwWindowManager::createWindow(int width, int height, const Graph
 
   auto glfwWindow = glfwCreateWindow(width, height, "Title", NULL, NULL);
   if (!glfwWindow) {
-    std::cerr << ("Could not create GLFW window!\n");
+    LOGE << "Could not create GLFW window!";
     return nullptr;
   }
 
   auto renderContext = graphicsProfile.createContext(glfwWindow);
   if (!renderContext) {
     glfwDestroyWindow(glfwWindow);
-    std::cerr << ("Could not create render context!\n");
+    LOGE << "Could not create render context!";
     return nullptr;
   }
 
@@ -89,7 +89,7 @@ RenderWindow* GlfwWindowManager::createWindow(int width, int height, const Graph
   if (!renderWindow) {
     delete renderContext;
     glfwDestroyWindow(glfwWindow);
-    std::cerr << ("Could not create render context!\n");
+    LOGE << "Could not create render context!";
     return nullptr;
   }
 

@@ -1,5 +1,4 @@
 #include <chrono>
-#include <iostream>
 #include <memory>
 #include <fui.hpp>
 #include <GL/GL3Context.hpp>
@@ -24,7 +23,7 @@ public:
   , cpuTime(0) {
     renderWindow->onKey([renderWindow](int key, int action, int mods) {
       if (key == FUI_KEY_ESCAPE) {
-        std::cout << "Window closing...\n";
+        LOGD << "Window closing...";
         renderWindow->close();
       }
     });
@@ -42,7 +41,7 @@ public:
 protected:
   virtual Status onEnter() override {
     if (loadDemoData(vg, &data) == -1) {
-      std::cerr << "loadDemoData error\n";
+      LOGE << "loadDemoData error";
       return Status::UNKNOWN_ERROR;
     }
 
@@ -270,6 +269,7 @@ private:
 #endif
 
 int main() {
+  Logger logger;
   GlfwWindowManager windowManager;
   auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL, 3, 2);
   if (!graphicsProfile)
