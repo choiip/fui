@@ -26,6 +26,10 @@ public:
   virtual void draw(RenderContext& renderContext);
 
 protected:
+  /// Check if the widget contains a certain position
+  bool contain(int x, int y) const;
+
+  /// Return the \ref WidgetStyle used to draw this widget
   const WidgetStyle& style() const;
 
   /// The position relative to the parent widget.

@@ -62,7 +62,9 @@ void Button::draw(RenderContext& renderContext) {
   auto y = _position.y;
   auto w = _size.x;
   auto h = _size.y;
-  NVGcolor col = {_backgroundColor.r, _backgroundColor.g, _backgroundColor.b, _backgroundColor.a};
+  auto col = reinterpret_cast<const NVGcolor*>(&_backgroundColor);
+  auto gradTop = reinterpret_cast<const NVGcolor*>(&buttonStyle.buttonGradientTopNormal);
+  auto gradBot = reinterpret_cast<const NVGcolor*>(&buttonStyle.buttonGradientBotNormal);
   bool isblack = isBlack(_backgroundColor);
   const char* text = _caption.c_str();
   int preicon = _icon;
@@ -77,7 +79,7 @@ void Button::draw(RenderContext& renderContext) {
   nvgBeginPath(vg);
   nvgRoundedRect(vg, x + 1, y + 1, w - 2, h - 2, cornerRadius - 1);
   if (!isblack) {
-    nvgFillColor(vg, col);
+    nvgFillColor(vg, *col);
     nvgFill(vg);
   }
   nvgFillPaint(vg, bg);
