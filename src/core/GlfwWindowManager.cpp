@@ -5,6 +5,7 @@
 #include "core/GlfwRenderWindow.hpp"
 #include "core/Log.hpp"
 #include "core/RenderContext.hpp"
+#include "event/EventEnum.hpp"
 #include "GL/GlfwGL3Profile.hpp"
 #include "GL/GlfwGLES2Profile.hpp"
 #ifdef FUI_ENABLE_VULKAN
@@ -37,14 +38,19 @@ static void setupCallbacks(GLFWwindow* glfwWindow, RenderWindow* renderWindow) {
     const auto& windows = GlfwWindowManager::instance().getWindows();
     auto targetWindow = windows.find(window);
     if (targetWindow != windows.end()) {
-      targetWindow->second->onKeyEvent(key, action, mods);
+      targetWindow->second->onKeyEvent((Key)key, (ButtonAction)action, (Modifier)mods);
     }
   });
   glfwSetMouseButtonCallback(glfwWindow, [](GLFWwindow* window, int button, int action, int mods) {
+    constexpr MouseButton mouseButton[]{
+        MouseButton::LEFT, MouseButton::RIGHT, MouseButton::MIDDLE, MouseButton::X1, MouseButton::X2,
+    };
+    if (button < 0 || button > 4)
+      return;
     const auto& windows = GlfwWindowManager::instance().getWindows();
     auto targetWindow = windows.find(window);
     if (targetWindow != windows.end()) {
-      targetWindow->second->onMouseButtonEvent(button, action, mods);
+      targetWindow->second->onMouseButtonEvent(mouseButton[button], (ButtonAction)action, (Modifier)mods);
     }
   });
   glfwSetCursorPosCallback(glfwWindow, [](GLFWwindow* window, double xpos, double ypos) {

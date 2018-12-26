@@ -34,8 +34,8 @@ protected:
     y += 40;
 
     // Events
-    _renderWindow->onKey([this](int key, int action, int mods) {
-      if (key == FUI_KEY_ESCAPE) {
+    _renderWindow->onKey([this](Key key, ButtonAction action, Modifier mods) {
+      if (key == Key::KEY_ESCAPE) {
         LOGD << "Window closing...";
         _renderWindow->close();
       }

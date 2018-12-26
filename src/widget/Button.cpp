@@ -1,5 +1,7 @@
 #include "widget/Button.hpp"
+#include "core/Log.hpp"
 #include "core/RenderContext.hpp"
+#include "event/MouseEvent.hpp"
 #include "nanovg/nanovg.h"
 #include "widget/WidgetStyle.hpp"
 
@@ -54,6 +56,18 @@ Button::Button(WidgetContainer* parent, const Text& caption)
 , _caption(caption) {}
 
 Button::~Button() {}
+
+void Button::onMouseMoveEvent(MouseEvent& event) {
+  LOGD << "Button::onMouseMoveEvent(" << event.position.x << ", " << event.position.y << ")";
+}
+
+void Button::onMousePressEvent(MouseEvent& event) {
+  LOGD << "Button::onMousePressEvent(" << event.position.x << ", " << event.position.y << ")";
+}
+
+void Button::onMouseReleaseEvent(MouseEvent& event) {
+  LOGD << "Button::onMouseReleaseEvent(" << event.position.x << ", " << event.position.y << ")";
+}
 
 void Button::draw(RenderContext& renderContext) {
   auto vg = renderContext.vg();

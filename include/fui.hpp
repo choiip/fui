@@ -8,6 +8,9 @@
 #include <core/RenderWindow.hpp>
 #include <core/Status.hpp>
 
+#include <event/EventEnum.hpp>
+#include <event/MouseEvent.hpp>
+
 #include <text/EntypoIconDef.h>
 #include <text/FontDescriptor.hpp>
 
