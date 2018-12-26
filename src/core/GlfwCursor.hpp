@@ -17,6 +17,8 @@ public:
 
   virtual void show() override;
 
+  virtual Vector2i position() override;
+
   virtual void setShape(Shape shape) override;
 
 private:

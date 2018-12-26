@@ -38,6 +38,12 @@ void GlfwCursor::hide() { glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_HID
 
 void GlfwCursor::show() { glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); }
 
+Vector2i GlfwCursor::position() {
+  double dx, dy;
+  glfwGetCursorPos(_window, &dx, &dy);
+  return {(int)dx, (int)dy};
+}
+
 void GlfwCursor::setShape(Shape shape) { glfwSetCursor(_window, _cursors[(int)shape]); }
 
 } // namespace fui

@@ -19,8 +19,6 @@ public:
 
   virtual RenderContext* renderContext() const override;
 
-  virtual void getCursorPos(int& x, int& y) override;
-
   virtual void getWindowSize(int& width, int& height) override;
 
   virtual void getDrawableSize(int& width, int& height) override;

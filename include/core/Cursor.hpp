@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/MathDef.hpp"
+
 namespace fui {
 
 class Cursor {
@@ -24,6 +26,8 @@ public:
   virtual void hide() = 0;
 
   virtual void show() = 0;
+
+  virtual Vector2i position() = 0;
 
   virtual void setShape(Shape shape) = 0;
 };
