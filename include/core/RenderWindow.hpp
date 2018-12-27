@@ -49,6 +49,7 @@ public:
 private:
   MouseButton _buttonInPressing;
   Modifier _modifierInPressing;
+  Vector2i _prevCursorPosition;
 };
 
 } // namespace fui

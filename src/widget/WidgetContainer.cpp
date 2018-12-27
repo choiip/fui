@@ -34,13 +34,23 @@ void WidgetContainer::draw(RenderContext& renderContext) {
   }
 }
 
-void WidgetContainer::onMouseMoveEvent(MouseEvent& event) {
+void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
   auto localX = event.position.x - _position.x;
   auto localY = event.position.y - _position.y;
-  MouseEvent altEvent = {{localX, localY}, event.button, event.buttons, event.modifiers};
+  auto localPrevX = event.prevPosition.x - _position.x;
+  auto localPrevY = event.prevPosition.y - _position.y;
+
   for (auto&& w : _children) {
-    if (w->visible() && w->contain(localX, localY)) {
-      w->onMouseMoveEvent(altEvent);
+    if (w->visible() && w->enabled()) {
+      auto prevContained = w->contain(localPrevX, localPrevY);
+      auto contained = w->contain(localX, localY);
+      if (prevContained || contained) {
+        auto movement =
+            prevContained == contained ? Movement::MOVING : (contained ? Movement::ENTERING : Movement::LEAVING);
+        MouseMoveEvent altEvent({localPrevX, localPrevY}, movement, {localX, localY}, event.button, event.buttons,
+                                event.modifiers);
+        w->onMouseMoveEvent(altEvent);
+      }
     }
   }
 }
@@ -50,7 +60,7 @@ void WidgetContainer::onMousePressEvent(MouseEvent& event) {
   auto localY = event.position.y - _position.y;
   MouseEvent altEvent = {{localX, localY}, event.button, event.buttons, event.modifiers};
   for (auto&& w : _children) {
-    if (w->visible() && w->contain(localX, localY)) {
+    if (w->visible() && w->enabled() && w->contain(localX, localY)) {
       w->onMousePressEvent(altEvent);
     }
   }
@@ -61,7 +71,7 @@ void WidgetContainer::onMouseReleaseEvent(MouseEvent& event) {
   auto localY = event.position.y - _position.y;
   MouseEvent altEvent = {{localX, localY}, event.button, event.buttons, event.modifiers};
   for (auto&& w : _children) {
-    if (w->visible() && w->contain(localX, localY)) {
+    if (w->visible() && w->enabled() && w->contain(localX, localY)) {
       w->onMouseReleaseEvent(altEvent);
     }
   }

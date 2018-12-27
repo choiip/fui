@@ -55,16 +55,36 @@ Button::Button(WidgetContainer* parent, const Text& caption)
 
 Button::~Button() {}
 
-void Button::onMouseMoveEvent(MouseEvent& event) {
-  LOGD << "Button::onMouseMoveEvent(" << event.position.x << ", " << event.position.y << ")";
+void Button::onMouseMoveEvent(MouseMoveEvent& event) {
+  if (event.movement == Movement::ENTERING) {
+    if (((event.buttons & MouseButton::LEFT) != MouseButton::NONE) && not pushed()) {
+      pushed(true);
+    }
+  }
+  if (event.movement == Movement::LEAVING) {
+    if (pushed()) {
+      pushed(false);
+    }
+  }
 }
 
 void Button::onMousePressEvent(MouseEvent& event) {
-  LOGD << "Button::onMousePressEvent(" << event.position.x << ", " << event.position.y << ")";
+  if (event.button == MouseButton::LEFT) {
+    pushed(true);
+  }
 }
 
 void Button::onMouseReleaseEvent(MouseEvent& event) {
-  LOGD << "Button::onMouseReleaseEvent(" << event.position.x << ", " << event.position.y << ")";
+  if (event.button == MouseButton::LEFT) {
+    auto lastPushState = pushed();
+    if (lastPushState) {
+      pushed(false);
+      _signalPressed.emit();
+    }
+    if (lastPushState == !pushed()) {
+      _signalToggled.emit(pushed());
+    }
+  }
 }
 
 void Button::draw(RenderContext& renderContext) {
@@ -76,12 +96,16 @@ void Button::draw(RenderContext& renderContext) {
   auto h = _size.y;
   auto bgColor = reinterpret_cast<const NVGcolor*>(&_backgroundColor);
   auto borderColor = nvgRGBA(0, 0, 0, 48);
-  auto tColor = reinterpret_cast<const NVGcolor*>(_textColor.a > 0 ? &_textColor : &buttonStyle.standardTextColor);
+  auto tColor = reinterpret_cast<const NVGcolor*>(
+      _enabled ? (_textColor.a > 0 ? &_textColor : &buttonStyle.standardTextColor) : &buttonStyle.disabledTextColor);
   auto tShadow = reinterpret_cast<const NVGcolor*>(&buttonStyle.textShadow);
-  bool isblack = isBlack(_backgroundColor);
-  auto gradTop = nvgRGBA(255, 255, 255, isblack ? 16 : 32);
-  auto gradBot = nvgRGBA(0, 0, 0, isblack ? 16 : 32);
+
   const char* text = _caption.c_str();
+  auto gradTop = *reinterpret_cast<const NVGcolor*>(_pushed ? &buttonStyle.buttonGradientTopPushed
+                                                            : &buttonStyle.buttonGradientTopNormal);
+  auto gradBot = *reinterpret_cast<const NVGcolor*>(_pushed ? &buttonStyle.buttonGradientBotPushed
+                                                            : &buttonStyle.buttonGradientBotNormal);
+
   auto textFontSize = buttonStyle.buttonFontSize;
   auto iconFontSize = h * 1.3f;
   int preicon = _icon;
@@ -94,7 +118,7 @@ void Button::draw(RenderContext& renderContext) {
   bg = nvgLinearGradient(vg, x, y, x, y + h, gradTop, gradBot);
   nvgBeginPath(vg);
   nvgRoundedRect(vg, x + 1, y + 1, w - 2, h - 2, cornerRadius - 1);
-  if (!isblack) {
+  if (bgColor->a > .0f) {
     nvgFillColor(vg, *bgColor);
     nvgFill(vg);
   }

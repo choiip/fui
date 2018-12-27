@@ -36,19 +36,19 @@ public:
   /**
    * The top gradient color for normal buttons.
    */
-  Color buttonGradientTopNormal = {.29f, .29f, .29f, 1.f};
+  Color buttonGradientTopNormal = {.29f, .29f, .29f, .1f};
   /**
    * The bottom gradient color for normal buttons.
    */
-  Color buttonGradientBotNormal = {.23f, .23f, .23f, 1.f};
+  Color buttonGradientBotNormal = {.23f, .23f, .23f, .1f};
   /**
    * The top gradient color for buttons in focus.
    */
-  Color buttonGradientTopFocused = {.25f, .25f, .25f, 1.f};
+  Color buttonGradientTopFocused = {.25f, .25f, .25f, .5f};
   /**
    * The bottom gradient color for buttons in focus.
    */
-  Color buttonGradientBotFocused = {.19f, .19f, .19f, 1.f};
+  Color buttonGradientBotFocused = {.19f, .19f, .19f, .5f};
   /**
    * The top gradient color for buttons currently pushed.
    */

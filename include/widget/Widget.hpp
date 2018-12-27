@@ -13,6 +13,7 @@ class WidgetContainer;
 class WidgetStyle;
 class RenderContext;
 class MouseEvent;
+class MouseMoveEvent;
 
 class Widget {
 public:
@@ -33,7 +34,7 @@ protected:
   /// Return the \ref WidgetStyle used to draw this widget
   const WidgetStyle& style() const;
 
-  virtual void onMouseMoveEvent(MouseEvent& event);
+  virtual void onMouseMoveEvent(MouseMoveEvent& event);
   virtual void onMousePressEvent(MouseEvent& event);
   virtual void onMouseReleaseEvent(MouseEvent& event);
 

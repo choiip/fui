@@ -8,7 +8,10 @@
 namespace fui {
 
 RenderWindow::RenderWindow()
-: WidgetContainer(nullptr) {}
+: WidgetContainer(nullptr)
+, _buttonInPressing(MouseButton::NONE)
+, _modifierInPressing(Modifier::NONE)
+, _prevCursorPosition({0, 0}) {}
 
 void RenderWindow::drawGui() {
   auto ctx = renderContext();
@@ -49,9 +52,11 @@ void RenderWindow::onMouseButtonEvent(MouseButton button, ButtonAction action, M
   _signalMouseButton.emit(button, action, mods);
 }
 void RenderWindow::onMouseMoveEvent(int xpos, int ypos) {
-  MouseEvent event = {{xpos, ypos}, MouseButton::NONE, _buttonInPressing, Modifier::NONE};
+  MouseMoveEvent event(_prevCursorPosition, Movement::MOVING, {xpos, ypos}, MouseButton::NONE, _buttonInPressing,
+                       Modifier::NONE);
   WidgetContainer::onMouseMoveEvent(event);
   _signalMouseMove.emit(xpos, ypos);
+  _prevCursorPosition = {xpos, ypos};
 }
 void RenderWindow::onResizeEvent(int width, int height) { _signalResize.emit(width, height); }
 

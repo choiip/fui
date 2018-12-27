@@ -18,7 +18,7 @@ Widget::~Widget() {
 
 void Widget::setStyle(const std::shared_ptr<WidgetStyle>& style) { _style = style; }
 
-void Widget::onMouseMoveEvent(MouseEvent& event) {}
+void Widget::onMouseMoveEvent(MouseMoveEvent& event) {}
 void Widget::onMousePressEvent(MouseEvent& event) {}
 void Widget::onMouseReleaseEvent(MouseEvent& event) {}
 void Widget::draw(RenderContext& renderContext) {}

@@ -27,7 +27,7 @@ public:
   virtual void draw(RenderContext& renderContext) override;
 
 protected:
-  virtual void onMouseMoveEvent(MouseEvent& event) override;
+  virtual void onMouseMoveEvent(MouseMoveEvent& event) override;
   virtual void onMousePressEvent(MouseEvent& event) override;
   virtual void onMouseReleaseEvent(MouseEvent& event) override;
 
