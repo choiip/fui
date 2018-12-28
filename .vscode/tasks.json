@@ -1,0 +1,36 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "CMake: Configure (Emscripten)",
+      "type": "shell",
+      "command": "~/bin/dockcross-browser-asmjs",
+      "args": [
+        "cmake",
+        "-GNinja",
+        "-Bbuild/web/",
+        "-H."
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "CMake: Build (Emscripten)",
+      "type": "shell",
+      "command": "~/bin/dockcross-browser-asmjs",
+      "args": [
+        "cmake",
+        "--build",
+        "build/web/"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

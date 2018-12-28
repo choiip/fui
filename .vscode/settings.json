@@ -54,6 +54,14 @@
         "algorithm": "cpp"
     },
     "cmake.configureOnOpen": true,
+    "cmake.debugConfig": {
+        "stopAtEntry": false,
+        "osx": {
+            "externalConsole": true,
+            "MIMode": "lldb",
+            "miDebuggerPath": "${env:HOME}/.vscode/extensions/ms-vscode.cpptools-0.20.1/debugAdapters/lldb/bin/lldb-mi",
+        },
+    },
     "cmake.environment": {
         "VULKAN_SDK": "${workspaceRoot}/vulkansdk"
     },
