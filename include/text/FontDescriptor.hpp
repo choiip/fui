@@ -47,15 +47,13 @@ public:
   
   FontDescriptor(const char *path, const char *postscriptName, const char *family, const char *style, 
                  const std::string& lang, FontWeight weight, FontWidth width, bool italic, bool monospace);
-
-  FontDescriptor(FontDescriptor *desc);
 };
 
 class ResultSet : public std::vector<FontDescriptor *> {
 public:
   ~ResultSet() {
-    for (ResultSet::iterator it = this->begin(); it != this->end(); it++) {
-      delete *it;
+    for (auto&& it : *this) {
+      delete it;
     }
   }
 };

@@ -22,16 +22,4 @@ FontDescriptor::FontDescriptor(const char *path, const char *postscriptName, con
 , monospace(monospace)
 {}
 
-FontDescriptor::FontDescriptor(FontDescriptor *desc)
-: path(desc->path)
-, postscriptName(desc->postscriptName)
-, family(desc->family)
-, style(desc->style)
-, lang(desc->lang)
-, weight(desc->weight)
-, width(desc->width)
-, italic(desc->italic)
-, monospace(desc->monospace)
-{}
-
 }

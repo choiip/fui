@@ -36,6 +36,7 @@ if(ENABLE_CPPCHECK)
     list(APPEND CPPCHECK_SUPPRESS
       --suppress=*:*/glad.h
       --suppress=*:*/nanovg.h
+      --suppress=*:*/Signal.hpp
       --suppress=*:*/tinyutf8.h
     )
     set(CMAKE_CXX_CPPCHECK ${CPPCHECK} --enable=style --inconclusive ${CPPCHECK_SUPPRESS})

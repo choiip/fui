@@ -8,7 +8,7 @@ namespace fui {
 
 class WidgetStyle {
 public:
-  WidgetStyle(NVGcontext* vg);
+  explicit WidgetStyle(NVGcontext* vg);
 
   /// Fonts ///
   /// The icon font face 

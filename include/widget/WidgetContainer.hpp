@@ -9,7 +9,7 @@ typedef std::vector<Widget*> WidgetList;
 
 class WidgetContainer : public Widget {
 public:
-  WidgetContainer(WidgetContainer* parent);
+  explicit WidgetContainer(WidgetContainer* parent);
 
   virtual ~WidgetContainer();
 

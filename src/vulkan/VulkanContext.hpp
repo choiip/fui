@@ -23,7 +23,7 @@ public:
   };
 
 public:
-  VulkanContext(Resource& resource);
+  explicit VulkanContext(Resource& resource);
   ~VulkanContext();
 
   Status initVG();
