@@ -20,6 +20,14 @@ add_executable(widgetSample widgetSample.cpp)
 
 target_link_libraries(widgetSample fui)
 
+if (EMSCRIPTEN)
+  set(GL_FLAGS "-s FULL_ES2=1")
+  set_target_properties(widgetSample PROPERTIES 
+    LINK_FLAGS "-s USE_GLFW=3 ${GL_FLAGS}"
+    SUFFIX ".html"
+  )
+endif()
+
 ## load font sample
 add_executable(loadFontSample loadFontSample.cpp)
 
