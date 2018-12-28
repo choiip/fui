@@ -54,6 +54,12 @@ protected:
         ->enabled(false);
     y += 40;
 
+    (_progressBar = _renderWindow->addChild<ProgressBar>())
+        ->maxValue(1000)
+        ->position({x, y})
+        ->size({150, 28});
+    y += 40;
+
     // Events
     _renderWindow->onKey([this](Key key, ButtonAction action, Modifier mods) {
       if (key == Key::KEY_ESCAPE) {
@@ -68,6 +74,15 @@ protected:
   }
 
   void onDraw() override {
+    if (_progress >= _progressBar->maxValue()) 
+      _progress = 0;
+    else
+      ++_progress;
+
+    auto text = std::to_string(_progress);
+    _progressBar->value(_progress)
+                ->text(text);
+
     int winWidth, winHeight, fbWidth, fbHeight;
     _renderWindow->getWindowSize(winWidth, winHeight);
     _renderWindow->getDrawableSize(fbWidth, fbHeight);
@@ -85,6 +100,9 @@ protected:
 
 private:
   RenderWindow* _renderWindow;
+
+  ProgressBar* _progressBar;
+  int _progress = 0;
 };
 
 int main() {
@@ -92,7 +110,7 @@ int main() {
   LOGD << "Sample start";
 
   GlfwWindowManager windowManager;
-  auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL, 3, 2);
+  auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL_ES, 3, 2);
   if (!graphicsProfile)
     return -1;
 
