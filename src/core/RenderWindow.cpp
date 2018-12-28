@@ -1,12 +1,17 @@
 #include "core/RenderWindow.hpp"
+#include "core/Cursor.hpp"
 #include "core/RenderContext.hpp"
 #include "nanovg/nanovg.h"
+#include "event/MouseEvent.hpp"
 #include "widget/WidgetStyle.hpp"
 
 namespace fui {
 
 RenderWindow::RenderWindow()
-: WidgetContainer(nullptr) {}
+: WidgetContainer(nullptr)
+, _buttonInPressing(MouseButton::NONE)
+, _modifierInPressing(Modifier::NONE)
+, _prevCursorPosition({0, 0}) {}
 
 void RenderWindow::drawGui() {
   auto ctx = renderContext();
@@ -28,5 +33,31 @@ void RenderWindow::drawGui() {
     nvgEndFrame(vg);
   }
 }
+
+void RenderWindow::onKeyEvent(Key key, ButtonAction action, Modifier mods) { _signalKey.emit(key, action, mods); }
+void RenderWindow::onMouseButtonEvent(MouseButton button, ButtonAction action, Modifier mods) {
+  if (action == ButtonAction::RELEASE) {
+    _buttonInPressing = _buttonInPressing & ~button;
+  } else {
+    _buttonInPressing = _buttonInPressing | button;
+  }
+  MouseEvent event = {cursor()->position(), button, _buttonInPressing, Modifier::NONE};
+
+  if (action == ButtonAction::RELEASE) {
+    WidgetContainer::onMouseReleaseEvent(event);
+  } else if (action == ButtonAction::PRESS) {
+    WidgetContainer::onMousePressEvent(event);
+  }
+
+  _signalMouseButton.emit(button, action, mods);
+}
+void RenderWindow::onMouseMoveEvent(int xpos, int ypos) {
+  MouseMoveEvent event(_prevCursorPosition, Movement::MOVING, {xpos, ypos}, MouseButton::NONE, _buttonInPressing,
+                       Modifier::NONE);
+  WidgetContainer::onMouseMoveEvent(event);
+  _signalMouseMove.emit(xpos, ypos);
+  _prevCursorPosition = {xpos, ypos};
+}
+void RenderWindow::onResizeEvent(int width, int height) { _signalResize.emit(width, height); }
 
 } // namespace fui

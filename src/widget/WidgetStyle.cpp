@@ -20,16 +20,16 @@ WidgetStyle::WidgetStyle(NVGcontext* vg)
   requestFont.style = "Regular";
   auto resultFontDescriptor = std::unique_ptr<FontDescriptor>(findFont(&requestFont));
 
-  fontNormal = nvgCreateFont(vg, "sans", resultFontDescriptor->path.c_str());
-  if (fontNormal == -1) {
-    LOGE << "Could not add font italic.";
+  fontStandard = nvgCreateFont(vg, "sans", resultFontDescriptor->path.c_str());
+  if (fontStandard == -1) {
+    LOGE << "Could not add standard font.";
   }
   requestFont.style = "Bold";
   resultFontDescriptor = std::unique_ptr<FontDescriptor>(findFont(&requestFont));
 
   fontBold = nvgCreateFont(vg, "sans-bold", resultFontDescriptor->path.c_str());
   if (fontBold == -1) {
-    LOGE << "Could not add font bold.";
+    LOGE << "Could not add bold font.";
   }
 }
 

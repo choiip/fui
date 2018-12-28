@@ -12,6 +12,8 @@ typedef std::string Text;
 class WidgetContainer;
 class WidgetStyle;
 class RenderContext;
+class MouseEvent;
+class MouseMoveEvent;
 
 class Widget {
 public:
@@ -22,7 +24,7 @@ public:
   WidgetContainer* parent() const { return _parent; }
 
   void setStyle(const std::shared_ptr<WidgetStyle>& style);
-  
+
   virtual void draw(RenderContext& renderContext);
 
 protected:
@@ -31,6 +33,10 @@ protected:
 
   /// Return the \ref WidgetStyle used to draw this widget
   const WidgetStyle& style() const;
+
+  virtual void onMouseMoveEvent(MouseMoveEvent& event);
+  virtual void onMousePressEvent(MouseEvent& event);
+  virtual void onMouseReleaseEvent(MouseEvent& event);
 
   /// The position relative to the parent widget.
   FUI_WIDGET_PROPERTY(Vector2i, position, ConstantVector2i::Zero);
@@ -70,6 +76,7 @@ private:
   WidgetContainer* _parent;
   std::shared_ptr<WidgetStyle> _style;
 
+  friend class WidgetContainer;
 };
 
 } // namespace fui

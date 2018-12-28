@@ -16,26 +16,33 @@ protected:
     int x = 10, y = 10;
     _renderWindow->addChild<Button>("1st Button")
         ->icon(ENTYPO_ICON_CLOUD)
-        ->backgroundColor({0.f, 0.3f, 0.5f, 1.f})
+        ->backgroundColor({0.7f, 0.0f, 0.3f, 1.f})
         ->position({x, y})
-        ->size({140, 28});
+        ->size({150, 28});
     y += 40;
     _renderWindow->addChild<Button>("2nd Button")
         ->icon(ENTYPO_ICON_NEWS)
-        ->backgroundColor({0.f, 0.3f, 0.5f, 1.f})
+        ->backgroundColor({0.3f, 0.7f, 0.0f, 1.f})
         ->position({x, y})
-        ->size({140, 28});
+        ->size({150, 28});
     y += 40;
     _renderWindow->addChild<Button>("3rd Button")
         ->icon(ENTYPO_ICON_SIGNAL)
-        ->backgroundColor({0.f, 0.3f, 0.5f, 1.f})
+        ->backgroundColor({0.f, 0.3f, 0.7f, 1.f})
         ->position({x, y})
-        ->size({140, 28});
+        ->size({150, 28});
+    y += 40;
+    _renderWindow->addChild<Button>("Disabled Button")
+        ->icon(ENTYPO_ICON_STAR)
+        ->backgroundColor({0.f, 0.3f, 0.7f, 1.f})
+        ->position({x, y})
+        ->size({150, 28})
+        ->enabled(false);
     y += 40;
 
     // Events
-    _renderWindow->onKey([this](int key, int action, int mods) {
-      if (key == FUI_KEY_ESCAPE) {
+    _renderWindow->onKey([this](Key key, ButtonAction action, Modifier mods) {
+      if (key == Key::KEY_ESCAPE) {
         LOGD << "Window closing...";
         _renderWindow->close();
       }

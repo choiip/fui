@@ -21,8 +21,8 @@ public:
   : window(renderWindow)
   , vg(renderWindow->renderContext()->vg())
   , cpuTime(0) {
-    renderWindow->onKey([renderWindow](int key, int action, int mods) {
-      if (key == FUI_KEY_ESCAPE) {
+    renderWindow->onKey([renderWindow](Key key, ButtonAction action, Modifier mods) {
+      if (key == Key::KEY_ESCAPE) {
         LOGD << "Window closing...";
         renderWindow->close();
       }

@@ -1,9 +1,9 @@
 #include "widget/Button.hpp"
+#include "core/Log.hpp"
 #include "core/RenderContext.hpp"
+#include "event/MouseEvent.hpp"
 #include "nanovg/nanovg.h"
 #include "widget/WidgetStyle.hpp"
-
-#define ICON_LOGIN 0xE740
 
 namespace fui {
 
@@ -55,6 +55,38 @@ Button::Button(WidgetContainer* parent, const Text& caption)
 
 Button::~Button() {}
 
+void Button::onMouseMoveEvent(MouseMoveEvent& event) {
+  if (event.movement == Movement::ENTERING) {
+    if (((event.buttons & MouseButton::LEFT) != MouseButton::NONE) && not pushed()) {
+      pushed(true);
+    }
+  }
+  if (event.movement == Movement::LEAVING) {
+    if (pushed()) {
+      pushed(false);
+    }
+  }
+}
+
+void Button::onMousePressEvent(MouseEvent& event) {
+  if (event.button == MouseButton::LEFT) {
+    pushed(true);
+  }
+}
+
+void Button::onMouseReleaseEvent(MouseEvent& event) {
+  if (event.button == MouseButton::LEFT) {
+    auto lastPushState = pushed();
+    if (lastPushState) {
+      pushed(false);
+      _signalPressed.emit();
+    }
+    if (lastPushState == !pushed()) {
+      _signalToggled.emit(pushed());
+    }
+  }
+}
+
 void Button::draw(RenderContext& renderContext) {
   auto vg = renderContext.vg();
   const auto& buttonStyle = style();
@@ -62,11 +94,20 @@ void Button::draw(RenderContext& renderContext) {
   auto y = _position.y;
   auto w = _size.x;
   auto h = _size.y;
-  auto col = reinterpret_cast<const NVGcolor*>(&_backgroundColor);
-  auto gradTop = reinterpret_cast<const NVGcolor*>(&buttonStyle.buttonGradientTopNormal);
-  auto gradBot = reinterpret_cast<const NVGcolor*>(&buttonStyle.buttonGradientBotNormal);
-  bool isblack = isBlack(_backgroundColor);
+  auto bgColor = reinterpret_cast<const NVGcolor*>(&_backgroundColor);
+  auto borderColor = nvgRGBA(0, 0, 0, 48);
+  auto tColor = reinterpret_cast<const NVGcolor*>(
+      _enabled ? (_textColor.a > 0 ? &_textColor : &buttonStyle.standardTextColor) : &buttonStyle.disabledTextColor);
+  auto tShadow = reinterpret_cast<const NVGcolor*>(&buttonStyle.textShadow);
+
   const char* text = _caption.c_str();
+  auto gradTop = *reinterpret_cast<const NVGcolor*>(_pushed ? &buttonStyle.buttonGradientTopPushed
+                                                            : &buttonStyle.buttonGradientTopNormal);
+  auto gradBot = *reinterpret_cast<const NVGcolor*>(_pushed ? &buttonStyle.buttonGradientBotPushed
+                                                            : &buttonStyle.buttonGradientBotNormal);
+
+  auto textFontSize = buttonStyle.buttonFontSize;
+  auto iconFontSize = h * 1.3f;
   int preicon = _icon;
 
   NVGpaint bg;
@@ -74,12 +115,11 @@ void Button::draw(RenderContext& renderContext) {
   float cornerRadius = buttonStyle.buttonCornerRadius;
   float tw = 0, iw = 0;
 
-  bg = nvgLinearGradient(vg, x, y, x, y + h, nvgRGBA(255, 255, 255, isblack ? 16 : 32),
-                         nvgRGBA(0, 0, 0, isblack ? 16 : 32));
+  bg = nvgLinearGradient(vg, x, y, x, y + h, gradTop, gradBot);
   nvgBeginPath(vg);
   nvgRoundedRect(vg, x + 1, y + 1, w - 2, h - 2, cornerRadius - 1);
-  if (!isblack) {
-    nvgFillColor(vg, *col);
+  if (bgColor->a > .0f) {
+    nvgFillColor(vg, *bgColor);
     nvgFill(vg);
   }
   nvgFillPaint(vg, bg);
@@ -87,33 +127,29 @@ void Button::draw(RenderContext& renderContext) {
 
   nvgBeginPath(vg);
   nvgRoundedRect(vg, x + 0.5f, y + 0.5f, w - 1, h - 1, cornerRadius - 0.5f);
-  nvgStrokeColor(vg, nvgRGBA(0, 0, 0, 48));
+  nvgStrokeColor(vg, borderColor);
   nvgStroke(vg);
 
-  nvgFontSize(vg, 20.0f);
+  nvgFontSize(vg, textFontSize);
   nvgFontFaceId(vg, buttonStyle.fontBold);
   tw = nvgTextBounds(vg, 0, 0, text, NULL, NULL);
   if (preicon != 0) {
-    nvgFontSize(vg, h * 1.3f);
+    nvgFontSize(vg, iconFontSize);
     nvgFontFaceId(vg, buttonStyle.fontIcons);
     iw = nvgTextBounds(vg, 0, 0, cpToUTF8(preicon, icon), NULL, NULL);
     iw += h * 0.15f;
-  }
 
-  if (preicon != 0) {
-    nvgFontSize(vg, h * 1.3f);
-    nvgFontFaceId(vg, buttonStyle.fontIcons);
-    nvgFillColor(vg, nvgRGBA(255, 255, 255, 96));
+    nvgFillColor(vg, *tColor);
     nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-    nvgText(vg, x + w * 0.5f - tw * 0.5f - iw * 0.75f, y + h * 0.5f, cpToUTF8(preicon, icon), NULL);
+    nvgText(vg, x + w * 0.5f - tw * 0.5f - iw * 0.75f, y + h * 0.5f, icon, NULL);
   }
 
-  nvgFontSize(vg, 20.0f);
+  nvgFontSize(vg, textFontSize);
   nvgFontFaceId(vg, buttonStyle.fontBold);
   nvgTextAlign(vg, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-  nvgFillColor(vg, nvgRGBA(0, 0, 0, 160));
+  nvgFillColor(vg, *tShadow);
   nvgText(vg, x + w * 0.5f - tw * 0.5f + iw * 0.25f, y + h * 0.5f - 1, text, NULL);
-  nvgFillColor(vg, nvgRGBA(255, 255, 255, 160));
+  nvgFillColor(vg, *tColor);
   nvgText(vg, x + w * 0.5f - tw * 0.5f + iw * 0.25f, y + h * 0.5f, text, NULL);
 }
 
