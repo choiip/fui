@@ -116,7 +116,8 @@ list(APPEND FUI_SOURCES
   src/GL/GlfwGLES2Profile.cpp
   src/text/FontDescriptor.cpp
   src/widget/Button.cpp
-  src/widget/Label.cpp  
+  src/widget/Label.cpp
+  src/widget/ProgressBar.cpp
   src/widget/Widget.cpp
   src/widget/WidgetContainer.cpp
   src/widget/WidgetStyle.cpp
