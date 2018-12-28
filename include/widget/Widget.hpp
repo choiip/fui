@@ -39,10 +39,10 @@ protected:
   virtual void onMouseReleaseEvent(MouseEvent& event);
 
   /// The position relative to the parent widget.
-  FUI_WIDGET_PROPERTY(Vector2i, position, ConstantVector2i::Zero);
+  FUI_WIDGET_PROPERTY(Vector2i, position, {0, 0});
 
   /// The size of the widget.
-  FUI_WIDGET_PROPERTY(Vector2i, size, ConstantVector2i::Zero);
+  FUI_WIDGET_PROPERTY(Vector2i, size, {0, 0});
 
   /**
    * \brief Set the fixed size of this widget
@@ -53,7 +53,7 @@ protected:
    * size; this is done with a call to \ref setSize or a call to \ref
    * performLayout() in the parent widget.
    */
-  FUI_WIDGET_PROPERTY(Vector2i, fixedSize, ConstantVector2i::Zero);
+  FUI_WIDGET_PROPERTY(Vector2i, fixedSize, {0, 0});
 
   /**
    * Whether or not this Widget is currently visible.  When a Widget is not

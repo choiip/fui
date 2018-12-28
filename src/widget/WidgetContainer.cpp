@@ -20,9 +20,11 @@ void WidgetContainer::addChild(Widget* widget) {
 }
 
 void WidgetContainer::removeChild(Widget* widget) {
-  auto itr = std::find(_children.begin(), _children.end(), widget);
-  if (itr != _children.end()) {
-    _children.erase(itr);
+  for (auto itr = _children.begin(); itr != _children.end(); ++itr) {
+    if (*itr == widget) {
+      _children.erase(itr);
+      return;
+    }
   }
 }
 

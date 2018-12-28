@@ -67,10 +67,10 @@ protected:
   FUI_WIDGET_PROPERTY(Flags, flags, Flags::NormalButton);
 
   /// The background color of this Button.
-  FUI_WIDGET_PROPERTY(Color, backgroundColor, ConstantColor::Black);
+  FUI_WIDGET_PROPERTY(Color, backgroundColor, {0, 0, 0, 0});
 
   /// The color of the caption text of this Button.
-  FUI_WIDGET_PROPERTY(Color, textColor, ConstantColor::Black);
+  FUI_WIDGET_PROPERTY(Color, textColor, {0, 0, 0, 0});
 };
 
 } // namespace fui
