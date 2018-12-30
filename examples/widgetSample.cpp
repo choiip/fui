@@ -28,21 +28,16 @@ protected:
     y += 40;
 
     x = 210, y = 10;
-    _renderWindow->addChild<Button>("1st Button")
+    _renderWindow->addChild<Button>("Normal Button")
         ->icon(ENTYPO_ICON_CLOUD)
         ->backgroundColor({0.7f, 0.0f, 0.3f, 1.f})
         ->position({x, y})
         ->size({150, 28});
     y += 40;
-    _renderWindow->addChild<Button>("2nd Button")
+    _renderWindow->addChild<Button>("Toggle Button")
+        ->type(Button::Type::TOGGLE)
         ->icon(ENTYPO_ICON_NEWS)
         ->backgroundColor({0.3f, 0.7f, 0.0f, 1.f})
-        ->position({x, y})
-        ->size({150, 28});
-    y += 40;
-    _renderWindow->addChild<Button>("3rd Button")
-        ->icon(ENTYPO_ICON_SIGNAL)
-        ->backgroundColor({0.f, 0.3f, 0.7f, 1.f})
         ->position({x, y})
         ->size({150, 28});
     y += 40;

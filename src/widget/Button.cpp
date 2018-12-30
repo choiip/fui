@@ -145,7 +145,9 @@ void Button::onMousePressEvent(MouseEvent& event) {
 
 void Button::onMouseReleaseEvent(MouseEvent& event) {
   if (_snap && event.button == MouseButton::LEFT) {
-    pushed(false);
+    if (_type == Type::NORMAL) {
+      pushed(false);
+    }
     if (contain(event.position.x, event.position.y)) {
       if (!_snap->pushed) {
         _signalPressed.emit();
