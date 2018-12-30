@@ -14,8 +14,8 @@ public:
   virtual ~WidgetContainer();
 
   /// Variadic shorthand notation to construct and add a child widget
-  template <typename WidgetClass, typename... Args> WidgetClass* addChild(const Args&... args) {
-    return new WidgetClass(this, args...);
+  template <typename WidgetClass, typename... Args> WidgetClass* addChild(Args&&... args) {
+    return new WidgetClass(this, std::forward<Args>(args)...);
   }
 
   /// Convenience function which appends a widget at the end
