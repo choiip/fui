@@ -176,5 +176,6 @@ template <typename Enum> constexpr Enum operator|(Enum lhs, Enum rhs) {
 
   return static_cast<Enum>(static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
 }
+template <typename Enum> constexpr bool hasFlags(Enum lhs, Enum rhs) { return (lhs & rhs) == rhs; }
 
 } // namespace fui

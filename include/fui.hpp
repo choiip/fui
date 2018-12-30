@@ -20,3 +20,4 @@
 #include <widget/Widget.hpp>
 #include <widget/WidgetContainer.hpp>
 #include <widget/WidgetStyle.hpp>
+#include <widget/Window.hpp>

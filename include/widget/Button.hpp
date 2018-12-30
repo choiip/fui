@@ -71,6 +71,10 @@ protected:
 
   /// The color of the caption text of this Button.
   FUI_WIDGET_PROPERTY(Color, textColor, {0, 0, 0, 0});
+
+private:
+  struct SnapState;
+  std::unique_ptr<SnapState> _snap;
 };
 
 } // namespace fui

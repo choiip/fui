@@ -46,13 +46,11 @@ void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
     if (w->visible() && w->enabled()) {
       auto prevContained = w->contain(localPrevX, localPrevY);
       auto contained = w->contain(localX, localY);
-      if (prevContained || contained) {
-        auto movement =
-            prevContained == contained ? Movement::MOVING : (contained ? Movement::ENTERING : Movement::LEAVING);
-        MouseMoveEvent altEvent({localPrevX, localPrevY}, movement, {localX, localY}, event.button, event.buttons,
-                                event.modifiers);
-        w->onMouseMoveEvent(altEvent);
-      }
+      auto movement =
+          prevContained == contained ? Movement::MOVING : (contained ? Movement::ENTERING : Movement::LEAVING);
+      MouseMoveEvent altEvent({localPrevX, localPrevY}, movement, {localX, localY}, event.button, event.buttons,
+                              event.modifiers);
+      w->onMouseMoveEvent(altEvent);
     }
   }
 }
@@ -73,7 +71,7 @@ void WidgetContainer::onMouseReleaseEvent(MouseEvent& event) {
   auto localY = event.position.y - _position.y;
   MouseEvent altEvent = {{localX, localY}, event.button, event.buttons, event.modifiers};
   for (auto&& w : _children) {
-    if (w->visible() && w->enabled() && w->contain(localX, localY)) {
+    if (w->visible() && w->enabled()) {
       w->onMouseReleaseEvent(altEvent);
     }
   }

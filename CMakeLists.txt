@@ -121,6 +121,7 @@ list(APPEND FUI_SOURCES
   src/widget/Widget.cpp
   src/widget/WidgetContainer.cpp
   src/widget/WidgetStyle.cpp
+  src/widget/Window.cpp
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")

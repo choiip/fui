@@ -49,43 +49,15 @@ static char* cpToUTF8(int cp, char* str) {
   return str;
 }
 
+struct Button::SnapState {
+  bool pushed;
+};
+
 Button::Button(WidgetContainer* parent, const Text& caption)
 : Widget(parent)
 , _caption(caption) {}
 
 Button::~Button() {}
-
-void Button::onMouseMoveEvent(MouseMoveEvent& event) {
-  if (event.movement == Movement::ENTERING) {
-    if (((event.buttons & MouseButton::LEFT) != MouseButton::NONE) && not pushed()) {
-      pushed(true);
-    }
-  }
-  if (event.movement == Movement::LEAVING) {
-    if (pushed()) {
-      pushed(false);
-    }
-  }
-}
-
-void Button::onMousePressEvent(MouseEvent& event) {
-  if (event.button == MouseButton::LEFT) {
-    pushed(true);
-  }
-}
-
-void Button::onMouseReleaseEvent(MouseEvent& event) {
-  if (event.button == MouseButton::LEFT) {
-    auto lastPushState = pushed();
-    if (lastPushState) {
-      pushed(false);
-      _signalPressed.emit();
-    }
-    if (lastPushState == !pushed()) {
-      _signalToggled.emit(pushed());
-    }
-  }
-}
 
 void Button::draw(RenderContext& renderContext) {
   auto vg = renderContext.vg();
@@ -95,7 +67,7 @@ void Button::draw(RenderContext& renderContext) {
   auto w = _size.x;
   auto h = _size.y;
   auto bgColor = reinterpret_cast<const NVGcolor*>(&_backgroundColor);
-  auto borderColor = nvgRGBA(0, 0, 0, 48);
+  auto borderColor = *reinterpret_cast<const NVGcolor*>(&buttonStyle.borderMedium);
   auto tColor = reinterpret_cast<const NVGcolor*>(
       _enabled ? (_textColor.a > 0 ? &_textColor : &buttonStyle.standardTextColor) : &buttonStyle.disabledTextColor);
   auto tShadow = reinterpret_cast<const NVGcolor*>(&buttonStyle.textShadow);
@@ -151,6 +123,39 @@ void Button::draw(RenderContext& renderContext) {
   nvgText(vg, x + w * 0.5f - tw * 0.5f + iw * 0.25f, y + h * 0.5f - 1, text, NULL);
   nvgFillColor(vg, *tColor);
   nvgText(vg, x + w * 0.5f - tw * 0.5f + iw * 0.25f, y + h * 0.5f, text, NULL);
+}
+
+void Button::onMouseMoveEvent(MouseMoveEvent& event) {
+  if (_snap && hasFlags(event.buttons, MouseButton::LEFT)) {
+    if (event.movement == Movement::ENTERING) {
+      pushed(!_snap->pushed);
+    } else if (event.movement == Movement::LEAVING) {
+      pushed(_snap->pushed);
+    }
+  }
+}
+
+void Button::onMousePressEvent(MouseEvent& event) {
+  if (event.button == MouseButton::LEFT) {
+    _snap.reset(new SnapState);
+    _snap->pushed = pushed();
+    pushed(!_snap->pushed);
+  }
+}
+
+void Button::onMouseReleaseEvent(MouseEvent& event) {
+  if (_snap && event.button == MouseButton::LEFT) {
+    pushed(false);
+    if (contain(event.position.x, event.position.y)) {
+      if (!_snap->pushed) {
+        _signalPressed.emit();
+      }
+      if (_snap->pushed == !pushed()) {
+        _signalToggled.emit(pushed());
+      }
+    }
+    _snap.reset();
+  }
 }
 
 } // namespace fui
