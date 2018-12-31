@@ -6,12 +6,10 @@ namespace fui {
 
 class Button : public Widget {
 public:
-  /// Flags to specify the button behavior (can be combined with binary OR)
-  enum class Flags {
-    NormalButton = (1 << 0), ///< A normal Button.
-    RadioButton = (1 << 1),  ///< A radio Button.
-    ToggleButton = (1 << 2), ///< A toggle Button.
-    PopupButton = (1 << 3)   ///< A popup Button.
+  /// Type of button
+  enum class Type {
+    NORMAL,
+    TOGGLE,
   };
 
   /// The available icon positions.
@@ -50,9 +48,9 @@ protected:
    * \rst
    * The icon to display with this Button.  If not ``0``, may either be a
    * picture icon, or one of the icons enumerated in
-   * :ref:`entypo.h`.  The kind of icon (image or Entypo)
-   * is determined by the functions :func:`hauwan::nvgIsImageIcon` and its
-   * reciprocal counterpart :func:`hauwan::nvgIsFontIcon`.
+   * :ref:`text/EntypoIconDef.h`.  The kind of icon (image or Entypo)
+   * is determined by the functions :func:`nvgIsImageIcon` and its
+   * reciprocal counterpart :func:`nvgIsFontIcon`.
    * \endrst
    */
   FUI_WIDGET_PROPERTY(int, icon, 0);
@@ -63,14 +61,18 @@ protected:
   /// Whether or not this Button is currently pushed.
   FUI_WIDGET_PROPERTY(bool, pushed, false);
 
-  /// The current flags of this button (see \ref hauwan::Button::Flags for options).
-  FUI_WIDGET_PROPERTY(Flags, flags, Flags::NormalButton);
+  /// The type of this button (see \ref Button::Type for options).
+  FUI_WIDGET_PROPERTY(Type, type, Type::NORMAL);
 
   /// The background color of this Button.
   FUI_WIDGET_PROPERTY(Color, backgroundColor, {0, 0, 0, 0});
 
   /// The color of the caption text of this Button.
   FUI_WIDGET_PROPERTY(Color, textColor, {0, 0, 0, 0});
+
+private:
+  struct SnapState;
+  std::unique_ptr<SnapState> _snap;
 };
 
 } // namespace fui
