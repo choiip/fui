@@ -1,6 +1,8 @@
 #include "widget/WidgetContainer.hpp"
 #include <cassert>
+#include "core/RenderContext.hpp"
 #include "event/MouseEvent.hpp"
+#include "nanovg/nanovg.h"
 
 namespace fui {
 
@@ -29,11 +31,18 @@ void WidgetContainer::removeChild(Widget* widget) {
 }
 
 void WidgetContainer::draw(RenderContext& renderContext) {
+  auto vg = renderContext.vg();
+  nvgSave(vg);
+  nvgTranslate(vg, _position.x, _position.y);
   for (auto&& w : _children) {
     if (w->visible()) {
+      nvgSave(vg);
+      nvgIntersectScissor(vg, w->position().x, w->position().y, w->size().x, w->size().y);
       w->draw(renderContext);
+      nvgRestore(vg);
     }
   }
+  nvgRestore(vg);
 }
 
 void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {

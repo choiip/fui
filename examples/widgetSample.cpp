@@ -62,7 +62,24 @@ protected:
     y += 40;
 
     x = 410, y = 10;
-    _renderWindow->addChild<Window>("1st Window")->position({x, y})->size({320, 240});
+    Window* windowWidget = nullptr;
+    (windowWidget = _renderWindow->addChild<Window>("1st Window"))->position({x, y})->size({320, 240});
+    {
+      int lx = 10, ly = 10;
+      windowWidget->addChild<Button>("Normal Button")
+          ->icon(ENTYPO_ICON_CLOUD)
+          ->backgroundColor({0.7f, 0.0f, 0.3f, 1.f})
+          ->position({lx, ly})
+          ->size({150, 28});
+      ly += 40;
+      windowWidget->addChild<Button>("Toggle Button")
+          ->type(Button::Type::TOGGLE)
+          ->icon(ENTYPO_ICON_NEWS)
+          ->backgroundColor({0.3f, 0.7f, 0.0f, 1.f})
+          ->position({lx, ly})
+          ->size({150, 28});
+    }
+
     y += 40;
 
     // Events

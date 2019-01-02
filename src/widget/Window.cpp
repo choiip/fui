@@ -101,8 +101,9 @@ void Window::draw(RenderContext& renderContext) {
     nvgText(vg, x + w / 2, y + hh / 2 - 1, text, nullptr);
   }
 
-  nvgRestore(vg);
+  nvgTranslate(vg, 0, hh);
   WidgetContainer::draw(renderContext);
+  nvgRestore(vg);
 }
 
 void Window::onMouseMoveEvent(MouseMoveEvent& event) {
@@ -114,21 +115,26 @@ void Window::onMouseMoveEvent(MouseMoveEvent& event) {
       _position.y = 0;
     }
   } else {
-    WidgetContainer::onMouseMoveEvent(event);
+    auto headerHeight = style().windowHeaderHeight;
+    MouseMoveEvent altEvent({event.prevPosition.x, event.prevPosition.y - headerHeight}, event.movement, {event.position.x, event.position.y - headerHeight}, event.button, event.buttons,
+                              event.modifiers);    
+    WidgetContainer::onMouseMoveEvent(altEvent);
   }
 }
 
 void Window::onMousePressEvent(MouseEvent& event) {
+  auto headerHeight = style().windowHeaderHeight;
   auto hitHeaderArea = false;
   if (event.button == MouseButton::LEFT) {
-    hitHeaderArea = (event.position.y - _position.y < style().windowHeaderHeight);
+    hitHeaderArea = (event.position.y - _position.y < headerHeight);
   }
   if (hitHeaderArea) {
     _snap.reset(new SnapState);
     _snap->relativePosition.x = event.position.x - _position.x;
     _snap->relativePosition.y = event.position.y - _position.y;
   } else {
-    WidgetContainer::onMousePressEvent(event);
+    MouseEvent altEvent = {{event.position.x, event.position.y - headerHeight}, event.button, event.buttons, event.modifiers};
+    WidgetContainer::onMousePressEvent(altEvent);
   }
 }
 
