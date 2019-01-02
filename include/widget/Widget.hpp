@@ -23,8 +23,6 @@ public:
 
   WidgetContainer* parent() const { return _parent; }
 
-  void setStyle(const std::shared_ptr<WidgetStyle>& style);
-
   virtual void draw(RenderContext& renderContext);
 
 protected:
@@ -72,9 +70,11 @@ protected:
   /// Whether or not this widget is currently focused
   FUI_WIDGET_PROPERTY(bool, focused, false);
 
+  /// Widget style
+  FUI_WIDGET_WRITEONLY_PROPERTY(std::shared_ptr<WidgetStyle>, style, nullptr);
+
 private:
   WidgetContainer* _parent;
-  std::shared_ptr<WidgetStyle> _style;
 
   friend class WidgetContainer;
 };

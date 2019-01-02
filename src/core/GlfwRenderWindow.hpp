@@ -17,8 +17,6 @@ public:
 
   virtual Cursor* cursor() override;
 
-  virtual RenderContext* renderContext() const override;
-
   virtual void getWindowSize(int& width, int& height) override;
 
   virtual void getDrawableSize(int& width, int& height) override;
@@ -36,7 +34,6 @@ public:
 private:
   GLFWwindow* _window;
   GlfwCursor _cursor;
-  RenderContext* _renderContext;
 };
 
 } // namespace fui

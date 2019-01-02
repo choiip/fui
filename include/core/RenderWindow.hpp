@@ -10,9 +10,9 @@ class RenderContext;
 
 class RenderWindow : public WidgetContainer {
 public:
-  RenderWindow();
+  RenderWindow(RenderContext* renderContext);
 
-  virtual ~RenderWindow() = default;
+  virtual ~RenderWindow();
 
   void drawGui();
 
@@ -21,11 +21,11 @@ public:
   void onMouseMoveEvent(int xpos, int ypos);
   void onResizeEvent(int width, int height);
 
+  RenderContext* renderContext() const { return _renderContext; }
+
   virtual void* nativeWindow() const = 0;
 
   virtual Cursor* cursor() = 0;
-
-  virtual RenderContext* renderContext() const = 0;
 
   virtual void getWindowSize(int& width, int& height) = 0;
 
@@ -47,6 +47,7 @@ public:
   FUI_DEFINE_EVENT(void(int, int), Resize);
 
 private:
+  RenderContext* _renderContext;
   MouseButton _buttonInPressing;
   Modifier _modifierInPressing;
   Vector2i _prevCursorPosition;

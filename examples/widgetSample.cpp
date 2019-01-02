@@ -10,7 +10,16 @@ public:
 
 protected:
   virtual Status onEnter() override {
+    auto renderContext = _renderWindow->renderContext();
+#ifdef __EMSCRIPTEN__
     // load fonts
+    auto standardFontId = renderContext->loadFont("sans", "examples/assets/fonts/Roboto-Regular.ttf");
+    auto boldFontId = renderContext->loadFont("sans-bold", "examples/assets/fonts/Roboto-Bold.ttf");
+    static auto emscriptenStyle = std::make_shared<WidgetStyle>(*renderContext);
+    emscriptenStyle->fontStandard = standardFontId;
+    emscriptenStyle->fontBold = boldFontId;
+    _renderWindow->style(emscriptenStyle);
+#endif
 
     // Gui
     int x = 10, y = 10;

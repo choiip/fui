@@ -5,6 +5,7 @@
 #include <core/GlfwWindowManager.hpp>
 #include <core/GraphicsProfile.hpp>
 #include <core/Log.hpp>
+#include <core/RenderContext.hpp>
 #include <core/RenderWindow.hpp>
 #include <core/Status.hpp>
 

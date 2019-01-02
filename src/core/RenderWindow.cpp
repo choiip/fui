@@ -7,20 +7,26 @@
 
 namespace fui {
 
-RenderWindow::RenderWindow()
+RenderWindow::RenderWindow(RenderContext* renderContext)
 : WidgetContainer(nullptr)
+, _renderContext(renderContext)
 , _buttonInPressing(MouseButton::NONE)
 , _modifierInPressing(Modifier::NONE)
-, _prevCursorPosition({0, 0}) {}
+, _prevCursorPosition({0, 0}) {
+  if (renderContext) {
+    // load default sytle
+    static auto defaultStyle = std::make_shared<WidgetStyle>(*renderContext);
+    Widget::style(defaultStyle);
+  }
+}
+
+RenderWindow::~RenderWindow() {
+  delete _renderContext;
+}
 
 void RenderWindow::drawGui() {
-  auto ctx = renderContext();
-
-  if (ctx && _visible) {
-    auto vg = ctx->vg();
-    // load default sytle
-    static auto defaultStyle = std::make_shared<WidgetStyle>(vg);
-    Widget::setStyle(defaultStyle);
+  if (_renderContext && _visible) {
+    auto vg = _renderContext->vg();
 
     int winWidth, winHeight, fbWidth, fbHeight;
     getWindowSize(winWidth, winHeight);
@@ -29,7 +35,7 @@ void RenderWindow::drawGui() {
     auto pxRatio = (float)fbWidth / (float)winWidth;
 
     nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
-    WidgetContainer::draw(*ctx);
+    WidgetContainer::draw(*_renderContext);
     nvgEndFrame(vg);
   }
 }

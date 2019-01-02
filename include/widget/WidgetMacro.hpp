@@ -20,6 +20,16 @@ public:                                                                         
 protected:                                                                                                             \
   TYPE _##NAME = __VA_ARGS__;
 
+#define FUI_WIDGET_WRITEONLY_PROPERTY(TYPE, NAME, ...)                                                                           \
+public:                                                                                                                \
+  auto NAME(TYPE const& v)->decltype(this) {                                                                           \
+    _##NAME = v;                                                                                                       \
+    return this;                                                                                                       \
+  }                                                                                                                    \
+                                                                                                                       \
+protected:                                                                                                             \
+  TYPE _##NAME = __VA_ARGS__;
+
 #define FUI_WIDGET_PROPERTY_ALT(TYPE, NAME)                                                                            \
 public:                                                                                                                \
   auto NAME(TYPE const& v)->decltype(this);                                                                            \

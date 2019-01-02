@@ -2,21 +2,21 @@
 
 #include "core/MathDef.hpp"
 
-struct NVGcontext;
-
 namespace fui {
+
+class RenderContext;
 
 class WidgetStyle {
 public:
-  explicit WidgetStyle(NVGcontext* vg);
+  explicit WidgetStyle(RenderContext& renderContext);
 
   /// Fonts ///
   /// The icon font face
-  int fontIcons;
+  int fontIcons = -1;
   /// The standard font face
-  int fontStandard;
+  int fontStandard = -1;
   /// The bold font face
-  int fontBold;
+  int fontBold = -1;
 
   /// The font size for all widgets
   float standardFontSize = 16.f;
@@ -115,9 +115,6 @@ public:
    * The bottom gradient color for buttons currently pushed.
    */
   Color buttonGradientBotPushed = {.11f, .11f, .11f, .8f};
-
-private:
-  NVGcontext* _vg;
 };
 
 } // namespace fui

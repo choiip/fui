@@ -108,7 +108,8 @@ list(APPEND FUI_SOURCES
   src/core/GlfwCursor.cpp
   src/core/GlfwRenderWindow.cpp
   src/core/GlfwWindowManager.cpp
-  src/core/RenderWindow.cpp
+  src/core/RenderContext.cpp
+  src/core/RenderWindow.cpp  
   src/GL/GL3Context.cpp
   src/GL/GLES2Context.cpp
   src/GL/GLES3Context.cpp
