@@ -23,7 +23,12 @@ template <typename T> struct ConstantVector2 {
 };
 typedef ConstantVector2<int> ConstantVector2i;
 
-// Returns 1 if col.rgba is 0.0f,0.0f,0.0f,0.0f, 0 otherwise
-inline int isBlack(Color col) { return (col.r == 0.0f && col.g == 0.0f && col.b == 0.0f && col.a == 0.0f) ? 1 : 0; }
+template <typename T> constexpr Vector2<T> operator+(const Vector2<T>& lhs, const Vector2<T>& rhs) {
+  return {lhs.x + rhs.x, lhs.y + rhs.y};
+}
+
+template <typename T> constexpr Vector2<T> operator-(const Vector2<T>& lhs, const Vector2<T>& rhs) {
+  return {lhs.x - rhs.x, lhs.y - rhs.y};
+}
 
 } // namespace fui

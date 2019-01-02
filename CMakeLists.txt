@@ -118,6 +118,7 @@ list(APPEND FUI_SOURCES
   src/text/FontDescriptor.cpp
   src/widget/Button.cpp
   src/widget/Label.cpp
+  src/widget/PictureBox.cpp
   src/widget/ProgressBar.cpp
   src/widget/Widget.cpp
   src/widget/WidgetContainer.cpp

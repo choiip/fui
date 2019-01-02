@@ -20,6 +20,15 @@ protected:
     emscriptenStyle->fontBold = boldFontId;
     _renderWindow->style(emscriptenStyle);
 #endif
+    auto vg = renderContext->vg();
+
+    // load image
+    char file[128];
+    snprintf(file, 128, "examples/assets/images/image1.jpg");
+    auto pictureId = renderContext->loadImage(file);
+    if (pictureId == 0) {
+      LOGE << "Could not load " << file;
+    }
 
     // Gui
     int x = 10, y = 10;
@@ -34,6 +43,9 @@ protected:
         ->position({x, y})
         ->size({150, 28})
         ->enabled(false);
+    y += 40;
+
+    _renderWindow->addChild<Window>("Other Window")->position({x, y})->size({320, 240});
     y += 40;
 
     x = 210, y = 10;
@@ -58,10 +70,10 @@ protected:
         ->enabled(false);
     y += 40;
 
-    (_progressBar = _renderWindow->addChild<ProgressBar>())->maxValue(1000)->position({x, y})->size({150, 28});
+    (_progressBar = _renderWindow->addChild<ProgressBar>())->maxValue(360)->position({x, y})->size({150, 28});
     y += 40;
 
-    x = 410, y = 10;
+    x = 410, y = 210;
     Window* windowWidget = nullptr;
     (windowWidget = _renderWindow->addChild<Window>("1st Window"))->position({x, y})->size({320, 240});
     {
@@ -78,10 +90,13 @@ protected:
           ->backgroundColor({0.3f, 0.7f, 0.0f, 1.f})
           ->position({lx, ly})
           ->size({150, 28});
+      ly += 40;
+      (_pictureBox = windowWidget->addChild<PictureBox>())
+          ->orientation(0.f)
+          ->picture(pictureId, vg)
+          ->position({lx, ly})
+          ->size({256, 128});
     }
-
-    y += 40;
-
     // Events
     _renderWindow->onKey([this](Key key, ButtonAction action, Modifier mods) {
       if (key == Key::KEY_ESCAPE) {
@@ -103,6 +118,7 @@ protected:
 
     auto text = std::to_string(_progress);
     _progressBar->value(_progress)->text(text);
+    _pictureBox->orientation((float)_progress)->fit();
 
     int winWidth, winHeight, fbWidth, fbHeight;
     _renderWindow->getWindowSize(winWidth, winHeight);
@@ -123,6 +139,7 @@ private:
   RenderWindow* _renderWindow;
 
   ProgressBar* _progressBar;
+  PictureBox* _pictureBox;
   int _progress = 0;
 };
 
