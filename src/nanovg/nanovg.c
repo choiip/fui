@@ -131,6 +131,9 @@ struct NVGcontext {
 	int textTriCount;
 };
 
+NVGprint nvgErrorPrint = printf;
+NVGprint nvgDebugPrint = printf;
+
 static float nvg__sqrtf(float a) { return sqrtf(a); }
 static float nvg__modf(float a, float b) { return fmodf(a, b); }
 static float nvg__sinf(float a) { return sinf(a); }
@@ -365,7 +368,7 @@ void nvgDeleteInternal(NVGcontext* ctx)
 
 void nvgBeginFrame(NVGcontext* ctx, float windowWidth, float windowHeight, float devicePixelRatio)
 {
-/*	printf("Tris: draws:%d  fill:%d  stroke:%d  text:%d  TOT:%d\n",
+/*	nvgDebugPrint("Tris: draws:%d  fill:%d  stroke:%d  text:%d  TOT:%d\n",
 		ctx->drawCallCount, ctx->fillTriCount, ctx->strokeTriCount, ctx->textTriCount,
 		ctx->fillTriCount+ctx->strokeTriCount+ctx->textTriCount);*/
 
@@ -796,7 +799,7 @@ int nvgCreateImage(NVGcontext* ctx, const char* filename, int imageFlags)
 	stbi_convert_iphone_png_to_rgb(1);
 	img = stbi_load(filename, &w, &h, &n, 4);
 	if (img == NULL) {
-//		printf("Failed to load %s - %s\n", filename, stbi_failure_reason());
+		nvgErrorPrint("Failed to load %s - %s\n", filename, stbi_failure_reason());
 		return 0;
 	}
 	image = nvgCreateImageRGBA(ctx, w, h, imageFlags, img);
@@ -809,7 +812,7 @@ int nvgCreateImageMem(NVGcontext* ctx, int imageFlags, unsigned char* data, int 
 	int w, h, n, image;
 	unsigned char* img = stbi_load_from_memory(data, ndata, &w, &h, &n, 4);
 	if (img == NULL) {
-//		printf("Failed to load %s - %s\n", filename, stbi_failure_reason());
+		nvgErrorPrint("Failed to load from data - %s\n", stbi_failure_reason());
 		return 0;
 	}
 	image = nvgCreateImageRGBA(ctx, w, h, imageFlags, img);
@@ -2028,7 +2031,7 @@ void nvgArcTo(NVGcontext* ctx, float x1, float y1, float x2, float y2, float rad
 	a = nvg__acosf(dx0*dx1 + dy0*dy1);
 	d = radius / nvg__tanf(a/2.0f);
 
-//	printf("a=%f° d=%f\n", a/NVG_PI*180.0f, d);
+//	nvgDebugPrint("a=%f° d=%f\n", a/NVG_PI*180.0f, d);
 
 	if (d > 10000.0f) {
 		nvgLineTo(ctx, x1,y1);
@@ -2041,14 +2044,14 @@ void nvgArcTo(NVGcontext* ctx, float x1, float y1, float x2, float y2, float rad
 		a0 = nvg__atan2f(dx0, -dy0);
 		a1 = nvg__atan2f(-dx1, dy1);
 		dir = NVG_CW;
-//		printf("CW c=(%f, %f) a0=%f° a1=%f°\n", cx, cy, a0/NVG_PI*180.0f, a1/NVG_PI*180.0f);
+//		nvgDebugPrint("CW c=(%f, %f) a0=%f° a1=%f°\n", cx, cy, a0/NVG_PI*180.0f, a1/NVG_PI*180.0f);
 	} else {
 		cx = x1 + dx0*d + -dy0*radius;
 		cy = y1 + dy0*d + dx0*radius;
 		a0 = nvg__atan2f(-dx0, dy0);
 		a1 = nvg__atan2f(dx1, -dy1);
 		dir = NVG_CCW;
-//		printf("CCW c=(%f, %f) a0=%f° a1=%f°\n", cx, cy, a0/NVG_PI*180.0f, a1/NVG_PI*180.0f);
+//		nvgDebugPrint("CCW c=(%f, %f) a0=%f° a1=%f°\n", cx, cy, a0/NVG_PI*180.0f, a1/NVG_PI*180.0f);
 	}
 
 	nvgArc(ctx, cx, cy, radius, a0, a1, dir);
@@ -2199,19 +2202,19 @@ void nvgDebugDumpPathCache(NVGcontext* ctx)
 	const NVGpath* path;
 	int i, j;
 
-	printf("Dumping %d cached paths\n", ctx->cache->npaths);
+	nvgDebugPrint("Dumping %d cached paths\n", ctx->cache->npaths);
 	for (i = 0; i < ctx->cache->npaths; i++) {
 		path = &ctx->cache->paths[i];
-		printf(" - Path %d\n", i);
+		nvgDebugPrint(" - Path %d\n", i);
 		if (path->nfill) {
-			printf("   - fill: %d\n", path->nfill);
+			nvgDebugPrint("   - fill: %d\n", path->nfill);
 			for (j = 0; j < path->nfill; j++)
-				printf("%f\t%f\n", path->fill[j].x, path->fill[j].y);
+				nvgDebugPrint("%f\t%f\n", path->fill[j].x, path->fill[j].y);
 		}
 		if (path->nstroke) {
-			printf("   - stroke: %d\n", path->nstroke);
+			nvgDebugPrint("   - stroke: %d\n", path->nstroke);
 			for (j = 0; j < path->nstroke; j++)
-				printf("%f\t%f\n", path->stroke[j].x, path->stroke[j].y);
+				nvgDebugPrint("%f\t%f\n", path->stroke[j].x, path->stroke[j].y);
 		}
 	}
 }

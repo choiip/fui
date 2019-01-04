@@ -1,5 +1,9 @@
 #include "core/Log.hpp"
+#include <cstdarg>
+#include <cstring>
 #include <iostream>
+#include <memory>
+#include "nanovg/nanovg.h"
 
 /* FOREGROUND */
 #define RST  "\x1B[0m"
@@ -24,6 +28,30 @@
 
 namespace fui {
 
+template<Logger::Level LOGLEVEL>
+static int logFunction(const char* fmt, ...) {
+  std::unique_ptr<char[]> formattedHeapMem;
+  char formattedStackMem[128];
+  char* formatted = &formattedStackMem[0];
+  int finalWritten = -1, n = sizeof(formattedStackMem);
+  va_list ap;
+  for(;;) {
+    va_start(ap, fmt);
+    finalWritten = vsnprintf(formatted, n, fmt, ap);
+    va_end(ap);
+    if (finalWritten < 0 || finalWritten >= n) {
+      n += abs(finalWritten - n + 1);
+      formattedHeapMem.reset(new char[n]); /* Wrap the plain char array into the unique_ptr */
+      formatted = &formattedHeapMem[0];
+    } else {
+      break;
+    }
+  }
+  fui::Logger::instance().write(LOGLEVEL, std::string(formatted, finalWritten));
+
+  return finalWritten;
+}
+
 Logger::Logger() {
   _handler = ([](Level level, const std::string& message) {
     switch (level) {
@@ -34,9 +62,16 @@ Logger::Logger() {
         std::cout << message << '\n'; break;
     }
   });
+  nvgErrorPrint = logFunction<Level::ERROR>;
+  nvgDebugPrint = logFunction<Level::DEBUG>;
 }
 
-void Logger::log(Level level, const std::string& message) {
+Logger::~Logger() {
+  nvgDebugPrint = printf;
+  nvgErrorPrint = printf;
+}
+
+void Logger::write(Level level, const std::string& message) {
   (*_handler)(level, message);
 }
 

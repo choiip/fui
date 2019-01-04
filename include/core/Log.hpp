@@ -16,7 +16,8 @@ public:
   typedef void (* Handler)(Level level, const std::string& message);
 
   Logger();
-  void log(Level level, const std::string& message);
+  ~Logger();
+  void write(Level level, const std::string& message);
   void setHandle(Handler handler);
 
 private:
@@ -27,7 +28,7 @@ template<Logger::Level LOGLEVEL>
 class LogStream : public std::ostringstream {
 public:
   explicit LogStream(Logger& logger) : _logger(logger) {}
-  ~LogStream() { _logger.log(LOGLEVEL, std::ostringstream::str()); }
+  ~LogStream() { _logger.write(LOGLEVEL, std::ostringstream::str()); }
   template <typename T>
   LogStream& operator<<(const T& v) {
     (*(std::ostringstream*)this) << v;

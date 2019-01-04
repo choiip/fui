@@ -672,6 +672,10 @@ NVGparams* nvgInternalParams(NVGcontext* ctx);
 // Debug function to dump cached path data.
 void nvgDebugDumpPathCache(NVGcontext* ctx);
 
+typedef int (*NVGprint) (const char* fmt, ...);
+extern NVGprint nvgErrorPrint;
+extern NVGprint nvgDebugPrint;
+
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
