@@ -17,6 +17,7 @@
 
 #include <widget/Button.hpp>
 #include <widget/Label.hpp>
+#include <widget/PictureBox.hpp>
 #include <widget/ProgressBar.hpp>
 #include <widget/Widget.hpp>
 #include <widget/WidgetContainer.hpp>
