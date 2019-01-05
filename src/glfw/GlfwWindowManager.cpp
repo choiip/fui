@@ -1,16 +1,16 @@
-#include "core/GlfwWindowManager.hpp"
+#include "glfw/GlfwWindowManager.hpp"
 #include <memory>
 #include <GLFW/glfw3.h>
-#include "core/GlfwCursor.hpp"
-#include "core/GlfwRenderWindow.hpp"
+#include "GlfwCursor.hpp"
+#include "GlfwGL3Profile.hpp"
+#include "GlfwGLES2Profile.hpp"
+#include "GlfwRenderWindow.hpp"
+#ifdef FUI_ENABLE_VULKAN
+#include "GlfwVulkanProfile.hpp"
+#endif
 #include "core/Log.hpp"
 #include "core/RenderContext.hpp"
 #include "event/EventEnum.hpp"
-#include "GL/GlfwGL3Profile.hpp"
-#include "GL/GlfwGLES2Profile.hpp"
-#ifdef FUI_ENABLE_VULKAN
-#include "vulkan/GlfwVulkanProfile.hpp"
-#endif
 
 namespace fui {
 

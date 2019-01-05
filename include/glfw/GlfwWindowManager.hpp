@@ -1,7 +1,7 @@
 #pragma once
 
-#include "AbstractWindowManager.hpp"
-#include "Singleton.hpp"
+#include "core/AbstractWindowManager.hpp"
+#include "core/Singleton.hpp"
 #include <unordered_map>
 
 struct GLFWwindow;

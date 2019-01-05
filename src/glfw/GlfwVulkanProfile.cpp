@@ -6,11 +6,11 @@
 #else
 #define GLFW_INCLUDE_VULKAN
 #endif
-#include "vku.h"
 #include <GLFW/glfw3.h>
 #include "core/Log.hpp"
 #include "core/Status.hpp"
-#include "VulkanContext.hpp"
+#include "vulkan/vku.h"
+#include "vulkan/VulkanContext.hpp"
 
 namespace fui {
 

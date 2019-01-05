@@ -105,16 +105,16 @@ list(APPEND FUI_SOURCES
   ${BUILD_IN_FONT_HEADER}
   src/core/Log.cpp
   src/core/ApplicationContext.cpp
-  src/core/GlfwCursor.cpp
-  src/core/GlfwRenderWindow.cpp
-  src/core/GlfwWindowManager.cpp
   src/core/RenderContext.cpp
   src/core/RenderWindow.cpp  
+  src/glfw/GlfwCursor.cpp
+  src/glfw/GlfwGL3Profile.cpp
+  src/glfw/GlfwGLES2Profile.cpp
+  src/glfw/GlfwRenderWindow.cpp
+  src/glfw/GlfwWindowManager.cpp
   src/GL/GL3Context.cpp
   src/GL/GLES2Context.cpp
   src/GL/GLES3Context.cpp
-  src/GL/GlfwGL3Profile.cpp
-  src/GL/GlfwGLES2Profile.cpp
   src/text/FontDescriptor.cpp
   src/widget/Button.cpp
   src/widget/Label.cpp
@@ -141,7 +141,7 @@ endif()
 
 if (WITH_VULKAN)
 list (APPEND FUI_SOURCES
-  src/vulkan/GlfwVulkanProfile.cpp
+  src/glfw/GlfwVulkanProfile.cpp
   src/vulkan/vku.c
   src/vulkan/VulkanContext.cpp
 )

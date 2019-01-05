@@ -1,4 +1,4 @@
-#include "core/GlfwCursor.hpp"
+#include "GlfwCursor.hpp"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>

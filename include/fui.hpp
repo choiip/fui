@@ -2,7 +2,6 @@
 
 #include <core/ApplicationContext.hpp>
 #include <core/Cursor.hpp>
-#include <core/GlfwWindowManager.hpp>
 #include <core/GraphicsProfile.hpp>
 #include <core/Log.hpp>
 #include <core/RenderContext.hpp>
@@ -11,6 +10,8 @@
 
 #include <event/EventEnum.hpp>
 #include <event/MouseEvent.hpp>
+
+#include <glfw/GlfwWindowManager.hpp>
 
 #include <text/EntypoIconDef.h>
 #include <text/FontDescriptor.hpp>

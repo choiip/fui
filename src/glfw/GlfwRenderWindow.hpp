@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/RenderWindow.hpp"
-#include "core/GlfwCursor.hpp"
+#include "GlfwCursor.hpp"
 
 struct GLFWwindow;
 
