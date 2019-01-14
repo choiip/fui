@@ -43,9 +43,11 @@ enum NVGcreateFlags {
 #  define NANOVG_GL_USE_UNIFORMBUFFER 1
 #elif defined NANOVG_GLES2_IMPLEMENTATION
 #  define NANOVG_GLES2 1
+#  define NANOVG_GLES 1
 #  define NANOVG_GL_IMPLEMENTATION 1
 #elif defined NANOVG_GLES3_IMPLEMENTATION
 #  define NANOVG_GLES3 1
+#  define NANOVG_GLES 1
 #  define NANOVG_GL_IMPLEMENTATION 1
 #endif
 
@@ -199,11 +201,12 @@ struct GLNVGfragUniforms {
 		float strokeMult;
 		float strokeThr;
 		int texType;
+		int texWidth;
 		int type;
 	#else
 		// note: after modifying layout or size of uniform array,
 		// don't forget to also update the fragment shader source!
-		#define NANOVG_GL_UNIFORMARRAY_SIZE 11
+		#define NANOVG_GL_UNIFORMARRAY_SIZE 12
 		union {
 			struct {
 				float scissorMat[12]; // matrices are actually 3 vec4s
@@ -218,6 +221,7 @@ struct GLNVGfragUniforms {
 				float strokeMult;
 				float strokeThr;
 				float texType;
+				float texWidth;
 				float type;
 			};
 			float uniformArray[NANOVG_GL_UNIFORMARRAY_SIZE][4];
@@ -523,7 +527,7 @@ static int glnvg__renderCreate(void* uptr)
 #if NANOVG_GL_USE_UNIFORMBUFFER
 	"#define USE_UNIFORMBUFFER 1\n"
 #else
-	"#define UNIFORMARRAY_SIZE 11\n"
+	"#define UNIFORMARRAY_SIZE 12\n"
 #endif
 	"\n";
 
@@ -570,6 +574,7 @@ static int glnvg__renderCreate(void* uptr)
 		"		float strokeMult;\n"
 		"		float strokeThr;\n"
 		"		int texType;\n"
+		"		int texWidth;\n"		
 		"		int type;\n"
 		"	};\n"
 		"#else\n" // NANOVG_GL3 && !USE_UNIFORMBUFFER
@@ -598,8 +603,26 @@ static int glnvg__renderCreate(void* uptr)
 		"	#define strokeMult frag[10].x\n"
 		"	#define strokeThr frag[10].y\n"
 		"	#define texType int(frag[10].z)\n"
-		"	#define type int(frag[10].w)\n"
+		"	#define texWidth int(frag[10].w)\n"		
+		"	#define type int(frag[11].x)\n"
 		"#endif\n"
+		"\n"		
+		"const vec3 R_cf = vec3(1.164383,  0.000000,  1.596027);"
+    "const vec3 G_cf = vec3(1.164383, -0.391762, -0.812968);"
+    "const vec3 B_cf = vec3(1.164383,  2.017232,  0.000000);"
+    "const vec3 offset = vec3(-0.0625, -0.5, -0.5);"
+		"vec3 convertY1CbY2Cr422(vec4 inpixel) {\n"
+		"  int pixel = int(mod(floor(float(texWidth) * ftcoord.x), 2.0));\n"
+		"  float y = (pixel == 1) ? inpixel.b : inpixel.r;\n"
+		"  vec3 yuv = vec3(y, inpixel.g, inpixel.a);\n"
+		"  yuv += offset;\n"
+		"\n"
+		"  vec3 outcolor;\n"
+		"  outcolor.r = dot(yuv, R_cf);\n"
+		"  outcolor.g = dot(yuv, G_cf);\n"
+		"  outcolor.b = dot(yuv, B_cf);\n"
+		"  return outcolor;\n"
+		"}\n"
 		"\n"
 		"float sdroundrect(vec2 pt, vec2 ext, float rad) {\n"
 		"	vec2 ext2 = ext - vec2(rad,rad);\n"
@@ -647,6 +670,7 @@ static int glnvg__renderCreate(void* uptr)
 		"#endif\n"
 		"		if (texType == 1) color = vec4(color.xyz*color.w,color.w);"
 		"		if (texType == 2) color = vec4(color.x);"
+		"		if (texType == 3) color = vec4(convertY1CbY2Cr422(color), 1.0);"
 		"		// Apply color tint and alpha.\n"
 		"		color *= innerCol;\n"
 		"		// Combine alpha\n"
@@ -662,6 +686,7 @@ static int glnvg__renderCreate(void* uptr)
 		"#endif\n"
 		"		if (texType == 1) color = vec4(color.xyz*color.w,color.w);"
 		"		if (texType == 2) color = vec4(color.x);"
+		"		if (texType == 3) color = vec4(convertY1CbY2Cr422(color), 1.0);"
 		"		color *= scissor;\n"
 		"		result = color * innerCol;\n"
 		"	}\n"
@@ -736,7 +761,6 @@ static int glnvg__renderCreateTexture(void* uptr, int type, int w, int h, int im
 	tex->flags = imageFlags;
 	glnvg__bindTexture(gl, tex->tex);
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 #ifndef NANOVG_GLES2
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, tex->width);
 	glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
@@ -750,9 +774,14 @@ static int glnvg__renderCreateTexture(void* uptr, int type, int w, int h, int im
 	}
 #endif
 
-	if (type == NVG_TEXTURE_RGBA)
+	if (type == NVG_TEXTURE_RGBA) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	else
+	} else if (tex->type == NVG_TEXTURE_RGB) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	} else if (tex->type == NVG_TEXTURE_ALPHA) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 #if defined(NANOVG_GLES2) || defined (NANOVG_GL2)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, w, h, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, data);
 #elif defined(NANOVG_GLES3)
@@ -760,6 +789,14 @@ static int glnvg__renderCreateTexture(void* uptr, int type, int w, int h, int im
 #else
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data);
 #endif
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	} else {
+#if defined(NANOVG_GLES)
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
+#else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
+#endif
+	}
 
 	if (imageFlags & NVG_IMAGE_GENERATE_MIPMAPS) {
 		if (imageFlags & NVG_IMAGE_NEAREST) {
@@ -791,7 +828,6 @@ static int glnvg__renderCreateTexture(void* uptr, int type, int w, int h, int im
 	else
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 #ifndef NANOVG_GLES2
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
@@ -826,8 +862,6 @@ static int glnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int w
 	if (tex == NULL) return 0;
 	glnvg__bindTexture(gl, tex->tex);
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
-
 #ifndef NANOVG_GLES2
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, tex->width);
 	glPixelStorei(GL_UNPACK_SKIP_PIXELS, x);
@@ -836,22 +870,39 @@ static int glnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int w
 	// No support for all of skip, need to update a whole row at a time.
 	if (tex->type == NVG_TEXTURE_RGBA)
 		data += y*tex->width*4;
+	else if (tex->type == NVG_TEXTURE_RGB)
+		data += y*tex->width*3;
+	else if (tex->type == NVG_TEXTURE_YUYV)
+		data += y*tex->width*2;
 	else
 		data += y*tex->width;
 	x = 0;
 	w = tex->width;
 #endif
 
-	if (tex->type == NVG_TEXTURE_RGBA)
+	if (tex->type == NVG_TEXTURE_RGBA) {
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	else
+	} else if (tex->type == NVG_TEXTURE_RGB) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);		
+	} else if (tex->type == NVG_TEXTURE_ALPHA) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 #if defined(NANOVG_GLES2) || defined(NANOVG_GL2)
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_LUMINANCE, GL_UNSIGNED_BYTE, data);
 #else
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_RED, GL_UNSIGNED_BYTE, data);
 #endif
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	} else {
+#if defined(NANOVG_GLES)
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_BGRA, GL_UNSIGNED_BYTE, data);
+#else
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
+#endif
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+	}
+
 #ifndef NANOVG_GLES2
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
@@ -945,17 +996,22 @@ static int glnvg__convertPaint(GLNVGcontext* gl, GLNVGfragUniforms* frag, NVGpai
 		frag->type = NSVG_SHADER_FILLIMG;
 
 		#if NANOVG_GL_USE_UNIFORMBUFFER
-		if (tex->type == NVG_TEXTURE_RGBA)
+		if (tex->type == NVG_TEXTURE_RGBA || tex->type == NVG_TEXTURE_RGB)
 			frag->texType = (tex->flags & NVG_IMAGE_PREMULTIPLIED) ? 0 : 1;
-		else
+		else if (tex->type == NVG_TEXTURE_ALPHA)
 			frag->texType = 2;
-		#else
-		if (tex->type == NVG_TEXTURE_RGBA)
-			frag->texType = (tex->flags & NVG_IMAGE_PREMULTIPLIED) ? 0.0f : 1.0f;
 		else
+			frag->texType = 3;
+		#else
+		if (tex->type == NVG_TEXTURE_RGBA || tex->type == NVG_TEXTURE_RGB)
+			frag->texType = (tex->flags & NVG_IMAGE_PREMULTIPLIED) ? 0.0f : 1.0f;
+		else if (tex->type == NVG_TEXTURE_ALPHA)
 			frag->texType = 2.0f;
+		else
+			frag->texType = 3.0f;
 		#endif
 		// nvgDebugPrint("frag->texType = %d\n", frag->texType);
+		frag->texWidth = tex->width;
 	} else {
 		frag->type = NSVG_SHADER_FILLGRAD;
 		frag->radius = paint->radius;
@@ -1613,13 +1669,13 @@ void nvgDeleteGLES3(NVGcontext* ctx)
 
 inline
 #if defined NANOVG_GL2
-int nvglCreateImageFromHandleGL2(NVGcontext* ctx, GLuint textureId, int w, int h, int flags)
+int nvglCreateImageFromHandleGL2(NVGcontext* ctx, int type, GLuint textureId, int w, int h, int flags)
 #elif defined NANOVG_GL3
-int nvglCreateImageFromHandleGL3(NVGcontext* ctx, GLuint textureId, int w, int h, int flags)
+int nvglCreateImageFromHandleGL3(NVGcontext* ctx, int type, GLuint textureId, int w, int h, int flags)
 #elif defined NANOVG_GLES2
-int nvglCreateImageFromHandleGLES2(NVGcontext* ctx, GLuint textureId, int w, int h, int flags)
+int nvglCreateImageFromHandleGLES2(NVGcontext* ctx, int type, GLuint textureId, int w, int h, int flags)
 #elif defined NANOVG_GLES3
-int nvglCreateImageFromHandleGLES3(NVGcontext* ctx, GLuint textureId, int w, int h, int flags)
+int nvglCreateImageFromHandleGLES3(NVGcontext* ctx, int type, GLuint textureId, int w, int h, int flags)
 #endif
 {
 	GLNVGcontext* gl = (GLNVGcontext*)nvgInternalParams(ctx)->userPtr;
@@ -1627,7 +1683,7 @@ int nvglCreateImageFromHandleGLES3(NVGcontext* ctx, GLuint textureId, int w, int
 
 	if (tex == NULL) return 0;
 
-	tex->type = NVG_TEXTURE_RGBA;
+	tex->type = type;
 	tex->tex = textureId;
 	tex->flags = flags;
 	tex->width = w;

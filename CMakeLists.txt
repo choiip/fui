@@ -82,6 +82,9 @@ if (NOT EMSCRIPTEN)
   find_package(glfw3 3.2 REQUIRED)
 endif()
 
+## libjpeg-turbo
+find_package(JPEG REQUIRED)
+
 ## nanovg
 list(APPEND NANOVG_SOURCES
   src/nanovg/nanovg.h 
@@ -115,6 +118,7 @@ list(APPEND FUI_SOURCES
   src/GL/GL3Context.cpp
   src/GL/GLES2Context.cpp
   src/GL/GLES3Context.cpp
+  src/image/jpg_decompress.c
   src/text/FontDescriptor.cpp
   src/widget/Button.cpp
   src/widget/Label.cpp
@@ -158,9 +162,9 @@ if (WITH_VULKAN)
 endif()
 
 target_include_directories(fui PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(fui PRIVATE ${PROJECT_BINARY_DIR}/include ${PROJECT_SOURCE_DIR}/src)
+target_include_directories(fui PRIVATE ${PROJECT_BINARY_DIR}/include ${JPEG_INCLUDE_DIR} ${PROJECT_SOURCE_DIR}/src)
 
-target_link_libraries(fui PUBLIC glfw ${EXTRA_LIB})
+target_link_libraries(fui PUBLIC glfw ${JPEG_LIBRARIES} ${EXTRA_LIB})
 
 ## examples
 add_subdirectory(examples)
