@@ -622,7 +622,8 @@ int nvgTextBreakLines(NVGcontext* ctx, const char* string, const char* end, floa
 enum NVGtexture {
 	NVG_TEXTURE_ALPHA = 0x01,
 	NVG_TEXTURE_RGBA = 0x02,
-	NVG_TEXTURE_YUYV = 0x03,
+	NVG_TEXTURE_RGB = 0x03,	
+	NVG_TEXTURE_YUYV = 0x04,
 };
 
 struct NVGscissor {

@@ -776,6 +776,10 @@ static int glnvg__renderCreateTexture(void* uptr, int type, int w, int h, int im
 
 	if (type == NVG_TEXTURE_RGBA) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	} else if (tex->type == NVG_TEXTURE_RGB) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	} else if (tex->type == NVG_TEXTURE_ALPHA) {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 #if defined(NANOVG_GLES2) || defined (NANOVG_GL2)
@@ -866,6 +870,10 @@ static int glnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int w
 	// No support for all of skip, need to update a whole row at a time.
 	if (tex->type == NVG_TEXTURE_RGBA)
 		data += y*tex->width*4;
+	else if (tex->type == NVG_TEXTURE_RGB)
+		data += y*tex->width*3;
+	else if (tex->type == NVG_TEXTURE_YUYV)
+		data += y*tex->width*2;
 	else
 		data += y*tex->width;
 	x = 0;
@@ -874,6 +882,10 @@ static int glnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int w
 
 	if (tex->type == NVG_TEXTURE_RGBA) {
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	} else if (tex->type == NVG_TEXTURE_RGB) {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);		
 	} else if (tex->type == NVG_TEXTURE_ALPHA) {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 #if defined(NANOVG_GLES2) || defined(NANOVG_GL2)
@@ -984,14 +996,14 @@ static int glnvg__convertPaint(GLNVGcontext* gl, GLNVGfragUniforms* frag, NVGpai
 		frag->type = NSVG_SHADER_FILLIMG;
 
 		#if NANOVG_GL_USE_UNIFORMBUFFER
-		if (tex->type == NVG_TEXTURE_RGBA)
+		if (tex->type == NVG_TEXTURE_RGBA || tex->type == NVG_TEXTURE_RGB)
 			frag->texType = (tex->flags & NVG_IMAGE_PREMULTIPLIED) ? 0 : 1;
 		else if (tex->type == NVG_TEXTURE_ALPHA)
 			frag->texType = 2;
 		else
 			frag->texType = 3;
 		#else
-		if (tex->type == NVG_TEXTURE_RGBA)
+		if (tex->type == NVG_TEXTURE_RGBA || tex->type == NVG_TEXTURE_RGB)
 			frag->texType = (tex->flags & NVG_IMAGE_PREMULTIPLIED) ? 0.0f : 1.0f;
 		else if (tex->type == NVG_TEXTURE_ALPHA)
 			frag->texType = 2.0f;
