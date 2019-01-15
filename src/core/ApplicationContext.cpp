@@ -20,7 +20,7 @@ static void mainLoop(void* argu) {
 
 ApplicationContext::ApplicationContext() {}
 
-ApplicationContext::~ApplicationContext() = default;
+ApplicationContext::~ApplicationContext() {}
 
 void ApplicationContext::run(AbstractWindowManager& windowManager) {
   MainLoopArgument argu = { this, &windowManager };
@@ -29,7 +29,7 @@ void ApplicationContext::run(AbstractWindowManager& windowManager) {
 #if __EMSCRIPTEN__
   emscripten_set_main_loop_arg(mainLoop, &argu, 0, 1);
 #else
-  while (not windowManager.shouldQuit()) {
+  while (!windowManager.shouldQuit()) {
     mainLoop(&argu);
   }
 #endif

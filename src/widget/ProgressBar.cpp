@@ -4,6 +4,13 @@
 #include "nanovg/nanovg.h"
 #include "widget/WidgetStyle.hpp"
 
+#ifndef WIN32
+using std::min;
+using std::max;
+#else
+#include <windows.h>
+#endif
+
 namespace fui {
   
 ProgressBar::ProgressBar(WidgetContainer* parent)
@@ -20,7 +27,7 @@ void ProgressBar::draw(RenderContext& renderContext) {
   auto bgColorGradTop = nvgRGBA(0, 0, 0, 32);
   auto bgColorGradBot = nvgRGBA(0, 0, 0, 92);
 
-  auto value = std::min(std::max(0, _value), _maxValue);
+  auto value = min(max(0, _value), _maxValue);
   auto barPos = (int)std::round((w - 2) * value / (float)_maxValue);
 
   auto barColorGradTop = nvgRGBA(220, 220, 220, 100);
@@ -43,7 +50,7 @@ void ProgressBar::draw(RenderContext& renderContext) {
   nvgFillPaint(vg, paint);
   nvgFill(vg);
 
-  if (not _text.empty()) {
+  if (!_text.empty()) {
     nvgFontSize(vg, textFontSize);
     nvgFontFaceId(vg, progressBarStyle.fontBold);
     auto tw = nvgTextBounds(vg, 0, 0, text, NULL, NULL);

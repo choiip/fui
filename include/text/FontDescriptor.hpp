@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -49,14 +50,7 @@ public:
                  const std::string& lang, FontWeight weight, FontWidth width, bool italic, bool monospace);
 };
 
-class ResultSet : public std::vector<FontDescriptor *> {
-public:
-  ~ResultSet() {
-    for (auto&& it : *this) {
-      delete it;
-    }
-  }
-};
+typedef std::vector<std::shared_ptr<FontDescriptor>> ResultSet;
 
 }
 

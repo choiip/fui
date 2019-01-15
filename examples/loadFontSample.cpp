@@ -18,7 +18,7 @@ int main() {
   auto fontDescriptors = getAvailableFonts();
   // sort by family
   std::sort(fontDescriptors.begin(), fontDescriptors.end(),
-            [](FontDescriptor* a, FontDescriptor* b) { return a->family < b->family; });
+            [](std::shared_ptr<FontDescriptor>& a, std::shared_ptr<FontDescriptor>& b) { return a->family < b->family; });
 
   // print result
   LOGD << "Available fonts:";

@@ -120,7 +120,7 @@ GraphicsProfile* GlfwWindowManager::createGraphicsProfile(GraphicsAPI api, int m
 
 void GlfwWindowManager::pollEvent() { glfwPollEvents(); }
 
-bool GlfwWindowManager::shouldQuit() { return not hasRunableWindow(); }
+bool GlfwWindowManager::shouldQuit() { return !hasRunableWindow(); }
 
 bool GlfwWindowManager::hasRunableWindow() const {
   for (auto&& w : _windows) {

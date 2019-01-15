@@ -55,15 +55,15 @@ static int logFunction(const char* fmt, ...) {
 Logger::Logger() {
   _handler = ([](Level level, const std::string& message) {
     switch (level) {
-      case Level::ERROR: std::cerr << KRED << message << RST << '\n'; break;
+      case Level::ERR: std::cerr << KRED << message << RST << '\n'; break;
       case Level::WARN: std::cout << KYEL << message << RST << '\n'; break;
-      case Level::DEBUG: std::cout << KBLU << message <<  RST << '\n'; break;
+      case Level::DBG: std::cout << KBLU << message <<  RST << '\n'; break;
       default:
         std::cout << message << '\n'; break;
     }
   });
-  nvgErrorPrint = logFunction<Level::ERROR>;
-  nvgDebugPrint = logFunction<Level::DEBUG>;
+  nvgErrorPrint = logFunction<Level::ERR>;
+  nvgDebugPrint = logFunction<Level::DBG>;
 }
 
 Logger::~Logger() {

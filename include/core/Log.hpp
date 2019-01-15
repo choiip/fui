@@ -8,9 +8,9 @@ namespace fui {
 class Logger : public Singleton<Logger> {
 public:
   enum class Level {
-    ERROR,
+    ERR = 0,
     WARN,
-    DEBUG,
+    DBG,
   };
 
   typedef void (* Handler)(Level level, const std::string& message);
@@ -43,6 +43,6 @@ private:
 
 }
 
-#define LOGE fui::LogStream<fui::Logger::Level::ERROR>(fui::Logger::instance())()
+#define LOGE fui::LogStream<fui::Logger::Level::ERR>(fui::Logger::instance())()
 #define LOGW fui::LogStream<fui::Logger::Level::WARN>(fui::Logger::instance())()
-#define LOGD fui::LogStream<fui::Logger::Level::DEBUG>(fui::Logger::instance())()
+#define LOGD fui::LogStream<fui::Logger::Level::DBG>(fui::Logger::instance())()

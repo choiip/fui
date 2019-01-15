@@ -153,7 +153,7 @@ ResultSet getResultSet(FcFontSet *fs) {
     return res;
 
   for (int i = 0; i < fs->nfont; i++) {
-    res.push_back(createFontDescriptor(fs->fonts[i]));
+    res.emplace_back(createFontDescriptor(fs->fonts[i]));
   }
 
   return res;

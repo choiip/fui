@@ -1,6 +1,7 @@
 #define WINVER 0x0600
 #include <dwrite.h>
 #include <dwrite_1.h>
+#pragma comment(lib, "Dwrite")
 #include <unordered_set>
 #include "text/FontDescriptor.hpp"
 using namespace fui;
@@ -122,6 +123,7 @@ FontDescriptor *resultFromFont(IDWriteFont *font) {
       char *postscriptName = getString(font, DWRITE_INFORMATIONAL_STRING_POSTSCRIPT_NAME);
       char *family = getString(font, DWRITE_INFORMATIONAL_STRING_WIN32_FAMILY_NAMES);
       char *style = getString(font, DWRITE_INFORMATIONAL_STRING_WIN32_SUBFAMILY_NAMES);
+      char *lang = getString(font, DWRITE_INFORMATIONAL_STRING_SUPPORTED_SCRIPT_LANGUAGE_TAG);
 
       // this method requires windows 7, so we need to cast to an IDWriteFontFace1
       IDWriteFontFace1 *face1 = static_cast<IDWriteFontFace1 *>(face);
@@ -132,6 +134,7 @@ FontDescriptor *resultFromFont(IDWriteFont *font) {
         postscriptName,
         family,
         style,
+        lang,
         (FontWeight) font->GetWeight(),
         (FontWidth) font->GetStretch(),
         font->GetStyle() == DWRITE_FONT_STYLE_ITALIC,
@@ -143,6 +146,7 @@ FontDescriptor *resultFromFont(IDWriteFont *font) {
       delete postscriptName;
       delete family;
       delete style;
+      delete lang;
       fileLoader->Release();
     }
 
@@ -190,7 +194,7 @@ ResultSet getAvailableFonts() {
 
       FontDescriptor *result = resultFromFont(font);
       if (psNames.count(result->postscriptName) == 0) {
-        res.push_back(resultFromFont(font));
+        res.emplace_back(resultFromFont(font));
         psNames.insert(result->postscriptName);
       }
     }
@@ -205,13 +209,13 @@ ResultSet getAvailableFonts() {
 }
 
 bool resultMatches(FontDescriptor *result, FontDescriptor *desc) {
-  if (desc->postscriptName && strcmp(desc->postscriptName, result->postscriptName) != 0)
+  if (!desc->postscriptName.empty() && desc->postscriptName != result->postscriptName)
     return false;
 
-  if (desc->family && strcmp(desc->family, result->family) != 0)
+  if (!desc->family.empty() && desc->family != result->family)
     return false;
 
-  if (desc->style && strcmp(desc->style, result->style) != 0)
+  if (!desc->style.empty() && desc->style != result->style)
     return false;
 
   if (desc->weight && desc->weight != result->weight)
@@ -231,17 +235,14 @@ bool resultMatches(FontDescriptor *result, FontDescriptor *desc) {
 
 ResultSet findFonts(FontDescriptor *desc) {
   ResultSet fonts = getAvailableFonts();
-
-  for (ResultSet::iterator it = fonts.begin(); it != fonts.end();) {
-    if (!resultMatches(*it, desc)) {
-      delete *it;
-      it = fonts.erase(it);
-    } else {
-      it++;
+  ResultSet result;
+  for (auto&& f: fonts) {
+    if (resultMatches(f.get(), desc)) {
+      result.push_back(f);
     }
   }
 
-  return fonts;
+  return result;
 }
 
 FontDescriptor *findFont(FontDescriptor *desc) {
@@ -250,14 +251,14 @@ FontDescriptor *findFont(FontDescriptor *desc) {
   // if we didn't find anything, try again with only the font traits, no string names
   if (fonts.empty()) {
     FontDescriptor *fallback = new FontDescriptor(
-      NULL, NULL, NULL, NULL, 
+      NULL, NULL, NULL, NULL, NULL,
       desc->weight, desc->width, desc->italic, false
     );
 
     fonts = findFonts(fallback);
   }
 
-  // ok, nothing. shouldn't happen often. 
+  // ok, nothing. shouldn't happen often. getAvailableFonts
   // just return the first available font
   if (fonts.empty()) {
     fonts = getAvailableFonts();
@@ -265,8 +266,8 @@ FontDescriptor *findFont(FontDescriptor *desc) {
 
   // hopefully we found something now.
   // copy and return the first result
-  if (fonts->size() > 0) {
-    FontDescriptor *res = new FontDescriptor(fonts->front());
+  if (fonts.size() > 0) {
+    FontDescriptor *res = new FontDescriptor(*fonts.front());
     return res;
   }
 
@@ -412,7 +413,7 @@ FontDescriptor *substituteFont(char *postscriptName, char *string) {
   // create a text format object for this font
   IDWriteTextFormat *format = NULL;
   if (font) {
-    WCHAR *familyName = utf8ToUtf16(font->family);
+    WCHAR *familyName = utf8ToUtf16(font->family.c_str());
 
     // create a text format
     HR(factory->CreateTextFormat(
@@ -471,7 +472,6 @@ FontDescriptor *substituteFont(char *postscriptName, char *string) {
   layout->Release();
   format->Release();
 
-  desc->postscriptName = NULL;
   delete desc;
   delete str;
   collection->Release();

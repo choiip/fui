@@ -87,7 +87,7 @@ ResultSet getAvailableFonts() {
   
   for (id m in matches) {
     CTFontDescriptorRef match = (CTFontDescriptorRef) m;
-    results.push_back(createFontDescriptor(match));
+    results.emplace_back(createFontDescriptor(match));
   }
   
   [matches release];
@@ -184,7 +184,7 @@ ResultSet findFonts(FontDescriptor *desc) {
     int mb = metricForMatch((CTFontDescriptorRef) m, desc);
     
     if (mb < 10000) {
-      results.push_back(createFontDescriptor(match));
+      results.emplace_back(createFontDescriptor(match));
     }
   }
   

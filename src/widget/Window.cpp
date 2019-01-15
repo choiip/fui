@@ -60,7 +60,7 @@ void Window::draw(RenderContext& renderContext) {
   nvgFill(vg);
   nvgRestore(vg);
 
-  if (not _title.empty()) {
+  if (!_title.empty()) {
     auto headerTopSep = reinterpret_cast<const NVGcolor*>(&windowStyle.windowHeaderTopSep);
     auto headerBotSep = reinterpret_cast<const NVGcolor*>(&windowStyle.windowHeaderBotSep);
 
