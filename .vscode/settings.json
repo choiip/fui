@@ -75,4 +75,5 @@
     },
     "editor.formatOnSave": true,
     "editor.tabSize": 2,
+    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
 }

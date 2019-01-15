@@ -91,12 +91,6 @@ list(APPEND NANOVG_SOURCES
   src/nanovg/nanovg.c
 )
 
-## tinyutf8
-list(APPEND TINYUTF8_SOURCES
-  src/text/tinyutf8.h 
-  src/text/tinyutf8.cpp
-)
-
 ## vulkan
 if (WITH_VULKAN)
   find_package(Vulkan)
