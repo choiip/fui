@@ -59,7 +59,8 @@
         "iomanip": "cpp",
         "mutex": "cpp",
         "thread": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "cassert": "cpp"
     },
     "cmake.configureOnOpen": true,
     "cmake.debugConfig": {

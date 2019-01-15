@@ -1,10 +1,8 @@
 // CC0 Public Domain: http://creativecommons.org/publicdomain/zero/1.0/
 #pragma once
 
-#include <assert.h>
+#include <cassert>
 #include <functional>
-#include <stdint.h>
-// #include <unistd.h>
 #include <vector>
 
 namespace fui {
