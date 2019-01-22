@@ -762,7 +762,7 @@ static int glnvg__renderCreateTexture(void* uptr, int type, int w, int h, int im
 	glnvg__bindTexture(gl, tex->tex);
 
 #ifndef NANOVG_GLES2
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, tex->width);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, tex->type == NVG_TEXTURE_YUYV ? (tex->width >> 1) : tex->width);
 	glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
 	glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
 #endif
@@ -790,11 +790,11 @@ static int glnvg__renderCreateTexture(void* uptr, int type, int w, int h, int im
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data);
 #endif
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-	} else {
+	} else if (type == NVG_TEXTURE_YUYV) {
 #if defined(NANOVG_GLES)
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_BGRA, w>>1, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, data);
 #else
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w>>1, h, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
 #endif
 	}
 
@@ -863,8 +863,8 @@ static int glnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int w
 	glnvg__bindTexture(gl, tex->tex);
 
 #ifndef NANOVG_GLES2
-	glPixelStorei(GL_UNPACK_ROW_LENGTH, tex->width);
-	glPixelStorei(GL_UNPACK_SKIP_PIXELS, x);
+	glPixelStorei(GL_UNPACK_ROW_LENGTH, tex->type == NVG_TEXTURE_YUYV ? (tex->width >> 1) : tex->width);
+	glPixelStorei(GL_UNPACK_SKIP_PIXELS, tex->type == NVG_TEXTURE_YUYV ? (x >> 1) : x);
 	glPixelStorei(GL_UNPACK_SKIP_ROWS, y);
 #else
 	// No support for all of skip, need to update a whole row at a time.
@@ -894,11 +894,11 @@ static int glnvg__renderUpdateTexture(void* uptr, int image, int x, int y, int w
 		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_RED, GL_UNSIGNED_BYTE, data);
 #endif
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-	} else {
+	} else if (tex->type == NVG_TEXTURE_YUYV) {
 #if defined(NANOVG_GLES)
-		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_BGRA, GL_UNSIGNED_BYTE, data);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w>>1,h, GL_BGRA, GL_UNSIGNED_BYTE, data);
 #else
-		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w,h, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, x,y, w>>1,h, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, data);
 #endif
 
 	}
@@ -1011,7 +1011,10 @@ static int glnvg__convertPaint(GLNVGcontext* gl, GLNVGfragUniforms* frag, NVGpai
 			frag->texType = 3.0f;
 		#endif
 		// nvgDebugPrint("frag->texType = %d\n", frag->texType);
-		frag->texWidth = tex->width;
+		if (tex->type == NVG_TEXTURE_YUYV)
+			frag->texWidth = tex->width >> 1;
+		else
+			frag->texWidth = tex->width;
 	} else {
 		frag->type = NSVG_SHADER_FILLGRAD;
 		frag->radius = paint->radius;
