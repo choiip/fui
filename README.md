@@ -2,6 +2,9 @@
 
 UI framework 
 
+# Dependency
+[GLFW3](https://www.glfw.org/)
+
 # Tools for static analysis
 ## Install cppcheck, clang-format, clang-tidy
 
@@ -21,10 +24,10 @@ UI framework
 
 > chmod +x ~/bin/dockcross-browser-asmjs
 
-## Run build script
+## Run build script (CMake Configure)
 > ~/bin/dockcross-browser-asmjs cmake -GNinja -Bbuild/web/ -H.
 
-## Build
+## Build (CMake Build)
 > ~/bin/dockcross-browser-asmjs cmake --build build/web/
 
 # Known issues

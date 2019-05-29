@@ -147,8 +147,12 @@ int main() {
   Logger logger;
   LOGD << "Sample start";
 
+  auto graphicAPI = GraphicsAPI::OPENGL;
+#ifdef __EMSCRIPTEN__
+  graphicAPI = GraphicsAPI::OPENGL_ES;
+#endif
   GlfwWindowManager windowManager;
-  auto graphicsProfile = windowManager.createGraphicsProfile(GraphicsAPI::OPENGL, 3, 2);
+  auto graphicsProfile = windowManager.createGraphicsProfile(graphicAPI, 3, 2);
   if (!graphicsProfile)
     return -1;
 

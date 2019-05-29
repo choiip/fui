@@ -1,6 +1,8 @@
 #include "core/RenderContext.hpp"
 #include <memory>
-#include "image/jpg_decompress.h"
+#include "image/mjpeg2jpeg.h"
+
+#include "image/stb_image.h"
 #include "nanovg/nanovg.h"
 
 namespace fui {
@@ -24,17 +26,29 @@ int RenderContext::createImage(int width, int height, PixelFormat format) {
 }
 
 void RenderContext::updateImage(int image, const unsigned char* data, size_t dataSize, bool compressed) { 
-  if (compressed) {
+  if (compressed) { //TODO: Better support for other formats
     int width = 0, height = 0;
     nvgImageSize(_vg, image, &width, &height);
     size_t pixelSize = width * height * 3;
-    std::unique_ptr<unsigned char[]> pixels;
-    pixels.reset(new unsigned char[pixelSize]);
-    unsigned int dWidth, dHeight, dChannels;
-    jpg_decompress(data, dataSize, pixels.get(), pixelSize, &dWidth, &dHeight, &dChannels);
-    if (width == dWidth && height == dHeight) {
-      nvgUpdateImage(_vg, image, pixels.get());
+
+    // handle AVI1 (MJPEG)
+    uint8_t *jpegBuf; 
+    int jpegLen;
+    int status = mjpeg2jpeg(&jpegBuf, &jpegLen, data, dataSize);
+    if (status) {
+      int w, h, n;
+      auto pixels = stbi_load_from_memory(jpegBuf, jpegLen, &w, &h, &n, 3);
+      if (pixels == NULL) {
+		    nvgErrorPrint("Failed to load from data - %s\n", stbi_failure_reason());
+        free(jpegBuf);
+		    return;
+    	}
+      if (width == w && height == h) {
+        nvgUpdateImage(_vg, image, pixels);
+      }
+      stbi_image_free(pixels);
     }
+    free(jpegBuf);
   } else {
     nvgUpdateImage(_vg, image, data);
   }
