@@ -8,9 +8,7 @@ if(CCACHE)
 endif()
 
 # Include necessary submodules
-set(CMAKE_MODULE_PATH
-  "${PROJECT_SOURCE_DIR}/cmake"
-)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 include(CMakeDependentOption)
 
@@ -122,8 +120,9 @@ list(APPEND FUI_SOURCES
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  find_package(Fontconfig REQUIRED)
   list(APPEND FUI_SOURCES src/text/FontManagerLinux.cc)
-  list(APPEND EXTRA_LIB fontconfig)
+  list(APPEND EXTRA_LIB Fontconfig::Fontconfig)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows")
   list(APPEND FUI_SOURCES src/text/FontManagerWindows.cc)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -155,7 +154,7 @@ endif()
 target_include_directories(fui PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(fui PRIVATE ${PROJECT_BINARY_DIR}/include ${PROJECT_SOURCE_DIR}/src)
 
-target_link_libraries(fui PUBLIC ${EXTRA_LIB})
+target_link_libraries(fui PUBLIC ${CMAKE_DL_LIBS} ${EXTRA_LIB})
 
 ## examples
 add_subdirectory(examples)
