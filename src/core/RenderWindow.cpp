@@ -64,6 +64,9 @@ void RenderWindow::onMouseMoveEvent(int xpos, int ypos) {
   _signalMouseMove.emit(xpos, ypos);
   _prevCursorPosition = {xpos, ypos};
 }
-void RenderWindow::onResizeEvent(int width, int height) { _signalResize.emit(width, height); }
+void RenderWindow::onResizeEvent(int width, int height) { 
+  _size = { width, height };
+  _signalResize.emit(width, height); 
+}
 
 } // namespace fui

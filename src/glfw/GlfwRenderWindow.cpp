@@ -9,7 +9,9 @@ namespace fui {
 GlfwRenderWindow::GlfwRenderWindow(GLFWwindow* window, RenderContext* renderContext)
 : RenderWindow(renderContext)
 , _window(window)
-, _cursor(window) {}
+, _cursor(window) {
+   glfwGetWindowSize(_window, &_size.x, &_size.y);
+}
 
 GlfwRenderWindow::~GlfwRenderWindow() {
   if (_window) {
