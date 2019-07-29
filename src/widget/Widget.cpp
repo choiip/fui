@@ -21,6 +21,20 @@ void Widget::onMousePressEvent(MouseEvent& event) {}
 void Widget::onMouseReleaseEvent(MouseEvent& event) {}
 void Widget::draw(RenderContext& renderContext) {}
 
+Recti Widget::childArea() const {
+  if (_parent == nullptr) {
+    return { _position.x, _position.y, _size.x, _size.y };
+  }
+  auto pda = _parent->childArea();
+  
+  return {
+      _position.x + pda.x,
+      pda.y + _parent->_size.y - (_position.y + _size.y ),
+      _size.x,
+      _size.y
+  };
+}
+
 bool Widget::contain(int x, int y) const {
   auto dx = x - _position.x;
   auto dy = y - _position.y;

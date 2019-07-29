@@ -31,4 +31,16 @@ template <typename T> constexpr Vector2<T> operator-(const Vector2<T>& lhs, cons
   return {lhs.x - rhs.x, lhs.y - rhs.y};
 }
 
+template <typename T> struct Rect { 
+  union {
+    struct {
+      T x, y, w, h;
+    };
+    struct {
+      Vector2<T> position, size;
+    };
+  };
+};
+typedef Rect<int> Recti;
+
 } // namespace fui

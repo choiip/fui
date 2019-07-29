@@ -25,6 +25,8 @@ public:
 
   virtual void draw(RenderContext& renderContext);
 
+  virtual Recti childArea() const;
+  
 protected:
   /// Check if the widget contains a certain position
   bool contain(int x, int y) const;

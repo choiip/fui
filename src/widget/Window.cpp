@@ -106,6 +106,12 @@ void Window::draw(RenderContext& renderContext) {
   nvgRestore(vg);
 }
 
+Recti Window::childArea() const {
+  auto area = WidgetContainer::childArea();
+  area.y -= style().windowHeaderHeight;
+  return area;
+}
+
 void Window::onMouseMoveEvent(MouseMoveEvent& event) {
   if (_snap && hasFlags(event.buttons, MouseButton::LEFT)) {
     _position.x = event.position.x - _snap->relativePosition.x;
