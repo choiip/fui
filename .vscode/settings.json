@@ -68,7 +68,7 @@
         "osx": {
             "externalConsole": true,
             "MIMode": "lldb",
-            "miDebuggerPath": "${env:HOME}/.vscode/extensions/ms-vscode.cpptools-0.20.1/debugAdapters/lldb/bin/lldb-mi",
+            "miDebuggerPath": "${env:HOME}/.vscode/extensions/ms-vscode.cpptools-0.24.1/debugAdapters/lldb/bin/lldb-mi",
         },
     },
     "cmake.environment": {
