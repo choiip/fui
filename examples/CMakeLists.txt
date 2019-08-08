@@ -16,9 +16,10 @@ if (EMSCRIPTEN)
 endif()
 
 ## widget sample
-add_executable(widgetSample widgetSample.cpp)
+find_package(glm CONFIG REQUIRED)
+add_executable(widgetSample widgetSample.cpp GL/GLPrimitive.c)
 
-target_link_libraries(widgetSample fui)
+target_link_libraries(widgetSample fui glm)
 
 if (EMSCRIPTEN)
   set(GL_FLAGS "-s FULL_ES2=1")

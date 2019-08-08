@@ -1,7 +1,11 @@
 #include <memory>
 #include <GL/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <fui.hpp>
 using namespace fui;
+
+#include "GL/GLPrimitive.h"
 
 class WidgetSample : public ApplicationContext {
 public:
@@ -45,7 +49,44 @@ protected:
         ->enabled(false);
     y += 40;
 
-    _renderWindow->addChild<Window>("Other Window")->position({x, y})->size({320, 240});
+    Window* canvasWindow = nullptr;
+    (canvasWindow = _renderWindow->addChild<Window>("Canvas Window"))->position({x, y})->size({640, 480});
+    canvasWindow->addChild<GLCanvas>()
+      ->drawFunction([this](){
+        // LOGD << "Render in GL";
+        glClearColor(0.0f, 1.0, 0.0, 0.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
+
+        if (_cube == nullptr) {
+          _cube = createCube();
+        }
+        int width = 320;
+        int height = 240;
+        float halfWidth = width * .5f;
+        float halfHeight = height * .5f;
+        // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+        //glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) width / (float)height, 0.1f, 100.0f);
+        // Or, for an ortho camera :
+        glm::mat4 projection = glm::ortho(-halfWidth,halfWidth,-halfHeight,halfHeight,0.0f,1000.0f); // In world coordinates
+
+        // Camera matrix
+        glm::mat4 view = glm::lookAt(
+            glm::vec3(400,300,300), // Camera is at (4,3,3), in World Space
+            glm::vec3(0,0,0), // and looks at the origin
+            glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
+            );
+
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::rotate(model, 0.05f * _progress, glm::vec3(0,1,0));
+        model = glm::scale(model, glm::vec3(100,100,100));
+        glm::mat4 mvp = projection * view * model;
+        
+        drawCube(_cube, &mvp[0][0]);
+      })
+      ->position({40, 0})
+      ->size({320, 240});
     y += 40;
 
     x = 210, y = 10;
@@ -73,25 +114,25 @@ protected:
     (_progressBar = _renderWindow->addChild<ProgressBar>())->maxValue(360)->position({x, y})->size({150, 28});
     y += 40;
 
-    x = 410, y = 210;
-    Window* windowWidget = nullptr;
-    (windowWidget = _renderWindow->addChild<Window>("1st Window"))->position({x, y})->size({320, 240});
+    x = 610, y = 210;
+    Window* widgetWindow = nullptr;
+    (widgetWindow = _renderWindow->addChild<Window>("Widget Window"))->position({x, y})->size({320, 240});
     {
       int lx = 10, ly = 10;
-      windowWidget->addChild<Button>("Normal Button")
+      widgetWindow->addChild<Button>("Normal Button")
           ->icon(ENTYPO_ICON_CLOUD)
           ->backgroundColor({0.7f, 0.0f, 0.3f, 1.f})
           ->position({lx, ly})
           ->size({150, 28});
       ly += 40;
-      windowWidget->addChild<Button>("Toggle Button")
+      widgetWindow->addChild<Button>("Toggle Button")
           ->type(Button::Type::TOGGLE)
           ->icon(ENTYPO_ICON_NEWS)
           ->backgroundColor({0.3f, 0.7f, 0.0f, 1.f})
           ->position({lx, ly})
           ->size({150, 28});
       ly += 40;
-      (_pictureBox = windowWidget->addChild<PictureBox>())
+      (_pictureBox = widgetWindow->addChild<PictureBox>())
           ->orientation(0.f)
           ->picture(pictureId, vg)
           ->position({lx, ly})
@@ -141,6 +182,7 @@ private:
   ProgressBar* _progressBar;
   PictureBox* _pictureBox;
   int _progress = 0;
+  struct cube* _cube = nullptr;
 };
 
 int main() {
