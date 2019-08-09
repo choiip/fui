@@ -239,11 +239,13 @@ struct GLNVGcontext {
 	int textureId;
 	GLuint emptyTexture;
 	GLuint vertBuf;
+	int vertBufSize;
 #if defined (NANOVG_GL3) || defined (NANOVG_GLES3)
 	GLuint vertArr;
 #endif
 #if NANOVG_GL_USE_UNIFORMBUFFER
-	GLuint fragBuf;
+	GLuint uniformBuf;
+	int uniformBufSize;
 #endif
 	int fragSize;
 	int flags;
@@ -710,16 +712,24 @@ static int glnvg__renderCreate(void* uptr)
 	glnvg__checkError(gl, "uniform locations");
 	glnvg__getUniforms(&gl->shader);
 
+	// Create vertex buffer
+	glGenBuffers(1, &gl->vertBuf);
+	gl->vertBufSize = 0;
+
 	// Create dynamic vertex array
 #if defined (NANOVG_GL3) || defined (NANOVG_GLES3)
 	glGenVertexArrays(1, &gl->vertArr);
+	glBindVertexArray(gl->vertArr);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glBindVertexArray(0);
 #endif
-	glGenBuffers(1, &gl->vertBuf);
 
 #if NANOVG_GL_USE_UNIFORMBUFFER
 	// Create UBOs
 	glUniformBlockBinding(gl->shader.prog, gl->shader.loc[GLNVG_LOC_FRAG], GLNVG_FRAG_BINDING);
-	glGenBuffers(1, &gl->fragBuf);
+	glGenBuffers(1, &gl->uniformBuf);
+	gl->uniformBufSize = 0;
 	glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &align);
 #endif
 	gl->fragSize = sizeof(GLNVGfragUniforms) + align - sizeof(GLNVGfragUniforms) % align;
@@ -1032,7 +1042,7 @@ static GLNVGfragUniforms* nvg__fragUniformPtr(GLNVGcontext* gl, int i);
 static void glnvg__setUniforms(GLNVGcontext* gl, int uniformOffset, int image)
 {
 #if NANOVG_GL_USE_UNIFORMBUFFER
-	glBindBufferRange(GL_UNIFORM_BUFFER, GLNVG_FRAG_BINDING, gl->fragBuf, uniformOffset, sizeof(GLNVGfragUniforms));
+	glBindBufferRange(GL_UNIFORM_BUFFER, GLNVG_FRAG_BINDING, gl->uniformBuf, uniformOffset, sizeof(GLNVGfragUniforms));
 #else
 	GLNVGfragUniforms* frag = nvg__fragUniformPtr(gl, uniformOffset);
 	glUniform4fv(gl->shader.loc[GLNVG_LOC_FRAG], NANOVG_GL_UNIFORMARRAY_SIZE, &(frag->uniformArray[0][0]));
@@ -1258,27 +1268,37 @@ static void glnvg__renderFlush(void* uptr)
 
 #if NANOVG_GL_USE_UNIFORMBUFFER
 		// Upload ubo for frag shaders
-		glBindBuffer(GL_UNIFORM_BUFFER, gl->fragBuf);
-		glBufferData(GL_UNIFORM_BUFFER, gl->nuniforms * gl->fragSize, gl->uniforms, GL_STREAM_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, gl->uniformBuf);
+		if (gl->uniformBufSize < gl->nuniforms * gl->fragSize) {
+			gl->uniformBufSize = gl->cuniforms * gl->fragSize;
+			glBufferData(GL_UNIFORM_BUFFER, gl->uniformBufSize, NULL, GL_STREAM_DRAW);
+		}
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, gl->nuniforms * gl->fragSize, gl->uniforms);
+
 #endif
 
 		// Upload vertex data
 #if defined (NANOVG_GL3) || defined (NANOVG_GLES3)
 		glBindVertexArray(gl->vertArr);
-#endif
-		glBindBuffer(GL_ARRAY_BUFFER, gl->vertBuf);
-		glBufferData(GL_ARRAY_BUFFER, gl->nverts * sizeof(NVGvertex), gl->verts, GL_STREAM_DRAW);
+#else
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(NVGvertex), (const GLvoid*)(size_t)0);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(NVGvertex), (const GLvoid*)(0 + 2*sizeof(float)));
+#endif
+		glBindBuffer(GL_ARRAY_BUFFER, gl->vertBuf);
+		if (gl->vertBufSize < gl->nverts * sizeof(NVGvertex)) {
+			gl->vertBufSize = gl->cverts * sizeof(NVGvertex);
+			glBufferData(GL_ARRAY_BUFFER,	gl->vertBufSize, NULL, GL_STREAM_DRAW);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(NVGvertex), (const GLvoid*)(size_t)0);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(NVGvertex), (const GLvoid*)(0 + 2*sizeof(float)));
+		}
+		glBufferSubData(GL_ARRAY_BUFFER, 0, gl->nverts * sizeof(NVGvertex), gl->verts);
 
 		// Set view and texture just once per frame.
 		glUniform1i(gl->shader.loc[GLNVG_LOC_TEX], 0);
 		glUniform2fv(gl->shader.loc[GLNVG_LOC_VIEWSIZE], 1, gl->view);
 
 #if NANOVG_GL_USE_UNIFORMBUFFER
-		glBindBuffer(GL_UNIFORM_BUFFER, gl->fragBuf);
+		glBindBuffer(GL_UNIFORM_BUFFER, gl->uniformBuf);
 #endif
 
 		for (int i = 0; i < gl->ncalls; i++) {
@@ -1294,10 +1314,12 @@ static void glnvg__renderFlush(void* uptr)
 				glnvg__triangles(gl, call);
 		}
 
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
+
 #if defined (NANOVG_GL3) || defined (NANOVG_GLES3)
 		glBindVertexArray(0);
+#else
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
 #endif
 		glDisable(GL_CULL_FACE);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1582,15 +1604,18 @@ static void glnvg__renderDelete(void* uptr)
 
 #if (NANOVG_GL3) || defined (NANOVG_GLES3)
 #if NANOVG_GL_USE_UNIFORMBUFFER
-	if (gl->fragBuf != 0)
-		glDeleteBuffers(1, &gl->fragBuf);
+	if (gl->uniformBuf != 0) {
+		glDeleteBuffers(1, &gl->uniformBuf);
+		gl->uniformBufSize = 0;
+	}
 #endif
 	if (gl->vertArr != 0)
 		glDeleteVertexArrays(1, &gl->vertArr);
 #endif
-	if (gl->vertBuf != 0)
+	if (gl->vertBuf != 0) {
 		glDeleteBuffers(1, &gl->vertBuf);
-
+		gl->vertBufSize = 0;
+	}
 	for (i = 0; i < gl->ntextures; i++) {
 		if (gl->textures[i].tex != 0 && (gl->textures[i].flags & NVG_IMAGE_NODELETE) == 0)
 			glDeleteTextures(1, &gl->textures[i].tex);
