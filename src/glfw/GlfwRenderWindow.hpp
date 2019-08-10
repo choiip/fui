@@ -19,7 +19,7 @@ public:
 
   virtual void getWindowSize(int& width, int& height) override;
 
-  virtual void getDrawableSize(int& width, int& height) override;
+  virtual void getDrawableSize(int& width, int& height) const override;
 
   virtual void close() override;
 

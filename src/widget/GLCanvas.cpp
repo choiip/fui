@@ -8,11 +8,12 @@ GLCanvas::GLCanvas(WidgetContainer* parent)
 {}
 
 void GLCanvas::drawScene() {
-  auto area = childArea(); 
-  auto x = area.x;
-  auto y = area.y;
-  auto w = area.w;
-  auto h = area.h;
+  auto viewport = mapTo({ 0, 0, _size.x, _size.y }, Coordinate::Framebuffer);
+
+  auto x = viewport.x;
+  auto y = viewport.y;
+  auto w = viewport.w;
+  auto h = viewport.h;
 
   GLint storedViewport[4];
   glGetIntegerv(GL_VIEWPORT, storedViewport);

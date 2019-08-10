@@ -29,7 +29,7 @@ public:
 
   virtual void getWindowSize(int& width, int& height) = 0;
 
-  virtual void getDrawableSize(int& width, int& height) = 0;
+  virtual void getDrawableSize(int& width, int& height) const = 0;
 
   virtual void close() = 0;
 
@@ -47,6 +47,8 @@ public:
   FUI_DEFINE_EVENT(void(int, int), Resize);
 
 private:
+  virtual Recti regionAtFrameBuffer(const Recti& rect) const override;
+
   RenderContext* _renderContext;
   MouseButton _buttonInPressing;
   Modifier _modifierInPressing;

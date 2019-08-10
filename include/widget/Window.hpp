@@ -19,7 +19,7 @@ public:
   /// Draw the window
   virtual void draw(RenderContext& renderContext) override;
 
-  virtual Recti childArea() const override;
+  virtual Vector2i childrenOrigin() const override;
 
 protected:
   virtual void onMouseMoveEvent(MouseMoveEvent& event) override;

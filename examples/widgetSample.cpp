@@ -54,7 +54,7 @@ protected:
     canvasWindow->addChild<GLCanvas>()
       ->drawFunction([this](){
         // LOGD << "Render in GL";
-        glClearColor(0.0f, 1.0, 0.0, 0.0);
+        glClearColor(.6f, .6f, .6f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
@@ -161,11 +161,8 @@ protected:
     _progressBar->value(_progress)->text(text);
     _pictureBox->orientation((float)_progress)->fit();
 
-    int winWidth, winHeight, fbWidth, fbHeight;
-    _renderWindow->getWindowSize(winWidth, winHeight);
+    int fbWidth, fbHeight;
     _renderWindow->getDrawableSize(fbWidth, fbHeight);
-    // Calculate pixel ration for hi-dpi devices.
-    auto pxRatio = (float)fbWidth / (float)winWidth;
 
     glViewport(0, 0, fbWidth, fbHeight);
     glClearColor(0.3f, 0.3f, 0.32f, 1.0f);

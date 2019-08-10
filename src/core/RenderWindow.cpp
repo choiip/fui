@@ -28,13 +28,12 @@ void RenderWindow::drawGui() {
   if (_renderContext && _visible) {
     auto vg = _renderContext->vg();
 
-    int winWidth, winHeight, fbWidth, fbHeight;
-    getWindowSize(winWidth, winHeight);
+    int fbWidth, fbHeight;
     getDrawableSize(fbWidth, fbHeight);
     // Calculate pixel ration for hi-dpi devices.
-    auto pxRatio = (float)fbWidth / (float)winWidth;
+    auto pxRatio = (float)fbWidth / (float)_size.x;
 
-    nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
+    nvgBeginFrame(vg, _size.x, _size.y, pxRatio);
     WidgetContainer::draw(*_renderContext);
     nvgEndFrame(vg);
   }
@@ -67,6 +66,16 @@ void RenderWindow::onMouseMoveEvent(int xpos, int ypos) {
 void RenderWindow::onResizeEvent(int width, int height) { 
   _size = { width, height };
   _signalResize.emit(width, height); 
+}
+
+Recti RenderWindow::regionAtFrameBuffer(const Recti& rect) const {
+  int fbWidth, fbHeight;
+  getDrawableSize(fbWidth, fbHeight);
+  auto pixelRatio = (float)fbWidth / (float)_size.x;
+  return { (int)(rect.x * pixelRatio), 
+          fbHeight - (int)((rect.y + rect.h) * pixelRatio),
+          (int)(rect.w * pixelRatio),
+          (int)(rect.h * pixelRatio) };
 }
 
 } // namespace fui
