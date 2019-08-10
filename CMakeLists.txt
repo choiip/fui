@@ -110,6 +110,8 @@ list(APPEND FUI_SOURCES
   src/image/mjpeg2jpeg.c
   src/text/FontDescriptor.cpp
   src/widget/Button.cpp
+  src/widget/Canvas.cpp
+  src/widget/GLCanvas.cpp
   src/widget/Label.cpp
   src/widget/PictureBox.cpp
   src/widget/ProgressBar.cpp

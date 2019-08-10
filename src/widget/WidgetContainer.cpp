@@ -45,6 +45,10 @@ void WidgetContainer::draw(RenderContext& renderContext) {
   nvgRestore(vg);
 }
 
+Vector2i WidgetContainer::childrenOrigin() const {
+  return Vector2i::Zero;
+}
+
 void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
   auto localX = event.position.x - _position.x;
   auto localY = event.position.y - _position.y;

@@ -17,6 +17,8 @@
 #include <text/FontDescriptor.hpp>
 
 #include <widget/Button.hpp>
+#include <widget/Canvas.hpp>
+#include <widget/GLCanvas.hpp>
 #include <widget/Label.hpp>
 #include <widget/PictureBox.hpp>
 #include <widget/ProgressBar.hpp>

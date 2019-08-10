@@ -27,7 +27,7 @@ Cursor* GlfwRenderWindow::cursor() { return &_cursor; }
 
 void GlfwRenderWindow::getWindowSize(int& width, int& height) { glfwGetWindowSize(_window, &width, &height); }
 
-void GlfwRenderWindow::getDrawableSize(int& width, int& height) { glfwGetFramebufferSize(_window, &width, &height); }
+void GlfwRenderWindow::getDrawableSize(int& width, int& height) const { glfwGetFramebufferSize(_window, &width, &height); }
 
 void GlfwRenderWindow::close() { glfwSetWindowShouldClose(_window, GLFW_TRUE); }
 

@@ -106,10 +106,10 @@ void Window::draw(RenderContext& renderContext) {
   nvgRestore(vg);
 }
 
-Recti Window::childArea() const {
-  auto area = WidgetContainer::childArea();
-  area.y -= style().windowHeaderHeight;
-  return area;
+Vector2i Window::childrenOrigin() const {
+  auto origin = WidgetContainer::childrenOrigin();
+  origin.y += style().windowHeaderHeight;
+  return origin;
 }
 
 void Window::onMouseMoveEvent(MouseMoveEvent& event) {

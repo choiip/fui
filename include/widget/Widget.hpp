@@ -24,12 +24,13 @@ public:
   WidgetContainer* parent() const { return _parent; }
 
   virtual void draw(RenderContext& renderContext);
-
-  virtual Recti childArea() const;
   
 protected:
   /// Check if the widget contains a certain position
   bool contain(int x, int y) const;
+
+  /// Translate the widget coordinate rectangle to desired coordinate system
+  Recti mapTo(const Recti& rect, Coordinate coord) const;
 
   /// Return the \ref WidgetStyle used to draw this widget
   const WidgetStyle& style() const;
@@ -76,6 +77,8 @@ protected:
   FUI_WIDGET_WRITEONLY_PROPERTY(std::shared_ptr<WidgetStyle>, style, nullptr);
 
 private:
+  virtual Recti regionAtFrameBuffer(const Recti& rect) const;
+
   WidgetContainer* _parent;
 
   friend class WidgetContainer;

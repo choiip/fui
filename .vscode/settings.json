@@ -60,7 +60,8 @@
         "mutex": "cpp",
         "thread": "cpp",
         "list": "cpp",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "glad.h": "c"
     },
     "cmake.configureOnOpen": true,
     "cmake.debugConfig": {
