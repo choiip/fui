@@ -159,4 +159,8 @@ target_include_directories(fui PRIVATE ${PROJECT_BINARY_DIR}/include ${PROJECT_S
 target_link_libraries(fui PUBLIC ${CMAKE_DL_LIBS} ${EXTRA_LIB})
 
 ## examples
+if(EMSCRIPTEN)
+  add_subdirectory(empkg)
+endif()
+
 add_subdirectory(examples)

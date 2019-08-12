@@ -4,14 +4,36 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "Prepare build environment of Emscripten",
+      "type": "shell",
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "dockcross/${input:environmentType}",
+        ">",
+        "~/bin/dockcross-${input:environmentType}",
+        "&&",
+        "chmod",
+        "+x",
+        "~/bin/dockcross-${input:environmentType}",
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "CMake: Configure (Emscripten)",
       "type": "shell",
-      "command": "~/bin/dockcross-browser-asmjs",
+      "command": "~/bin/dockcross-${input:environmentType}",
       "args": [
         "cmake",
         "-GNinja",
         "-Bbuild/web/",
-        "-H."
+        "-H.",
+        "-DVCPKG_ROOT_DIR=/work/empkg/vcpkg"
       ],
       "group": {
         "kind": "build",
@@ -22,7 +44,7 @@
     {
       "label": "CMake: Build (Emscripten)",
       "type": "shell",
-      "command": "~/bin/dockcross-browser-asmjs",
+      "command": "~/bin/dockcross-${input:environmentType}",
       "args": [
         "cmake",
         "--build",
@@ -32,7 +54,22 @@
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": []
+      "problemMatcher": [],
+      "dependsOn": [
+        "CMake: Configure (Emscripten)"
+      ]
     }
+  ],
+  "inputs": [
+    {
+      "type": "pickString",
+      "id": "environmentType",
+      "description": "Which environment do you want to pick?",
+      "options": [
+        "browser-asmjs",
+        "web-wasm"
+      ],
+      "default": "browser-asmjs"
+    },
   ]
 }

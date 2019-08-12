@@ -1288,18 +1288,14 @@ static void glnvg__renderFlush(void* uptr)
 		if (gl->vertBufSize < gl->nverts * sizeof(NVGvertex)) {
 			gl->vertBufSize = gl->cverts * sizeof(NVGvertex);
 			glBufferData(GL_ARRAY_BUFFER,	gl->vertBufSize, NULL, GL_STREAM_DRAW);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(NVGvertex), (const GLvoid*)(size_t)0);
-			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(NVGvertex), (const GLvoid*)(0 + 2*sizeof(float)));
 		}
 		glBufferSubData(GL_ARRAY_BUFFER, 0, gl->nverts * sizeof(NVGvertex), gl->verts);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(NVGvertex), (const GLvoid*)(size_t)0);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(NVGvertex), (const GLvoid*)(0 + 2*sizeof(float)));
 
 		// Set view and texture just once per frame.
 		glUniform1i(gl->shader.loc[GLNVG_LOC_TEX], 0);
 		glUniform2fv(gl->shader.loc[GLNVG_LOC_VIEWSIZE], 1, gl->view);
-
-#if NANOVG_GL_USE_UNIFORMBUFFER
-		glBindBuffer(GL_UNIFORM_BUFFER, gl->uniformBuf);
-#endif
 
 		for (int i = 0; i < gl->ncalls; i++) {
 			GLNVGcall* call = &gl->calls[i];
@@ -1322,7 +1318,10 @@ static void glnvg__renderFlush(void* uptr)
 		glDisableVertexAttribArray(1);
 #endif
 		glDisable(GL_CULL_FACE);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+#if NANOVG_GL_USE_UNIFORMBUFFER		
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+#endif		
 		glUseProgram(0);
 		glnvg__bindTexture(gl, 0);
 	}
