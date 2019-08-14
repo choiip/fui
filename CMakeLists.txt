@@ -86,6 +86,10 @@ list(APPEND NANOVG_SOURCES
   src/nanovg/nanovg.c
 )
 
+## stb
+find_package(Stb REQUIRED)
+list(APPEND EXTRA_INCLUDE_DIRS ${STB_INCLUDE_DIRS})
+
 ## vulkan
 if (WITH_VULKAN)
   find_package(Vulkan)
@@ -154,13 +158,9 @@ if (WITH_VULKAN)
 endif()
 
 target_include_directories(fui PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(fui PRIVATE ${PROJECT_BINARY_DIR}/include ${PROJECT_SOURCE_DIR}/src)
+target_include_directories(fui PRIVATE ${EXTRA_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include ${PROJECT_SOURCE_DIR}/src)
 
 target_link_libraries(fui PUBLIC ${CMAKE_DL_LIBS} ${EXTRA_LIB})
 
 ## examples
-if(EMSCRIPTEN)
-  add_subdirectory(empkg)
-endif()
-
 add_subdirectory(examples)

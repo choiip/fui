@@ -1,8 +1,7 @@
 #include "core/RenderContext.hpp"
 #include <memory>
+#include <stb_image.h>
 #include "image/mjpeg2jpeg.h"
-
-#include "image/stb_image.h"
 #include "nanovg/nanovg.h"
 
 namespace fui {

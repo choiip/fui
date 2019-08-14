@@ -16,9 +16,6 @@ if (EMSCRIPTEN)
 endif()
 
 ## widget sample
-if (EMSCRIPTEN)
-  include(${CMAKE_CURRENT_LIST_DIR}/../empkg/empkg.cmake)
-endif()
 find_package(glm CONFIG REQUIRED)
 add_executable(widgetSample widgetSample.cpp GL/GLPrimitive.c)
 

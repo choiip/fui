@@ -29,11 +29,15 @@
       "type": "shell",
       "command": "~/bin/dockcross-${input:environmentType}",
       "args": [
+        "-a",
+        "-v ${workspaceRoot}/vcpkg/:/work/vcpkg:ro",
         "cmake",
         "-GNinja",
         "-Bbuild/web/",
         "-H.",
-        "-DVCPKG_ROOT_DIR=/work/empkg/vcpkg"
+        "-DCMAKE_TOOLCHAIN_FILE=/work/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE=/emsdk_portable/sdk/cmake/Modules/Platform/Emscripten.cmake",
+        "-DVCPKG_TARGET_TRIPLET=x64-wasm",
       ],
       "group": {
         "kind": "build",
@@ -46,6 +50,8 @@
       "type": "shell",
       "command": "~/bin/dockcross-${input:environmentType}",
       "args": [
+        "-a",
+        "-v ${workspaceRoot}/vcpkg/:/work/vcpkg:ro",
         "cmake",
         "--build",
         "build/web/"
