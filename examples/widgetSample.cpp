@@ -16,6 +16,7 @@ public:
 protected:
   virtual Status onEnter() override {
     auto renderContext = _renderWindow->renderContext();
+    LOGD << glGetString(GL_VERSION);
 #ifdef __EMSCRIPTEN__
     // load fonts
     auto standardFontId = renderContext->loadFont("sans", "examples/assets/fonts/Roboto-Regular.ttf");
