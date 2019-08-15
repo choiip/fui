@@ -7,7 +7,7 @@ extern "C" {
 struct cube;
 
 struct cube*
-createCube();
+createCube(unsigned int program);
 
 void
 drawCube(struct cube* c, const float* mvp);

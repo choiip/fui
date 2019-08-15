@@ -15,6 +15,7 @@ enum class PixelFormat {
 class RenderContext {
 public:
   RenderContext();
+  virtual ~RenderContext();
   NVGcontext* vg() const { return _vg; }
 
   int loadFont(const std::string& name, const std::string& filename);
@@ -24,7 +25,14 @@ public:
   int createImage(int width, int height, PixelFormat format);
   void updateImage(int image, const unsigned char* data, size_t dataSize, bool compressed = false);
 
+  std::string loadVertexShader(const std::string& filename);
+  std::string loadFragmentShader(const std::string& filename);
+  
 protected:
+  virtual std::string versionLine() const = 0;
+  virtual std::string vertexMacro() const = 0;
+  virtual std::string fragmentMacro() const = 0;
+
   NVGcontext* _vg;
 };
 

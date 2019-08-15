@@ -36,6 +36,7 @@ public:
 
 protected:
   virtual Status onEnter() override {
+    LOGD << glGetString(GL_VERSION);
     if (loadDemoData(vg, &data) == -1) {
       LOGE << "loadDemoData error";
       return Status::UNKNOWN_ERROR;

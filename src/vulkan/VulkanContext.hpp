@@ -33,6 +33,11 @@ public:
   FrameBuffers* frameBuffer() { return &_resource.frameBuffer; }
   VkCommandBuffer cmdBuffer() const { return _resource.cmdBuffer; }
 
+protected:
+  virtual std::string versionLine() const override;
+  virtual std::string vertexMacro() const override;
+  virtual std::string fragmentMacro() const override;
+
 private:
   Resource _resource;
 };

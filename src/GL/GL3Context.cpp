@@ -27,4 +27,22 @@ Status GL3Context::initVG() {
   return Status::OK;
 }
 
+std::string GL3Context::versionLine() const {
+  return "#version 150";
+}
+
+std::string GL3Context::vertexMacro() const {
+  return R"(
+    #define VERT_IN in
+    #define VERT_OUT out
+  )";
+}
+
+std::string GL3Context::fragmentMacro() const {
+  return R"(
+    #define FRAG_IN in
+    #define FRAG_OUT out
+  )";
+}
+
 } // namespace fui

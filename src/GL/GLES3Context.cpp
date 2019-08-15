@@ -27,4 +27,23 @@ Status GLES3Context::initVG() {
   return Status::OK;
 }
 
+std::string GLES3Context::versionLine() const {
+  return "#version 300 es";
+}
+
+std::string GLES3Context::vertexMacro() const {
+  return R"(
+    #define VERT_IN in
+    #define VERT_OUT out
+  )";
+}
+
+std::string GLES3Context::fragmentMacro() const {
+  return R"(
+		precision highp float;
+    #define FRAG_IN in
+    #define FRAG_OUT out
+  )";
+}
+
 } // namespace fui

@@ -1,14 +1,17 @@
 #include "core/RenderContext.hpp"
 #include <memory>
+#define STB_DEFINE
+#include <stb.h>
+#include <stb_image.h>
 #include "image/mjpeg2jpeg.h"
-
-#include "image/stb_image.h"
 #include "nanovg/nanovg.h"
 
 namespace fui {
 
 RenderContext::RenderContext()
 : _vg(nullptr) {}
+
+RenderContext::~RenderContext() = default;
 
 int RenderContext::loadFont(const std::string& name, const std::string& filename) {
   return nvgCreateFont(_vg, name.c_str(), filename.c_str());
@@ -53,5 +56,32 @@ void RenderContext::updateImage(int image, const unsigned char* data, size_t dat
     nvgUpdateImage(_vg, image, data);
   }
 }
+
+std::string RenderContext::loadVertexShader(const std::string& filename) {
+  size_t contentLength;
+  char* content = (char*)stb_file((char*)filename.c_str(), &contentLength);
+  if (content == NULL) return "";
+  content[contentLength-1] = 0;
+
+  std::string finalSource = versionLine();
+  finalSource += vertexMacro();
+  finalSource += content;
+  free(content);
+  return finalSource;
+}
+
+std::string RenderContext::loadFragmentShader(const std::string& filename) {
+  size_t contentLength;
+  char* content = (char*)stb_file((char*)filename.c_str(), &contentLength);
+  if (content == NULL) return "";
+  content[contentLength-1] = 0;
+
+  std::string finalSource = versionLine();
+  finalSource += fragmentMacro();
+  finalSource += content;
+  free(content);
+  return finalSource;
+}
+   
 
 } // namespace fui
