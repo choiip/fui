@@ -17,7 +17,7 @@ endif()
 
 ## widget sample
 find_package(glm CONFIG REQUIRED)
-add_executable(widgetSample widgetSample.cpp GL/GLPrimitive.c)
+add_executable(widgetSample widgetSample.cpp GL/GLPrimitive.c GL/GLProgram.c)
 
 target_link_libraries(widgetSample fui glm)
 

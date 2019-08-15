@@ -102,99 +102,15 @@ static const float vertices[] =
   0.52734375f, 0.76171875f, 0.92578125f, 1.0f
 };
 
-static const char vertex_shader[] =
-  "#version 150 core\n"
-  "uniform mat4 u_mvpMat;"
-  "in vec4 a_position;"
-  "in vec4 a_color;"
-  "out vec4 v_color;"
-  "void main()"
-  "{"
-  " v_color = a_color;"
-  " gl_Position = u_mvpMat * a_position;"
-  "}";
-
-static const char fragment_shader[] =
-  "#version 150 core\n"
-	"#ifdef GL_ES\n"
-  " precision mediump float;\n"
-  "#endif\n"
-  "in vec4 v_color;"
-  "out vec4 outColor;"
-  "void main()"
-  "{"
-    "outColor = v_color;"
-  "}";
-   
-static void dumpShaderError(GLuint shader, const char* name, const char* type)
-{
-	GLchar str[512+1];
-	GLsizei len = 0;
-	glGetShaderInfoLog(shader, 512, &len, str);
-	if (len > 512) len = 512;
-	str[len] = '\0';
-	printf("Shader %s/%s error:\n%s\n", name, type, str);
-}
-
-static void dumpProgramError(GLuint prog, const char* name)
-{
-	GLchar str[512+1];
-	GLsizei len = 0;
-	glGetProgramInfoLog(prog, 512, &len, str);
-	if (len > 512) len = 512;
-	str[len] = '\0';
-	printf("Program %s error:\n%s\n", name, str);
-}
-
-static unsigned int
-createProgram(const char* name, const char* vertex_shader, const char* fragment_shader) {
-  GLint status;
-  GLuint vtx_shader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vtx_shader, 1, &vertex_shader, 0);
-  glCompileShader(vtx_shader);
-	glGetShaderiv(vtx_shader, GL_COMPILE_STATUS, &status);
-	if (status != GL_TRUE) {
-		dumpShaderError(vtx_shader, name, "vert");
-		return 0;
-	}
-
-  GLuint fgmt_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fgmt_shader, 1, &fragment_shader, 0);
-  glCompileShader(fgmt_shader);
-	glGetShaderiv(fgmt_shader, GL_COMPILE_STATUS, &status);
-	if (status != GL_TRUE) {
-		dumpShaderError(fgmt_shader, name, "fgmt");
-		return 0;
-	}
-
-  GLuint program = glCreateProgram();
-
-  glAttachShader(program, vtx_shader);
-  glAttachShader(program, fgmt_shader);
-
-  glDeleteShader(vtx_shader);
-  glDeleteShader(fgmt_shader);
-
-  glLinkProgram(program);
-	glGetProgramiv(program, GL_LINK_STATUS, &status);
-	if (status != GL_TRUE) {
-		dumpProgramError(program, name);
-    glDeleteProgram(program);
-		return 0;
-	}
-  return program;
-}
-
 __cube*
-createCube()
+createCube(unsigned int program)
 {
-  GLuint program = createProgram("cube", vertex_shader, fragment_shader); 
   if (program == 0) return NULL;
 
   __cube* c = (__cube*)malloc(sizeof(__cube));
 
   c->program     = program;
-  c->mvpLoc      = glGetUniformLocation(program, "u_mvpMat");
+  c->mvpLoc      = glGetUniformLocation(program, "u_mvp");
   c->positionLoc = glGetAttribLocation(program, "a_position");
   c->colorLoc    = glGetAttribLocation(program, "a_color");
 

@@ -27,7 +27,7 @@
     {
       "label": "CMake: Configure (Emscripten)",
       "type": "shell",
-      "command": "~/bin/dockcross-${input:environmentType}",
+      "command": "~/bin/dockcross-web-wasm",
       "args": [
         "-a",
         "-v ${workspaceRoot}/vcpkg/:/work/vcpkg:ro",
@@ -48,7 +48,7 @@
     {
       "label": "CMake: Build (Emscripten)",
       "type": "shell",
-      "command": "~/bin/dockcross-${input:environmentType}",
+      "command": "~/bin/dockcross-web-wasm",
       "args": [
         "-a",
         "-v ${workspaceRoot}/vcpkg/:/work/vcpkg:ro",
@@ -72,7 +72,6 @@
       "id": "environmentType",
       "description": "Which environment do you want to pick?",
       "options": [
-        "browser-asmjs",
         "web-wasm"
       ],
       "default": "browser-asmjs"

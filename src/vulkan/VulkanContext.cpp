@@ -47,4 +47,22 @@ Status VulkanContext::initVG() {
   return Status::OK;
 }
 
+std::string VulkanContext::versionLine() const {
+  return "#version 400";
+}
+
+std::string VulkanContext::vertexMacro() const {
+  return R"(
+    #define VERT_IN in
+    #define VERT_OUT out
+  )";
+}
+
+std::string VulkanContext::fragmentMacro() const {
+  return R"(
+    #define FRAG_IN in
+    #define FRAG_OUT out
+  )";
+}
+
 } // namespace fui

@@ -27,4 +27,26 @@ Status GLES2Context::initVG() {
   return Status::OK;
 }
 
+std::string GLES2Context::versionLine() const {
+  return "#version 100";
+}
+
+std::string GLES2Context::vertexMacro() const {
+  return R"(
+    #define VERT_IN attribute
+    #define VERT_OUT varying
+  )";
+}
+
+std::string GLES2Context::fragmentMacro() const {
+  return R"(
+  	#ifdef GL_FRAGMENT_PRECISION_HIGH
+		  precision highp float;
+		#else
+		  precision mediump float;
+		#endif
+    #define FRAG_IN varying
+  )";
+}
+
 } // namespace fui

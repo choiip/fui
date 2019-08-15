@@ -6,6 +6,7 @@
 using namespace fui;
 
 #include "GL/GLPrimitive.h"
+#include "GL/GLProgram.h"
 
 class WidgetSample : public ApplicationContext {
 public:
@@ -24,6 +25,11 @@ protected:
     emscriptenStyle->fontBold = boldFontId;
     _renderWindow->style(emscriptenStyle);
 #endif
+    // load shaders
+    auto vertSource = renderContext->loadVertexShader("examples/assets/shaders/sample.vert");
+    auto fragSource = renderContext->loadFragmentShader("examples/assets/shaders/sample.frag");
+    _programId = createProgram("sample", vertSource.c_str(), fragSource.c_str());
+
     auto vg = renderContext->vg();
 
     // load image
@@ -59,8 +65,8 @@ protected:
         glEnable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
 
-        if (_cube == nullptr) {
-          _cube = createCube();
+        if (_cube == nullptr && _programId != 0) {
+          _cube = createCube(_programId);
         }
         int width = 320;
         int height = 240;
@@ -146,6 +152,7 @@ protected:
       }
     });
 
+    canvasWindow->focused(true);
     // Show window
     _renderWindow->show();
     return Status::OK;
@@ -180,6 +187,7 @@ private:
   PictureBox* _pictureBox;
   int _progress = 0;
   struct cube* _cube = nullptr;
+  unsigned int _programId = 0;
 };
 
 int main() {
