@@ -1,11 +1,13 @@
 #pragma once
 
+#include "core/Stopwatch.hpp"
 #include "widget/WidgetContainer.hpp"
 #include "event/EventEnum.hpp"
 
 namespace fui {
 
 class Cursor;
+class PerfGraph;
 class RenderContext;
 
 class RenderWindow : public WidgetContainer {
@@ -53,6 +55,10 @@ private:
   MouseButton _buttonInPressing;
   Modifier _modifierInPressing;
   Vector2i _prevCursorPosition;
+
+  std::unique_ptr<PerfGraph> _perfGraph;
+  Stopwatch<std::chrono::microseconds> _stopwatch;
+  size_t _frameCount;
 };
 
 } // namespace fui

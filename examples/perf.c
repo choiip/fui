@@ -71,21 +71,21 @@ int stopGPUTimer(GPUtimer* timer, float* times, int maxTimes)
 }
 
 
-void initGraph(PerfGraph* fps, int style, const char* name)
+void initGraph(PerfoGraph* fps, int style, const char* name)
 {
-	memset(fps, 0, sizeof(PerfGraph));
+	memset(fps, 0, sizeof(PerfoGraph));
 	fps->style = style;
 	strncpy(fps->name, name, sizeof(fps->name));
 	fps->name[sizeof(fps->name)-1] = '\0';
 }
 
-void updateGraph(PerfGraph* fps, float frameTime)
+void updateGraph(PerfoGraph* fps, float frameTime)
 {
 	fps->head = (fps->head+1) % GRAPH_HISTORY_COUNT;
 	fps->values[fps->head] = frameTime;
 }
 
-float getGraphAverage(PerfGraph* fps)
+float getGraphAverage(PerfoGraph* fps)
 {
 	int i;
 	float avg = 0;
@@ -95,7 +95,7 @@ float getGraphAverage(PerfGraph* fps)
 	return avg / (float)GRAPH_HISTORY_COUNT;
 }
 
-void renderGraph(NVGcontext* vg, float x, float y, PerfGraph* fps)
+void renderGraph(NVGcontext* vg, float x, float y, PerfoGraph* fps)
 {
 	int i;
 	float avg, w, h;

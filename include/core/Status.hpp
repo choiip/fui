@@ -8,4 +8,4 @@ enum class Status {
   UNKNOWN_ERROR,
 };
 
-}
+} // namespace fui

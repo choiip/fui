@@ -112,7 +112,7 @@ protected:
   RenderWindow* window;
   NVGcontext* vg;
   DemoData data;
-  PerfGraph fps, cpuGraph, gpuGraph;
+  PerfoGraph fps, cpuGraph, gpuGraph;
   time_point prevt;
   double cpuTime;
   int mx, my;

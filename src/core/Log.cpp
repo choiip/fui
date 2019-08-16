@@ -81,4 +81,4 @@ void Logger::setHandle(Logger::Handler handler) {
   }
 }
 
-}
+} // namespace fui

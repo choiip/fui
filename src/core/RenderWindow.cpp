@@ -1,5 +1,6 @@
 #include "core/RenderWindow.hpp"
 #include "core/Cursor.hpp"
+#include "core/PerfGraph.hpp"
 #include "core/RenderContext.hpp"
 #include "nanovg/nanovg.h"
 #include "event/MouseEvent.hpp"
@@ -18,6 +19,9 @@ RenderWindow::RenderWindow(RenderContext* renderContext)
     static auto defaultStyle = std::make_shared<WidgetStyle>(*renderContext);
     Widget::style(defaultStyle);
   }
+  _perfGraph.reset(new PerfGraph("render", PerfGraph::Mode::FPS));
+  _stopwatch.start();
+  _frameCount = 0;
 }
 
 RenderWindow::~RenderWindow() {
@@ -35,7 +39,17 @@ void RenderWindow::drawGui() {
 
     nvgBeginFrame(vg, _size.x, _size.y, pxRatio);
     WidgetContainer::draw(*_renderContext);
+    _perfGraph->draw(*_renderContext);
     nvgEndFrame(vg);
+
+    auto timeElapsed = _stopwatch.elapsed();
+    _frameCount++;
+    if (timeElapsed > std::chrono::milliseconds(500)) {
+      _perfGraph->update(timeElapsed / _frameCount);
+      _stopwatch.reset();
+      _stopwatch.start();
+      _frameCount = 0;
+    }
   }
 }
 

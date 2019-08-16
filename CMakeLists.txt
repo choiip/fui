@@ -101,6 +101,7 @@ list(APPEND FUI_SOURCES
   ${BUILD_IN_FONT_HEADER}
   src/core/Log.cpp
   src/core/ApplicationContext.cpp
+  src/core/PerfGraph.cpp
   src/core/RenderContext.cpp
   src/core/RenderWindow.cpp  
   src/glfw/GlfwCursor.cpp
