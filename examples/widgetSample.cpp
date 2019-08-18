@@ -154,6 +154,13 @@ protected:
     });
 
     canvasWindow->focused(true);
+
+    // fps setup
+    _perfGraph = std::make_shared<PerfGraph>("FPS");
+    _stopwatch.start();
+    _frameCount = 0;
+    _renderWindow->perfGraph(_perfGraph);
+    
     // Show window
     _renderWindow->show();
     return Status::OK;
@@ -177,6 +184,14 @@ protected:
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     _renderWindow->drawGui();
+    auto timeElapsed = _stopwatch.elapsed();
+    _frameCount++;
+    if (timeElapsed > std::chrono::milliseconds(500)) {
+      _perfGraph->update(timeElapsed / _frameCount);
+      _stopwatch.reset();
+      _stopwatch.start();
+      _frameCount = 0;
+    }
 
     _renderWindow->swapBuffer();
   }
@@ -187,6 +202,11 @@ private:
   ProgressBar* _progressBar;
   PictureBox* _pictureBox;
   int _progress = 0;
+
+  std::shared_ptr<PerfGraph> _perfGraph;
+  Stopwatch<std::chrono::microseconds> _stopwatch;
+  size_t _frameCount;
+
   struct cube* _cube = nullptr;
   unsigned int _programId = 0;
 };

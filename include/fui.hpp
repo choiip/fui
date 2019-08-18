@@ -4,9 +4,11 @@
 #include <core/Cursor.hpp>
 #include <core/GraphicsProfile.hpp>
 #include <core/Log.hpp>
+#include <core/PerfGraph.hpp>
 #include <core/RenderContext.hpp>
 #include <core/RenderWindow.hpp>
 #include <core/Status.hpp>
+#include <core/Stopwatch.hpp>
 
 #include <event/EventEnum.hpp>
 #include <event/MouseEvent.hpp>

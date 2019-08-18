@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/Stopwatch.hpp"
 #include "widget/WidgetContainer.hpp"
 #include "event/EventEnum.hpp"
 
@@ -48,6 +47,9 @@ public:
   FUI_DEFINE_EVENT(void(int, int), MouseMove);
   FUI_DEFINE_EVENT(void(int, int), Resize);
 
+protected:
+  FUI_WIDGET_WRITEONLY_PROPERTY(std::shared_ptr<PerfGraph>, perfGraph, nullptr);
+
 private:
   virtual Recti regionAtFrameBuffer(const Recti& rect) const override;
 
@@ -55,10 +57,6 @@ private:
   MouseButton _buttonInPressing;
   Modifier _modifierInPressing;
   Vector2i _prevCursorPosition;
-
-  std::unique_ptr<PerfGraph> _perfGraph;
-  Stopwatch<std::chrono::microseconds> _stopwatch;
-  size_t _frameCount;
 };
 
 } // namespace fui

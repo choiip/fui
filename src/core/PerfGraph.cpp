@@ -9,6 +9,7 @@ PerfGraph::PerfGraph(const std::string& name, Mode mode)
 : _name(name)
 , _mode(mode)
 , _lastest(-1) {
+	std::fill(std::begin(_fps), std::end(_fps), 0.f);
 }
 
 void PerfGraph::update(const std::chrono::microseconds& frameTime) {
@@ -77,7 +78,7 @@ void PerfGraph::draw(RenderContext& renderContext) {
 		nvgFontSize(vg, 18.0f);
 		nvgTextAlign(vg,NVG_ALIGN_RIGHT|NVG_ALIGN_TOP);
 		nvgFillColor(vg, nvgRGBA(240,240,240,255));
-		sprintf(str, "%.2f FPS", _fps[_lastest]);
+		sprintf(str, "%.1f FPS", _fps[_lastest]);
 		nvgText(vg, x+w-3,y+1, str, NULL);
 	}
 
