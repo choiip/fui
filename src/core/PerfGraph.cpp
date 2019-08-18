@@ -1,17 +1,21 @@
 #include "core/PerfGraph.hpp"
 #include "core/RenderContext.hpp"
 #include "nanovg/nanovg.h"
-#include "core/Log.hpp"
+#include "widget/WidgetStyle.hpp"
+#include "event/EventEnum.hpp"
 
 namespace fui {
 
 PerfGraph::PerfGraph(const std::string& name, Mode mode)
-: _name(name)
+: Widget(nullptr)
+, _name(name)
 , _mode(mode)
 , _lastest(-1) {
 	std::fill(std::begin(_fps), std::end(_fps), 0.f);
 }
 
+PerfGraph::~PerfGraph() = default;
+  
 void PerfGraph::update(const std::chrono::microseconds& frameTime) {
 	_lastest = (_lastest+1) % MAX_HISTORY_COUNT;
 	_fps[_lastest] = 1000.f * 1000.f / frameTime.count();
@@ -22,14 +26,12 @@ void PerfGraph::draw(RenderContext& renderContext) {
 
   auto vg = renderContext.vg();
 
-  int i;
-	float x, y, w, h;
+  const auto& prefGraphStyle = style();
+  auto x = _position.x;
+  auto y = _position.y;
+  auto w = _size.x;
+  auto h = _size.y;
 	char str[64];
-
-  x = 10;
-  y = 10;
-	w = 200;
-	h = 35;
 
 	nvgBeginPath(vg);
 	nvgRect(vg, x,y, w,h);
@@ -39,9 +41,9 @@ void PerfGraph::draw(RenderContext& renderContext) {
 	nvgBeginPath(vg);
 	nvgMoveTo(vg, x, y+h);
 
-	if (_mode & Mode::GRAPH) {
-		if (_mode & Mode::FPS) {
-			for (i = 0; i < MAX_HISTORY_COUNT; i++) {
+	if (hasFlags(_mode, Mode::GRAPH)) {
+		if (hasFlags(_mode, Mode::FPS)) {
+			for (auto i = 0; i < MAX_HISTORY_COUNT; i++) {
 				float v = _fps[(_lastest+i) % MAX_HISTORY_COUNT];	
 				float vx, vy;
 				if (v > 320.0f) v = 320.0f;
@@ -49,8 +51,8 @@ void PerfGraph::draw(RenderContext& renderContext) {
 				vy = y + h - ((v / 320.0f) * h);
 				nvgLineTo(vg, vx, vy);
 			}
-		} else if (_mode & Mode::TIME) {
-			for (i = 0; i < MAX_HISTORY_COUNT; i++) {
+		} else if (hasFlags(_mode, Mode::TIME)) {
+			for (auto i = 0; i < MAX_HISTORY_COUNT; i++) {
 				auto fps = _fps[(_lastest+i) % MAX_HISTORY_COUNT];
 				float v = 1000.f / fps;
 				float vx, vy;
@@ -65,7 +67,7 @@ void PerfGraph::draw(RenderContext& renderContext) {
 	nvgFillColor(vg, nvgRGBA(255,192,0,128));
 	nvgFill(vg);
 
-	nvgFontFace(vg, "sans");
+	nvgFontFaceId(vg, prefGraphStyle.fontStandard);
 
 	if (!_name.empty()) {
 		nvgFontSize(vg, 14.0f);
@@ -74,7 +76,7 @@ void PerfGraph::draw(RenderContext& renderContext) {
 		nvgText(vg, x+3,y+1, _name.c_str(), NULL);
 	}
 
-	if (_mode & Mode::FPS) {
+	if (hasFlags(_mode, Mode::FPS)) {
 		nvgFontSize(vg, 18.0f);
 		nvgTextAlign(vg,NVG_ALIGN_RIGHT|NVG_ALIGN_TOP);
 		nvgFillColor(vg, nvgRGBA(240,240,240,255));
@@ -82,7 +84,7 @@ void PerfGraph::draw(RenderContext& renderContext) {
 		nvgText(vg, x+w-3,y+1, str, NULL);
 	}
 
-	if (_mode & Mode::TIME) {
+	if (hasFlags(_mode, Mode::TIME)) {
 		nvgFontSize(vg, 15.0f);
 		nvgTextAlign(vg,NVG_ALIGN_RIGHT|NVG_ALIGN_BOTTOM);
 		nvgFillColor(vg, nvgRGBA(240,240,240,160));

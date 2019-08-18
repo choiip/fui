@@ -157,6 +157,9 @@ protected:
 
     // fps setup
     _perfGraph = std::make_shared<PerfGraph>("FPS");
+    _perfGraph->style(std::make_shared<WidgetStyle>(*renderContext))
+              ->position({_renderWindow->size().x - 210, 10})
+              ->size({200, 35});
     _stopwatch.start();
     _frameCount = 0;
     _renderWindow->perfGraph(_perfGraph);
