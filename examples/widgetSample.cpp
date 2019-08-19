@@ -17,15 +17,7 @@ protected:
   virtual Status onEnter() override {
     auto renderContext = _renderWindow->renderContext();
     LOGD << glGetString(GL_VERSION);
-#ifdef __EMSCRIPTEN__
-    // load fonts
-    auto standardFontId = renderContext->loadFont("sans", "examples/assets/fonts/Roboto-Regular.ttf");
-    auto boldFontId = renderContext->loadFont("sans-bold", "examples/assets/fonts/Roboto-Bold.ttf");
-    static auto emscriptenStyle = std::make_shared<WidgetStyle>(*renderContext);
-    emscriptenStyle->fontStandard = standardFontId;
-    emscriptenStyle->fontBold = boldFontId;
-    _renderWindow->style(emscriptenStyle);
-#endif
+
     // load shaders
     auto vertSource = renderContext->loadVertexShader("examples/assets/shaders/sample.vert");
     auto fragSource = renderContext->loadFragmentShader("examples/assets/shaders/sample.frag");
@@ -217,6 +209,34 @@ private:
 int main() {
   Logger logger;
   LOGD << "Sample start";
+  
+#ifdef __EMSCRIPTEN__
+  // setup fonts
+  setupWebFonts({
+    {
+      "examples/assets/fonts/Roboto-Regular.ttf", // path 
+      "", // postscriptName
+      "", // family
+      "Regular", // style
+      "zh-hk", // lang
+      FontWeightNormal, // weight
+      FontWidthNormal,  // width 
+      false,  // italic 
+      false,  // monospace
+    },
+    {
+      "examples/assets/fonts/Roboto-Bold.ttf", // path 
+      "", // postscriptName
+      "", // family
+      "Bold", // style
+      "zh-hk", // lang
+      FontWeightNormal, // weight
+      FontWidthNormal,  // width 
+      false,  // italic 
+      false,  // monospace
+    }
+  });
+#endif
 
   auto graphicAPI = GraphicsAPI::OPENGL;
 #ifdef __EMSCRIPTEN__

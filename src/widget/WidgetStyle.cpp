@@ -13,7 +13,7 @@ WidgetStyle::WidgetStyle(RenderContext& renderContext) {
   if (fontIcons == -1) {
     LOGE << "Could not add font icons.";
   }
-#ifndef __EMSCRIPTEN__
+
   FontDescriptor requestFont;
   requestFont.lang = "zh-hk";
   requestFont.style = "Regular";
@@ -30,7 +30,6 @@ WidgetStyle::WidgetStyle(RenderContext& renderContext) {
   if (fontBold == -1) {
     LOGE << "Could not add bold font.";
   }
-#endif  
 }
 
 } // namespace fui
