@@ -82,6 +82,5 @@ std::string RenderContext::loadFragmentShader(const std::string& filename) {
   free(content);
   return finalSource;
 }
-   
-
+  
 } // namespace fui

@@ -59,3 +59,7 @@ fui::ResultSet getAvailableFonts();
 fui::ResultSet findFonts(fui::FontDescriptor *);
 fui::FontDescriptor *findFont(fui::FontDescriptor *);
 fui::FontDescriptor *substituteFont(char *, char *);
+
+#ifdef __EMSCRIPTEN__
+void setupWebFonts(const std::vector<fui::FontDescriptor>& fontDescriptors);
+#endif

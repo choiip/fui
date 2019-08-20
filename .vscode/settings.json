@@ -61,7 +61,8 @@
         "thread": "cpp",
         "list": "cpp",
         "cassert": "cpp",
-        "glad.h": "c"
+        "glad.h": "c",
+        "iterator": "cpp"
     },
     "cmake.configureOnOpen": true,
     "cmake.debugConfig": {
@@ -69,7 +70,7 @@
         "osx": {
             "externalConsole": true,
             "MIMode": "lldb",
-            "miDebuggerPath": "${env:HOME}/.vscode/extensions/ms-vscode.cpptools-0.24.1/debugAdapters/lldb/bin/lldb-mi",
+            "miDebuggerPath": "${env:HOME}/.vscode/extensions/ms-vscode.cpptools-0.25.0-insiders2/debugAdapters/lldb/bin/lldb-mi",
         },
     },
     "cmake.environment": {
@@ -78,4 +79,5 @@
     "editor.formatOnSave": true,
     "editor.tabSize": 2,
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
+    "C_Cpp.configurationWarnings": "Disabled",
 }

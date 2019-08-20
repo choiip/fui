@@ -27,6 +27,11 @@ Status GLES2Context::initVG() {
   return Status::OK;
 }
 
+auto GLES2Context::setViewport(int x, int y, int width, int height) -> decltype(this) {
+  glViewport(x, y, width, height);
+  return this;
+}
+
 std::string GLES2Context::versionLine() const {
   return "#version 100";
 }

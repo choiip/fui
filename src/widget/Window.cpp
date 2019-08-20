@@ -40,7 +40,6 @@ void Window::draw(RenderContext& renderContext) {
   int hh = windowStyle.windowHeaderHeight;
 
   /* Draw window */
-  nvgSave(vg);
   nvgBeginPath(vg);
   nvgRoundedRect(vg, x, y, w, h, cr);
 
@@ -101,9 +100,7 @@ void Window::draw(RenderContext& renderContext) {
     nvgText(vg, x + w / 2, y + hh / 2 - 1, text, nullptr);
   }
 
-  nvgTranslate(vg, 0, hh);
   WidgetContainer::draw(renderContext);
-  nvgRestore(vg);
 }
 
 Vector2i Window::childrenOrigin() const {

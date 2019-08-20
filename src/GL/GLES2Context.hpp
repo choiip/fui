@@ -13,6 +13,8 @@ public:
 
   Status initVG();
 
+  virtual auto setViewport(int x, int y, int width, int height) -> decltype(this) override;
+  
 protected:
   virtual std::string versionLine() const override;
   virtual std::string vertexMacro() const override;

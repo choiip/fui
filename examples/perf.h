@@ -14,18 +14,18 @@ enum GraphrenderStyle {
 };
 
 #define GRAPH_HISTORY_COUNT 100
-struct PerfGraph {
+struct PerfoGraph {
 	int style;
 	char name[32];
 	float values[GRAPH_HISTORY_COUNT];
 	int head;
 };
-typedef struct PerfGraph PerfGraph;
+typedef struct PerfoGraph PerfoGraph;
 
-void initGraph(PerfGraph* fps, int style, const char* name);
-void updateGraph(PerfGraph* fps, float frameTime);
-void renderGraph(NVGcontext* vg, float x, float y, PerfGraph* fps);
-float getGraphAverage(PerfGraph* fps);
+void initGraph(PerfoGraph* fps, int style, const char* name);
+void updateGraph(PerfoGraph* fps, float frameTime);
+void renderGraph(NVGcontext* vg, float x, float y, PerfoGraph* fps);
+float getGraphAverage(PerfoGraph* fps);
 
 #define GPU_QUERY_COUNT 5
 struct GPUtimer {

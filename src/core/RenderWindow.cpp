@@ -1,5 +1,6 @@
 #include "core/RenderWindow.hpp"
 #include "core/Cursor.hpp"
+#include "core/PerfGraph.hpp"
 #include "core/RenderContext.hpp"
 #include "nanovg/nanovg.h"
 #include "event/MouseEvent.hpp"
@@ -28,13 +29,17 @@ void RenderWindow::drawGui() {
   if (_renderContext && _visible) {
     auto vg = _renderContext->vg();
 
+    auto viewport = regionAtFrameBuffer({_position.x, _position.y, _size.x, _size.y});
+
+    // Calculate pixel ratio for hi-dpi devices.
     int fbWidth, fbHeight;
     getDrawableSize(fbWidth, fbHeight);
-    // Calculate pixel ration for hi-dpi devices.
-    auto pxRatio = (float)fbWidth / (float)_size.x;
+    auto pixelRatio = (float)fbWidth / (float)_size.x;
 
-    nvgBeginFrame(vg, _size.x, _size.y, pxRatio);
-    WidgetContainer::draw(*_renderContext);
+    _renderContext->setViewport(viewport.x, viewport.y, viewport.w, viewport.h);
+    nvgBeginFrame(vg, _size.x, _size.y, pixelRatio);
+    WidgetContainer::drawChildren(*_renderContext);
+    if (_perfGraph) _perfGraph->draw(*_renderContext);
     nvgEndFrame(vg);
   }
 }
@@ -57,11 +62,12 @@ void RenderWindow::onMouseButtonEvent(MouseButton button, ButtonAction action, M
   _signalMouseButton.emit(button, action, mods);
 }
 void RenderWindow::onMouseMoveEvent(int xpos, int ypos) {
-  MouseMoveEvent event(_prevCursorPosition, Movement::MOVING, {xpos, ypos}, MouseButton::NONE, _buttonInPressing,
+  Vector2i localPos = {xpos, ypos};
+  MouseMoveEvent event(_prevCursorPosition, Movement::MOVING, localPos, MouseButton::NONE, _buttonInPressing,
                        Modifier::NONE);
   WidgetContainer::onMouseMoveEvent(event);
-  _signalMouseMove.emit(xpos, ypos);
-  _prevCursorPosition = {xpos, ypos};
+  _signalMouseMove.emit(localPos.x, localPos.y);
+  _prevCursorPosition = localPos;
 }
 void RenderWindow::onResizeEvent(int width, int height) { 
   _size = { width, height };

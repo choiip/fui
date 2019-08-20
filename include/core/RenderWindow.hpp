@@ -6,6 +6,7 @@
 namespace fui {
 
 class Cursor;
+class PerfGraph;
 class RenderContext;
 
 class RenderWindow : public WidgetContainer {
@@ -45,6 +46,9 @@ public:
   FUI_DEFINE_EVENT(void(MouseButton, ButtonAction, Modifier), MouseButton);
   FUI_DEFINE_EVENT(void(int, int), MouseMove);
   FUI_DEFINE_EVENT(void(int, int), Resize);
+
+protected:
+  FUI_WIDGET_WRITEONLY_PROPERTY(std::shared_ptr<PerfGraph>, perfGraph, nullptr);
 
 private:
   virtual Recti regionAtFrameBuffer(const Recti& rect) const override;

@@ -28,6 +28,8 @@ public:
 
   virtual Vector2i childrenOrigin() const;
 protected:
+  void drawChildren(RenderContext& renderContext);
+  
   virtual void onMouseMoveEvent(MouseMoveEvent& event) override;
   virtual void onMousePressEvent(MouseEvent& event) override;
   virtual void onMouseReleaseEvent(MouseEvent& event) override;

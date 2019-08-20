@@ -27,6 +27,11 @@ Status GL3Context::initVG() {
   return Status::OK;
 }
 
+auto GL3Context::setViewport(int x, int y, int width, int height) -> decltype(this) {
+  glViewport(x, y, width, height);
+  return this;
+}
+
 std::string GL3Context::versionLine() const {
   return "#version 150";
 }

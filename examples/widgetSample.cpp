@@ -17,15 +17,7 @@ protected:
   virtual Status onEnter() override {
     auto renderContext = _renderWindow->renderContext();
     LOGD << glGetString(GL_VERSION);
-#ifdef __EMSCRIPTEN__
-    // load fonts
-    auto standardFontId = renderContext->loadFont("sans", "examples/assets/fonts/Roboto-Regular.ttf");
-    auto boldFontId = renderContext->loadFont("sans-bold", "examples/assets/fonts/Roboto-Bold.ttf");
-    static auto emscriptenStyle = std::make_shared<WidgetStyle>(*renderContext);
-    emscriptenStyle->fontStandard = standardFontId;
-    emscriptenStyle->fontBold = boldFontId;
-    _renderWindow->style(emscriptenStyle);
-#endif
+
     // load shaders
     auto vertSource = renderContext->loadVertexShader("examples/assets/shaders/sample.vert");
     auto fragSource = renderContext->loadFragmentShader("examples/assets/shaders/sample.frag");
@@ -154,6 +146,16 @@ protected:
     });
 
     canvasWindow->focused(true);
+
+    // fps setup
+    _perfGraph = std::make_shared<PerfGraph>("FPS");
+    _perfGraph->style(std::make_shared<WidgetStyle>(*renderContext))
+              ->position({_renderWindow->size().x - 210, 10})
+              ->size({200, 35});
+    _stopwatch.start();
+    _frameCount = 0;
+    _renderWindow->perfGraph(_perfGraph);
+    
     // Show window
     _renderWindow->show();
     return Status::OK;
@@ -169,14 +171,18 @@ protected:
     _progressBar->value(_progress)->text(text);
     _pictureBox->orientation((float)_progress)->fit();
 
-    int fbWidth, fbHeight;
-    _renderWindow->getDrawableSize(fbWidth, fbHeight);
-
-    glViewport(0, 0, fbWidth, fbHeight);
     glClearColor(0.3f, 0.3f, 0.32f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     _renderWindow->drawGui();
+    auto timeElapsed = _stopwatch.elapsed();
+    _frameCount++;
+    if (timeElapsed > std::chrono::milliseconds(500)) {
+      _perfGraph->update(timeElapsed / _frameCount);
+      _stopwatch.reset();
+      _stopwatch.start();
+      _frameCount = 0;
+    }
 
     _renderWindow->swapBuffer();
   }
@@ -187,6 +193,11 @@ private:
   ProgressBar* _progressBar;
   PictureBox* _pictureBox;
   int _progress = 0;
+
+  std::shared_ptr<PerfGraph> _perfGraph;
+  Stopwatch<std::chrono::microseconds> _stopwatch;
+  size_t _frameCount;
+
   struct cube* _cube = nullptr;
   unsigned int _programId = 0;
 };
@@ -194,6 +205,34 @@ private:
 int main() {
   Logger logger;
   LOGD << "Sample start";
+  
+#ifdef __EMSCRIPTEN__
+  // setup fonts
+  setupWebFonts({
+    {
+      "examples/assets/fonts/Roboto-Regular.ttf", // path 
+      "", // postscriptName
+      "", // family
+      "Regular", // style
+      "zh-hk", // lang
+      FontWeightNormal, // weight
+      FontWidthNormal,  // width 
+      false,  // italic 
+      false,  // monospace
+    },
+    {
+      "examples/assets/fonts/Roboto-Bold.ttf", // path 
+      "", // postscriptName
+      "", // family
+      "Bold", // style
+      "zh-hk", // lang
+      FontWeightNormal, // weight
+      FontWidthNormal,  // width 
+      false,  // italic 
+      false,  // monospace
+    }
+  });
+#endif
 
   auto graphicAPI = GraphicsAPI::OPENGL;
 #ifdef __EMSCRIPTEN__

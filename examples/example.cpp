@@ -42,6 +42,9 @@ protected:
       return Status::UNKNOWN_ERROR;
     }
 
+    initGraph(&fps, GRAPH_RENDER_FPS, "FPS");
+    initGraph(&cpuGraph, GRAPH_RENDER_MS, "CPU");
+    
     // window->setSwapInterval(0);
     // initGPUTimer(&gpuTimer);
     prevt = clock::now();
@@ -112,7 +115,7 @@ protected:
   RenderWindow* window;
   NVGcontext* vg;
   DemoData data;
-  PerfGraph fps, cpuGraph, gpuGraph;
+  PerfoGraph fps, cpuGraph, gpuGraph;
   time_point prevt;
   double cpuTime;
   int mx, my;
@@ -218,7 +221,7 @@ private:
     viewport.x = rp_begin.renderArea.offset.x;
     viewport.y = rp_begin.renderArea.offset.y;
     vkCmdSetViewport(cmd_buffer, 0, 1, &viewport);
-
+    
     VkRect2D scissor = rp_begin.renderArea;
     vkCmdSetScissor(cmd_buffer, 0, 1, &scissor);
   }
