@@ -30,7 +30,11 @@ bool Widget::contain(int x, int y) const {
 Recti Widget::mapTo(const Recti& rect, Coordinate coord) const {
   if (_parent == nullptr) {
     switch (coord) {
-      case Coordinate::Framebuffer: return regionAtFrameBuffer(rect);
+      case Coordinate::Framebuffer: 
+        return regionAtFrameBuffer({  _position.x + rect.position.x, 
+                                      _position.y + rect.position.y,
+                                      rect.size.x,
+                                      rect.size.y });
       case Coordinate::Parent:
       case Coordinate::TopParent: return rect;
       case Coordinate::Screen: 

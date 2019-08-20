@@ -32,8 +32,20 @@ void WidgetContainer::removeChild(Widget* widget) {
 
 void WidgetContainer::draw(RenderContext& renderContext) {
   auto vg = renderContext.vg();
+  auto origin = _position + childrenOrigin();
+
   nvgSave(vg);
-  nvgTranslate(vg, _position.x, _position.y);
+  nvgTranslate(vg, origin.x, origin.y);
+  drawChildren(renderContext);
+  nvgRestore(vg);
+}
+
+Vector2i WidgetContainer::childrenOrigin() const {
+  return Vector2i::Zero;
+}
+
+void WidgetContainer::drawChildren(RenderContext& renderContext) {
+  auto vg = renderContext.vg();
   for (auto&& w : _children) {
     if (w->visible()) {
       nvgSave(vg);
@@ -42,12 +54,7 @@ void WidgetContainer::draw(RenderContext& renderContext) {
       nvgRestore(vg);
     }
   }
-  nvgRestore(vg);
-}
-
-Vector2i WidgetContainer::childrenOrigin() const {
-  return Vector2i::Zero;
-}
+}  
 
 void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
   auto localX = event.position.x - _position.x;
@@ -69,20 +76,18 @@ void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
 }
 
 void WidgetContainer::onMousePressEvent(MouseEvent& event) {
-  auto localX = event.position.x - _position.x;
-  auto localY = event.position.y - _position.y;
-  MouseEvent altEvent = {{localX, localY}, event.button, event.buttons, event.modifiers};
+  auto local = event.position - _position;
+  MouseEvent altEvent = {local, event.button, event.buttons, event.modifiers};
   for (auto&& w : _children) {
-    if (w->visible() && w->enabled() && w->contain(localX, localY)) {
+    if (w->visible() && w->enabled() && w->contain(local.x, local.y)) {
       w->onMousePressEvent(altEvent);
     }
   }
 }
 
 void WidgetContainer::onMouseReleaseEvent(MouseEvent& event) {
-  auto localX = event.position.x - _position.x;
-  auto localY = event.position.y - _position.y;
-  MouseEvent altEvent = {{localX, localY}, event.button, event.buttons, event.modifiers};
+  auto local = event.position - _position;
+  MouseEvent altEvent = {local, event.button, event.buttons, event.modifiers};
   for (auto&& w : _children) {
     if (w->visible() && w->enabled()) {
       w->onMouseReleaseEvent(altEvent);
