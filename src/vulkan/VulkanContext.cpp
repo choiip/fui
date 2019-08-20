@@ -47,6 +47,16 @@ Status VulkanContext::initVG() {
   return Status::OK;
 }
 
+auto VulkanContext::setViewport(int x, int y, int width, int height) -> decltype(this) {
+  VkViewport viewport = {
+    (float)x, (float)y,
+    (float)width, (float)height,
+    0.f, 1.f    
+  };
+  vkCmdSetViewport(_resource.cmdBuffer, 0, 1, &viewport);
+  return this;
+}
+
 std::string VulkanContext::versionLine() const {
   return "#version 400";
 }

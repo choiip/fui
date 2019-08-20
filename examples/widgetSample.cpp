@@ -171,10 +171,6 @@ protected:
     _progressBar->value(_progress)->text(text);
     _pictureBox->orientation((float)_progress)->fit();
 
-    int fbWidth, fbHeight;
-    _renderWindow->getDrawableSize(fbWidth, fbHeight);
-
-    glViewport(0, 0, fbWidth, fbHeight);
     glClearColor(0.3f, 0.3f, 0.32f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 

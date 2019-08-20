@@ -34,6 +34,7 @@ void RenderWindow::drawGui() {
     // Calculate pixel ration for hi-dpi devices.
     auto pxRatio = (float)fbWidth / (float)_size.x;
 
+    _renderContext->setViewport(0, 0, fbWidth, fbHeight);
     nvgBeginFrame(vg, _size.x, _size.y, pxRatio);
     WidgetContainer::draw(*_renderContext);
     if (_perfGraph) _perfGraph->draw(*_renderContext);

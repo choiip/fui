@@ -28,6 +28,8 @@ public:
   std::string loadVertexShader(const std::string& filename);
   std::string loadFragmentShader(const std::string& filename);
   
+  virtual auto setViewport(int x, int y, int width, int height) -> decltype(this) = 0;
+
 protected:
   virtual std::string versionLine() const = 0;
   virtual std::string vertexMacro() const = 0;
