@@ -20,7 +20,7 @@ void GLCanvas::drawScene() {
   glViewport(x, y, w, h);
   glEnable(GL_SCISSOR_TEST);
   glScissor(x, y, w, h);
-  _drawFunction();
+  _drawFunction(w, h);
   glDisable(GL_SCISSOR_TEST);
   glViewport(storedViewport[0], storedViewport[1],
             storedViewport[2], storedViewport[3]);

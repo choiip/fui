@@ -2,6 +2,7 @@
 #include "core/RenderContext.hpp"
 #include "nanovg/nanovg.h"
 #include "widget/WidgetStyle.hpp"
+#include "core/Log.hpp"
 
 namespace fui {
 
@@ -87,6 +88,14 @@ auto PictureBox::_pictureSetter(int const& v, NVGcontext* ctx) -> decltype(this)
   return fit();
 }
 
+auto PictureBox::_pictureSetter(const std::string& file, NVGcontext* ctx) -> decltype(this) {
+  auto picture = nvgCreateImage(ctx, file.c_str(), 0);
+  if (picture == 0) {
+    LOGE << "Could not load " << file;
+  }
+  return _pictureSetter(picture, ctx);
+}
+  
 auto PictureBox::_scaleSetter(float const& v) -> decltype(this) {
   _scale = v > 0.01f ? v : 0.01f;
   return this;

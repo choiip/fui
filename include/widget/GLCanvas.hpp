@@ -18,7 +18,7 @@ public:
 protected:
   virtual void drawScene() override;
 
-  FUI_WIDGET_WRITEONLY_PROPERTY(std::function<void()>, drawFunction, nullptr);
+  FUI_WIDGET_WRITEONLY_PROPERTY(std::function<void(int, int)>, drawFunction, nullptr);
 };
 
 } // namespace fui

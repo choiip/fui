@@ -31,6 +31,7 @@ protected:
 
 private:
   auto _pictureSetter(int const& v, NVGcontext* ctx) -> decltype(this);
+  auto _pictureSetter(const std::string&, NVGcontext* ctx) -> decltype(this);
   auto _scaleSetter(float const& v) -> decltype(this);
 };
 

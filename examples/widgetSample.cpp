@@ -25,14 +25,6 @@ protected:
 
     auto vg = renderContext->vg();
 
-    // load image
-    char file[128];
-    snprintf(file, 128, "examples/assets/images/image1.jpg");
-    auto pictureId = renderContext->loadImage(file);
-    if (pictureId == 0) {
-      LOGE << "Could not load " << file;
-    }
-
     // Gui
     int x = 10, y = 10;
     _renderWindow->addChild<Label>("1st Label")->textColor({0.7f, 0.0f, 0.3f, 1.f})->position({x, y})->size({150, 28});
@@ -51,8 +43,7 @@ protected:
     Window* canvasWindow = nullptr;
     (canvasWindow = _renderWindow->addChild<Window>("Canvas Window"))->position({x, y})->size({640, 480});
     canvasWindow->addChild<GLCanvas>()
-      ->drawFunction([this](){
-        // LOGD << "Render in GL";
+      ->drawFunction([this](int width, int height){
         glClearColor(.6f, .6f, .6f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
@@ -61,8 +52,7 @@ protected:
         if (_cube == nullptr && _programId != 0) {
           _cube = createCube(_programId);
         }
-        int width = 320;
-        int height = 240;
+
         float halfWidth = width * .5f;
         float halfHeight = height * .5f;
         // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
@@ -133,7 +123,7 @@ protected:
       ly += 40;
       (_pictureBox = widgetWindow->addChild<PictureBox>())
           ->orientation(0.f)
-          ->picture(pictureId, vg)
+          ->picture("examples/assets/images/image1.jpg", vg)
           ->position({lx, ly})
           ->size({256, 128});
     }
@@ -162,10 +152,8 @@ protected:
   }
 
   void onDraw() override {
-    if (_progress >= _progressBar->maxValue())
+    if (++_progress > _progressBar->maxValue())
       _progress = 0;
-    else
-      ++_progress;
 
     auto text = std::to_string(_progress);
     _progressBar->value(_progress)->text(text);

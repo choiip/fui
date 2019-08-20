@@ -37,8 +37,8 @@ public:                                                                         
 
 #define FUI_WIDGET_PROPERTY_ALT_SETTER(TYPE, NAME, ...)                                                                \
 public:                                                                                                                \
-  template <typename... Args> auto NAME(TYPE const& v, Args... args)->decltype(this) {                                 \
-    return _##NAME##Setter(v, std::forward<Args>(args)...);                                                            \
+  template <typename... Args> auto NAME(Args... args)->decltype(this) {                                 \
+    return _##NAME##Setter(std::forward<Args>(args)...);                                                            \
   }                                                                                                                    \
   TYPE const& NAME() const { return _##NAME; }                                                                         \
                                                                                                                        \
