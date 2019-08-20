@@ -135,8 +135,7 @@ enum GLNVGuniformBindings {
 
 struct GLNVGshader {
 	GLuint prog;
-	GLuint frag;
-	GLuint vert;
+	int view[2];
 	GLint loc[GLNVG_MAX_LOCS];
 };
 typedef struct GLNVGshader GLNVGshader;
@@ -466,6 +465,9 @@ static int glnvg__createShader(GLNVGshader* shader, const char* name, const char
 	glAttachShader(prog, vert);
 	glAttachShader(prog, frag);
 
+	glDeleteShader(vert);
+	glDeleteShader(frag);
+
 	glBindAttribLocation(prog, 0, "vertex");
 	glBindAttribLocation(prog, 1, "tcoord");
 
@@ -477,8 +479,6 @@ static int glnvg__createShader(GLNVGshader* shader, const char* name, const char
 	}
 
 	shader->prog = prog;
-	shader->vert = vert;
-	shader->frag = frag;
 
 	return 1;
 }
@@ -487,10 +487,6 @@ static void glnvg__deleteShader(GLNVGshader* shader)
 {
 	if (shader->prog != 0)
 		glDeleteProgram(shader->prog);
-	if (shader->vert != 0)
-		glDeleteShader(shader->vert);
-	if (shader->frag != 0)
-		glDeleteShader(shader->frag);
 }
 
 static void glnvg__getUniforms(GLNVGshader* shader)
@@ -711,6 +707,11 @@ static int glnvg__renderCreate(void* uptr)
 
 	glnvg__checkError(gl, "uniform locations");
 	glnvg__getUniforms(&gl->shader);
+
+	glUseProgram(gl->shader.prog);
+	// Set texture just once per frame.
+	glUniform1i(gl->shader.loc[GLNVG_LOC_TEX], 0);
+	glUseProgram(0);
 
 	// Create vertex buffer
 	glGenBuffers(1, &gl->vertBuf);
@@ -1111,17 +1112,17 @@ static void glnvg__fill(GLNVGcontext* gl, GLNVGcall* call)
 static void glnvg__convexFill(GLNVGcontext* gl, GLNVGcall* call)
 {
 	GLNVGpath* paths = &gl->paths[call->pathOffset];
+	GLNVGpath* path;
 	int i, npaths = call->pathCount;
 
 	glnvg__setUniforms(gl, call->uniformOffset, call->image);
 	glnvg__checkError(gl, "convex fill");
 
 	for (i = 0; i < npaths; i++) {
-		glDrawArrays(GL_TRIANGLE_FAN, paths[i].fillOffset, paths[i].fillCount);
+		path = paths + i;
+		glDrawArrays(GL_TRIANGLE_FAN, path->fillOffset, path->fillCount);
 		// Draw fringes
-		if (paths[i].strokeCount > 0) {
-			glDrawArrays(GL_TRIANGLE_STRIP, paths[i].strokeOffset, paths[i].strokeCount);
-		}
+		glDrawArrays(GL_TRIANGLE_STRIP, path->strokeOffset, path->strokeCount);
 	}
 }
 
@@ -1176,9 +1177,7 @@ static void glnvg__triangles(GLNVGcontext* gl, GLNVGcall* call)
 {
 	glnvg__setUniforms(gl, call->uniformOffset, call->image);
 	glnvg__checkError(gl, "triangles fill");
-	if (call->triangleCount > 0) {
-		glDrawArrays(GL_TRIANGLES, call->triangleOffset, call->triangleCount);
-	}
+	glDrawArrays(GL_TRIANGLES, call->triangleOffset, call->triangleCount);
 }
 
 static void glnvg__renderCancel(void* uptr) {
@@ -1293,9 +1292,12 @@ static void glnvg__renderFlush(void* uptr)
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(NVGvertex), (const GLvoid*)(size_t)0);
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(NVGvertex), (const GLvoid*)(0 + 2*sizeof(float)));
 
-		// Set view and texture just once per frame.
-		glUniform1i(gl->shader.loc[GLNVG_LOC_TEX], 0);
-		glUniform2fv(gl->shader.loc[GLNVG_LOC_VIEWSIZE], 1, gl->view);
+		// Set view just once per frame.
+		if (gl->view[0] != gl->shader.view[0] || gl->view[1] != gl->shader.view[1]) {
+			gl->shader.view[0] = gl->view[0];
+			gl->shader.view[1] = gl->view[1];
+			glUniform2fv(gl->shader.loc[GLNVG_LOC_VIEWSIZE], 1, gl->view);
+		}
 
 		for (int i = 0; i < gl->ncalls; i++) {
 			GLNVGcall* call = &gl->calls[i];
