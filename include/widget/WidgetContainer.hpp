@@ -29,13 +29,17 @@ public:
   virtual Vector2i childrenOrigin() const;
 protected:
   void drawChildren(RenderContext& renderContext);
+  void onChildFocusChangeEvent(FocusEvent& event);
   
+  virtual void onFocusChangeEvent(FocusEvent& event) override;
   virtual void onMouseMoveEvent(MouseMoveEvent& event) override;
   virtual void onMousePressEvent(MouseEvent& event) override;
   virtual void onMouseReleaseEvent(MouseEvent& event) override;
-
+  
 private:
   WidgetList _children;
+
+  friend class Widget;
 };
 
 } // namespace fui
