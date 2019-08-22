@@ -1,36 +1,15 @@
 cmake_minimum_required(VERSION 3.7.2)
 
-## examples
-add_executable(example example.cpp demo.c perf.c)
-
-target_include_directories(example PRIVATE ${PROJECT_SOURCE_DIR}/src)
-
-target_link_libraries(example fui)
-
 if (EMSCRIPTEN)
   set(GL_FLAGS "-s FULL_ES2=1 -s FULL_ES3=1 -s USE_WEBGL2=1")
-  set_target_properties(example PROPERTIES 
-    LINK_FLAGS "-s USE_GLFW=3 ${GL_FLAGS} --preload-file ${CMAKE_CURRENT_LIST_DIR}/assets@examples/assets/"
-    SUFFIX ".html"
-  )
+  set(PERLOAD_FLAGS "--preload-file ${CMAKE_CURRENT_LIST_DIR}/assets@examples/assets/")
 endif()
 
-## widget sample
-find_package(glm CONFIG REQUIRED)
-add_executable(widgetSample widgetSample.cpp GL/GLPrimitive.c GL/GLProgram.c)
+## nanovg
+add_subdirectory(nanovg)
 
-target_link_libraries(widgetSample fui glm)
+## opengl sample
+add_subdirectory(opengl_sample)
 
-if (EMSCRIPTEN)
-  set(GL_FLAGS "-s FULL_ES2=1 -s FULL_ES3=1 -s USE_WEBGL2=1")
-  set_target_properties(widgetSample PROPERTIES 
-    LINK_FLAGS "-s USE_GLFW=3 ${GL_FLAGS} --preload-file ${CMAKE_CURRENT_LIST_DIR}/assets@examples/assets/"
-    SUFFIX ".html"
-  )
-endif()
-
-## load font sample
-add_executable(loadFontSample loadFontSample.cpp)
-
-target_link_libraries(loadFontSample fui)
-
+## fonts loading sample
+add_subdirectory(fonts_loading)
