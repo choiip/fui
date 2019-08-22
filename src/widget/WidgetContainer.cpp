@@ -17,17 +17,17 @@ WidgetContainer::~WidgetContainer() {
 }
 
 void WidgetContainer::addChild(Widget* widget) {
+  if (widget == nullptr) return;
   assert(widget != this);
+  assert(widget->_parent == nullptr);
+  widget->_parent = this;
   _children.push_back(widget);
 }
 
 void WidgetContainer::removeChild(Widget* widget) {
-  for (auto itr = _children.begin(); itr != _children.end(); ++itr) {
-    if (*itr == widget) {
-      _children.erase(itr);
-      return;
-    }
-  }
+  if (widget->_parent != this) return;
+  _children.erase(std::remove(std::begin(_children), std::end(_children), widget), _children.end());
+  widget->_parent = nullptr;
 }
 
 void WidgetContainer::draw(RenderContext& renderContext) {

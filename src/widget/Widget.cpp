@@ -4,15 +4,17 @@
 namespace fui {
 
 Widget::Widget(WidgetContainer* parent)
-: _parent(parent) {
-  if (_parent) {
-    _parent->addChild(this);
+: _parent(nullptr) {
+  if (parent) {
+    parent->addChild(this);
+    assert(parent == _parent);
   }
 }
 
 Widget::~Widget() {
   if (_parent) {
     _parent->removeChild(this);
+    assert(_parent == nullptr);
   }
 }
 
