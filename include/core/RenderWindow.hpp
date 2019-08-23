@@ -48,6 +48,8 @@ public:
   FUI_DEFINE_EVENT(void(int, int), Resize);
 
 protected:
+  virtual void onFocusChangeEvent(FocusEvent& event) override;
+
   FUI_WIDGET_WRITEONLY_PROPERTY(std::shared_ptr<PerfGraph>, perfGraph, nullptr);
 
 private:

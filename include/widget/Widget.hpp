@@ -12,6 +12,7 @@ typedef std::string Text;
 class WidgetContainer;
 class WidgetStyle;
 class RenderContext;
+class FocusEvent;
 class MouseEvent;
 class MouseMoveEvent;
 
@@ -35,6 +36,7 @@ protected:
   /// Return the \ref WidgetStyle used to draw this widget
   const WidgetStyle& style() const;
 
+  virtual void onFocusChangeEvent(FocusEvent& event);
   virtual void onMouseMoveEvent(MouseMoveEvent& event);
   virtual void onMousePressEvent(MouseEvent& event);
   virtual void onMouseReleaseEvent(MouseEvent& event);
@@ -71,12 +73,14 @@ protected:
   FUI_WIDGET_PROPERTY(bool, enabled, true);
 
   /// Whether or not this widget is currently focused
-  FUI_WIDGET_PROPERTY(bool, focused, false);
+  FUI_WIDGET_PROPERTY_ALT_SETTER(bool, focused, false);
 
   /// Widget style
   FUI_WIDGET_WRITEONLY_PROPERTY(std::shared_ptr<WidgetStyle>, style, nullptr);
 
 private:
+  auto _focusedSetter(bool const& v) -> decltype(this);
+
   virtual Recti regionAtFrameBuffer(const Recti& rect) const;
 
   WidgetContainer* _parent;

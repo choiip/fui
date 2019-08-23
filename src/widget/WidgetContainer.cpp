@@ -1,6 +1,8 @@
 #include "widget/WidgetContainer.hpp"
+#include <algorithm>
 #include <cassert>
 #include "core/RenderContext.hpp"
+#include "event/FocusEvent.hpp"
 #include "event/MouseEvent.hpp"
 #include "nanovg/nanovg.h"
 
@@ -56,6 +58,27 @@ void WidgetContainer::drawChildren(RenderContext& renderContext) {
   }
 }  
 
+void WidgetContainer::onChildFocusChangeEvent(FocusEvent& event) {
+  if (event.value == Focus::IN) {
+    const Widget* lastChild = _children.back();
+    if (lastChild != event.source) {
+      if (lastChild->focused()) {
+        _children.back()->focused(false);
+      }
+      auto itr = std::find(_children.begin(), _children.end(), event.source);
+      _children.erase(itr);
+      _children.push_back(event.source);
+    }
+    focused(true);
+  }
+}
+
+void WidgetContainer::onFocusChangeEvent(FocusEvent& event) {
+  if (!_children.empty()) {
+    _children.back()->focused(event.value == Focus::IN);
+  }
+}
+
 void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
   auto localX = event.position.x - _position.x;
   auto localY = event.position.y - _position.y;
@@ -77,11 +100,16 @@ void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
 
 void WidgetContainer::onMousePressEvent(MouseEvent& event) {
   auto local = event.position - _position;
-  MouseEvent altEvent = {local, event.button, event.buttons, event.modifiers};
-  for (auto&& w : _children) {
-    if (w->visible() && w->enabled() && w->contain(local.x, local.y)) {
-      w->onMousePressEvent(altEvent);
-    }
+  auto found = std::find_if(std::rbegin(_children),
+                            std::rend(_children),
+                            [local](const Widget* w){
+                              return w->visible() && w->enabled() && w->contain(local.x, local.y);
+                            });
+  if (found != std::rend(_children)) {
+    auto hitChild = *found;
+    hitChild->focused(true);
+    MouseEvent altEvent = {local, event.button, event.buttons, event.modifiers};
+    hitChild->onMousePressEvent(altEvent);
   }
 }
 

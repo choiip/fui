@@ -3,6 +3,7 @@
 #include "core/PerfGraph.hpp"
 #include "core/RenderContext.hpp"
 #include "nanovg/nanovg.h"
+#include "event/FocusEvent.hpp"
 #include "event/MouseEvent.hpp"
 #include "widget/WidgetStyle.hpp"
 
@@ -72,6 +73,10 @@ void RenderWindow::onMouseMoveEvent(int xpos, int ypos) {
 void RenderWindow::onResizeEvent(int width, int height) { 
   _size = { width, height };
   _signalResize.emit(width, height); 
+}
+
+void RenderWindow::onFocusChangeEvent(FocusEvent& event) {
+
 }
 
 Recti RenderWindow::regionAtFrameBuffer(const Recti& rect) const {
