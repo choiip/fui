@@ -75,10 +75,6 @@ void RenderWindow::onResizeEvent(int width, int height) {
   _signalResize.emit(width, height); 
 }
 
-void RenderWindow::onFocusChangeEvent(FocusEvent& event) {
-
-}
-
 Recti RenderWindow::regionAtFrameBuffer(const Recti& rect) const {
   int fbWidth, fbHeight;
   getDrawableSize(fbWidth, fbHeight);
