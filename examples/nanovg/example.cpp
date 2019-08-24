@@ -6,7 +6,7 @@
 #include <vulkan/VulkanContext.hpp>
 #endif
 using namespace fui;
-#include <GL/glad.h>
+#include <GL/header.h>
 
 #include "demo.h"
 #include "perf.h"

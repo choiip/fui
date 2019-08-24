@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "GL/glad.h"
+#include <GL/header.h>
 
 #ifdef _MSC_VER
 #define snprintf _snprintf

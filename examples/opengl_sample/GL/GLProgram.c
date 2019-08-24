@@ -1,7 +1,7 @@
 #include "GLProgram.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <GL/glad.h>
+#include <GL/header.h>
 
 static 
 void 

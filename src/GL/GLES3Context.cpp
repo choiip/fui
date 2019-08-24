@@ -1,5 +1,5 @@
 #include "GL/GLES3Context.hpp"
-#include <GL/glad.h>
+#include <GL/header.h>
 #define NANOVG_GLES3_IMPLEMENTATION
 #include "nanovg_gl.h"
 #include "core/Log.hpp"

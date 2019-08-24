@@ -1,5 +1,5 @@
 #include <memory>
-#include <GL/glad.h>
+#include <GL/header.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <fui.hpp>

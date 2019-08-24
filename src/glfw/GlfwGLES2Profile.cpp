@@ -1,5 +1,10 @@
 #include "GlfwGLES2Profile.hpp"
+#ifndef __EMSCRIPTEN__
 #include <GL/glad.h>
+#define GLFW_INCLUDE_NONE
+#else
+#define GLFW_INCLUDE_ES2
+#endif
 #include <GLFW/glfw3.h>
 #include <memory>
 #include "core/Log.hpp"
@@ -21,13 +26,19 @@ void GlfwGLES2Profile::prepare() const {
 RenderContext* GlfwGLES2Profile::createContext(void* nativeWindow) const {
   GLFWwindow* window = (GLFWwindow*)nativeWindow;
   glfwMakeContextCurrent(window);
+#ifndef __EMSCRIPTEN__  
+  //// https://emscripten.org/docs/optimizing/Optimizing-WebGL.html#optimizing-load-times-and-other-best-practices
   if (!gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress)) {
     LOGE << "Could not initialize GLAD!";
     return nullptr;
   }
   glGetError(); // pull and ignore unhandled errors like GL_INVALID_ENUM
-
   auto glMajor = GLVersion.major;
+#else
+  const char* version = (const char*)glGetString(GL_VERSION);
+  int glMajor = 0;
+  sscanf(version, "OpenGL ES %d.", &glMajor);
+#endif
 
   if (glMajor == 3) {
     std::unique_ptr<GLES3Context> context(new GLES3Context);

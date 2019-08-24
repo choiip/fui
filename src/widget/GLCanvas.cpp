@@ -1,5 +1,5 @@
 #include "widget/GLCanvas.hpp"
-#include "GL/glad.h"
+#include <GL/header.h>
 
 namespace fui {
 
