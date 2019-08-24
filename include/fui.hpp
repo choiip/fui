@@ -24,6 +24,7 @@
 #include <widget/Label.hpp>
 #include <widget/PictureBox.hpp>
 #include <widget/ProgressBar.hpp>
+#include <widget/Slider.hpp>
 #include <widget/Widget.hpp>
 #include <widget/WidgetContainer.hpp>
 #include <widget/WidgetStyle.hpp>

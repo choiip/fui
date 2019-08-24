@@ -22,6 +22,7 @@ template <typename T> struct Vector2 { static const Vector2 Zero; T x, y; };
 template <typename T> const Vector2<T> Vector2<T>::Zero = { 0, 0 };
 
 typedef Vector2<int> Vector2i;
+typedef Vector2<float> Vector2f;
 
 template <typename T> constexpr Vector2<T> operator+(const Vector2<T>& lhs, const Vector2<T>& rhs) {
   return {lhs.x + rhs.x, lhs.y + rhs.y};
