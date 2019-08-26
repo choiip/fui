@@ -52,7 +52,7 @@ void RenderWindow::onMouseButtonEvent(MouseButton button, ButtonAction action, M
   } else {
     _buttonInPressing = _buttonInPressing | button;
   }
-  MouseEvent event = {cursor()->position(), button, _buttonInPressing, Modifier::NONE};
+  MouseEvent event = {cursor()->position(), button, _buttonInPressing, mods};
 
   if (action == ButtonAction::RELEASE) {
     WidgetContainer::onMouseReleaseEvent(event);
@@ -64,8 +64,9 @@ void RenderWindow::onMouseButtonEvent(MouseButton button, ButtonAction action, M
 }
 void RenderWindow::onMouseMoveEvent(int xpos, int ypos) {
   Vector2i localPos = {xpos, ypos};
-  MouseMoveEvent event(_prevCursorPosition, Movement::MOVING, localPos, MouseButton::NONE, _buttonInPressing,
+  MouseMoveEvent event(_prevCursorPosition, Movement::MOVING, localPos, _buttonInPressing,
                        Modifier::NONE);
+
   WidgetContainer::onMouseMoveEvent(event);
   _signalMouseMove.emit(localPos.x, localPos.y);
   _prevCursorPosition = localPos;

@@ -91,7 +91,7 @@ void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
       auto contained = w->contain(localX, localY);
       auto movement =
           prevContained == contained ? Movement::MOVING : (contained ? Movement::ENTERING : Movement::LEAVING);
-      MouseMoveEvent altEvent({localPrevX, localPrevY}, movement, {localX, localY}, event.button, event.buttons,
+      MouseMoveEvent altEvent({localPrevX, localPrevY}, movement, {localX, localY}, event.buttons,
                               event.modifiers);
       w->onMouseMoveEvent(altEvent);
     }

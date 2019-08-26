@@ -119,7 +119,7 @@ void Window::onMouseMoveEvent(MouseMoveEvent& event) {
     }
   } else {
     auto headerHeight = style().windowHeaderHeight;
-    MouseMoveEvent altEvent({event.prevPosition.x, event.prevPosition.y - headerHeight}, event.movement, {event.position.x, event.position.y - headerHeight}, event.button, event.buttons,
+    MouseMoveEvent altEvent({event.prevPosition.x, event.prevPosition.y - headerHeight}, event.movement, {event.position.x, event.position.y - headerHeight}, event.buttons,
                               event.modifiers);    
     WidgetContainer::onMouseMoveEvent(altEvent);
   }

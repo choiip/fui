@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 namespace fui {
 
 struct Color {
@@ -47,5 +49,15 @@ enum class Coordinate {
   TopParent,
   Screen,
 };
+
+template<typename T>
+inline std::ostream& operator<<(std::ostream& os, const Vector2<T>& v) {
+  return os << v.x << ',' << v.y;
+}
+
+template<typename T>
+inline std::ostream& operator<<(std::ostream& os, const Rect<T>& v) {
+  return os << v.position << ',' << v.size;
+}
 
 } // namespace fui

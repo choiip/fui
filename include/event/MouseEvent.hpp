@@ -21,16 +21,42 @@ public:
 
 enum class Movement { ENTERING, MOVING, LEAVING };
 
-class MouseMoveEvent : public MouseEvent {
+class MouseMoveEvent {
 public:
   const Vector2i prevPosition;
   const Movement movement;
+  const Vector2i position;
+  const MouseButton buttons;
+  const Modifier modifiers;
 
-  MouseMoveEvent(const Vector2i& prevPosition, Movement movement, const Vector2i& position, MouseButton button,
+  MouseMoveEvent(const Vector2i& prevPosition, Movement movement, const Vector2i& position,
                  MouseButton buttons, Modifier modifiers)
-  : MouseEvent(position, button, buttons, modifiers)
-  , prevPosition(prevPosition)
-  , movement(movement) {}
+  : prevPosition(prevPosition)
+  , movement(movement)
+  , position(position)
+  , buttons(buttons)
+  , modifiers(modifiers) {}
 };
 
+inline std::ostream& operator<<(std::ostream& os, const Modifier& v) {
+  return os << (int)v;
+}
+inline std::ostream& operator<<(std::ostream& os, const MouseButton& v) {
+  return os << (int)v;
+}
+inline std::ostream& operator<<(std::ostream& os, const MouseEvent& v) {
+  return os << v.position << ',' << v.button << ',' << v.buttons << ',' << v.modifiers;
+}
+inline std::ostream& operator<<(std::ostream& os, const Movement& v) {
+  return os << (int)v;
+}
+inline std::ostream& operator<<(std::ostream& os, const fui::MouseMoveEvent& v) {
+  return os << v.prevPosition << ',' 
+            << v.movement << ',' 
+            << v.position << ','
+            << v.buttons << ','
+            << v.modifiers;
+}
+
 } // namespace fui
+
