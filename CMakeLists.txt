@@ -104,6 +104,7 @@ list(APPEND FUI_SOURCES
   src/core/PerfGraph.cpp
   src/core/RenderContext.cpp
   src/core/RenderWindow.cpp  
+  src/core/Tooltip.cpp  
   src/glfw/GlfwCursor.cpp
   src/glfw/GlfwGL3Profile.cpp
   src/glfw/GlfwGLES2Profile.cpp

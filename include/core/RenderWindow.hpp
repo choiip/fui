@@ -8,6 +8,7 @@ namespace fui {
 class Cursor;
 class PerfGraph;
 class RenderContext;
+class Tooltip;
 
 class RenderWindow : public WidgetContainer {
 public:
@@ -57,6 +58,8 @@ private:
   MouseButton _buttonInPressing;
   Modifier _modifierInPressing;
   Vector2i _prevCursorPosition;
+
+  std::unique_ptr<Tooltip> _tooltip;
 };
 
 } // namespace fui

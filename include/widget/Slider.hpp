@@ -18,6 +18,9 @@ public:
   virtual void draw(RenderContext& renderContext) override;
 
 protected:
+  /// Fill the incoming tooltip properties to displace the value of slider above/below the knob
+  virtual void prepareTooltip(Tooltip& tooltip) override;
+
   virtual void onMouseMoveEvent(MouseMoveEvent& event) override;
   virtual void onMousePressEvent(MouseEvent& event) override;
   virtual void onMouseReleaseEvent(MouseEvent& event) override;

@@ -26,8 +26,9 @@ public:
 
   virtual void draw(RenderContext& renderContext) override;
 
-  virtual Vector2i childrenOrigin() const;
 protected:
+  virtual Vector2i childrenOrigin() const;
+  virtual Widget* findWidget(const Vector2i& point, int recursiveLevel = -1) override;
   void drawChildren(RenderContext& renderContext);
   void onChildFocusChangeEvent(FocusEvent& event);
   

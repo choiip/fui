@@ -46,6 +46,17 @@ Vector2i WidgetContainer::childrenOrigin() const {
   return Vector2i::Zero;
 }
 
+Widget* WidgetContainer::findWidget(const Vector2i& point, int recursiveLevel) {
+  auto local = point - _position - childrenOrigin();
+  auto beginChild = _children.crbegin();
+  auto foundChild = std::find_if(beginChild, _children.crend(), [local](const Widget* w){
+    return w->contain(local.x, local.y);
+  });
+  if (foundChild == _children.crend()) return nullptr;
+  if (recursiveLevel == 0) return *foundChild;
+  return (*foundChild)->findWidget(local, --recursiveLevel);
+}
+
 void WidgetContainer::drawChildren(RenderContext& renderContext) {
   auto vg = renderContext.vg();
   for (auto&& w : _children) {

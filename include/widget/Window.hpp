@@ -19,9 +19,8 @@ public:
   /// Draw the window
   virtual void draw(RenderContext& renderContext) override;
 
-  virtual Vector2i childrenOrigin() const override;
-
 protected:
+  virtual Vector2i childrenOrigin() const override;
   virtual void onMouseMoveEvent(MouseMoveEvent& event) override;
   virtual void onMousePressEvent(MouseEvent& event) override;
   virtual void onMouseReleaseEvent(MouseEvent& event) override;

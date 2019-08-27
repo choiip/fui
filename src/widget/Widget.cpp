@@ -1,6 +1,7 @@
 #include "widget/Widget.hpp"
 #include "widget/WidgetContainer.hpp"
 #include "event/FocusEvent.hpp"
+#include "core/Tooltip.hpp"
 
 namespace fui {
 
@@ -17,6 +18,14 @@ Widget::~Widget() {
     _parent->removeChild(this);
     assert(_parent == nullptr);
   }
+}
+
+Widget* Widget::findWidget(const Vector2i& point, int recursiveLevel) {
+  return this;
+}
+
+void Widget::prepareTooltip(Tooltip& tooltip) {
+  tooltip.string("");
 }
 
 void Widget::onFocusChangeEvent(FocusEvent& event) {}
