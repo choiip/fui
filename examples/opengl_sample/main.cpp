@@ -127,6 +127,16 @@ protected:
           ->position({lx, ly})
           ->size({256, 128});
     }
+
+    // fps setup
+    _perfGraph = std::make_shared<PerfGraph>("FPS");
+    _perfGraph->style(std::make_shared<WidgetStyle>(*renderContext))
+              ->size({80, 40})
+              ->position({_renderWindow->size().x - _perfGraph->size().x - 10, 10});
+    _stopwatch.start();
+    _frameCount = 0;
+    _renderWindow->perfGraph(_perfGraph);
+    
     // Events
     _renderWindow->onKey([this](Key key, ButtonAction action, Modifier mods) {
       if (key == Key::KEY_ESCAPE) {
@@ -135,17 +145,11 @@ protected:
       }
     });
 
+    _renderWindow->onResize([this](int width, int height){
+      _perfGraph->position({_renderWindow->size().x - _perfGraph->size().x - 10, 10});
+    });
     canvasWindow->focused(true);
 
-    // fps setup
-    _perfGraph = std::make_shared<PerfGraph>("FPS");
-    _perfGraph->style(std::make_shared<WidgetStyle>(*renderContext))
-              ->position({_renderWindow->size().x - 210, 10})
-              ->size({200, 35});
-    _stopwatch.start();
-    _frameCount = 0;
-    _renderWindow->perfGraph(_perfGraph);
-    
     // Show window
     _renderWindow->show();
     return Status::OK;
