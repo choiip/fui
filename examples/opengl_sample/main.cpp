@@ -121,6 +121,13 @@ protected:
           ->position({lx, ly})
           ->size({150, 28});
       ly += 40;
+      widgetWindow->addChild<Slider>()
+          ->onValueChanged([](float newValue){
+            LOGD << "Slider value=" << newValue;
+          })
+          ->position({lx, ly})
+          ->size({150, 28});
+      ly += 40;
       (_pictureBox = widgetWindow->addChild<PictureBox>())
           ->orientation(0.f)
           ->picture("examples/assets/images/image1.jpg", vg)

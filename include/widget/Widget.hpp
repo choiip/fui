@@ -8,6 +8,7 @@
 namespace fui {
 
 typedef std::string Text;
+typedef std::pair<float, float> Range;
 
 class WidgetContainer;
 class WidgetStyle;

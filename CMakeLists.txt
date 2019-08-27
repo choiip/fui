@@ -120,6 +120,7 @@ list(APPEND FUI_SOURCES
   src/widget/Label.cpp
   src/widget/PictureBox.cpp
   src/widget/ProgressBar.cpp
+  src/widget/Slider.cpp
   src/widget/Widget.cpp
   src/widget/WidgetContainer.cpp
   src/widget/WidgetStyle.cpp
