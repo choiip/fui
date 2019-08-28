@@ -2,9 +2,10 @@
 #include "core/Cursor.hpp"
 #include "core/PerfGraph.hpp"
 #include "core/RenderContext.hpp"
-#include "nanovg/nanovg.h"
+#include "core/Tooltip.hpp"
 #include "event/FocusEvent.hpp"
 #include "event/MouseEvent.hpp"
+#include "nanovg/nanovg.h"
 #include "widget/WidgetStyle.hpp"
 
 namespace fui {
@@ -20,6 +21,7 @@ RenderWindow::RenderWindow(RenderContext* renderContext)
     static auto defaultStyle = std::make_shared<WidgetStyle>(*renderContext);
     Widget::style(defaultStyle);
   }
+  _tooltip.reset(new Tooltip);
 }
 
 RenderWindow::~RenderWindow() {
@@ -40,6 +42,13 @@ void RenderWindow::drawGui() {
     _renderContext->setViewport(viewport.x, viewport.y, viewport.w, viewport.h);
     nvgBeginFrame(vg, _size.x, _size.y, pixelRatio);
     WidgetContainer::drawChildren(*_renderContext);
+
+    auto hover = WidgetContainer::findWidget(_prevCursorPosition);
+    if (hover != nullptr) {
+      hover->prepareTooltip(*_tooltip);
+      _tooltip->fontSize(20.f)
+              ->draw(*_renderContext);
+    }
     if (_perfGraph) _perfGraph->draw(*_renderContext);
     nvgEndFrame(vg);
   }

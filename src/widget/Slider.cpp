@@ -1,5 +1,6 @@
 #include "widget/Slider.hpp"
 #include "core/RenderContext.hpp"
+#include "core/Tooltip.hpp"
 #include "event/MouseEvent.hpp"
 #include "nanovg/nanovg.h"
 #include "widget/WidgetStyle.hpp"
@@ -83,6 +84,21 @@ void Slider::draw(RenderContext& renderContext) {
   nvgStrokePaint(vg, knobReverse);
   nvgStroke(vg);
   nvgFill(vg);
+}
+
+void Slider::prepareTooltip(Tooltip& tooltip) {
+  float kr = (int)(_size.y * 0.4f), kshadow = 3;
+
+  float startX = kr + kshadow;
+  float widthX = _size.x - 2 * (kr + kshadow);
+
+  float knobPositionX = startX + (_value - _range.first) / (_range.second - _range.first) * widthX;
+
+  Recti rect = { (int)knobPositionX, -_size.y, 0, 0 };
+  auto desiredPosition = mapTo(rect, Coordinate::TopParent).position;
+  tooltip.string(std::to_string(_value))
+        ->absolutePosition(desiredPosition)
+        ->bubble(Tooltip::Bubble::TOP);
 }
 
 void Slider::onMouseMoveEvent(MouseMoveEvent& event) {

@@ -16,6 +16,7 @@ class RenderContext;
 class FocusEvent;
 class MouseEvent;
 class MouseMoveEvent;
+class Tooltip;
 
 class Widget {
 public:
@@ -36,6 +37,11 @@ protected:
 
   /// Return the \ref WidgetStyle used to draw this widget
   const WidgetStyle& style() const;
+
+  virtual Widget* findWidget(const Vector2i& point, int recursiveLevel = -1);
+
+  /// Fill the incoming tooltip properties
+  virtual void prepareTooltip(Tooltip& tooltip);
 
   virtual void onFocusChangeEvent(FocusEvent& event);
   virtual void onMouseMoveEvent(MouseMoveEvent& event);
@@ -87,6 +93,7 @@ private:
   WidgetContainer* _parent;
 
   friend class WidgetContainer;
+  friend class RenderWindow;
 };
 
 } // namespace fui
