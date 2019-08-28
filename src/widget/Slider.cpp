@@ -94,7 +94,7 @@ void Slider::prepareTooltip(Tooltip& tooltip) {
 
   float knobPositionX = startX + (_value - _range.first) / (_range.second - _range.first) * widthX;
 
-  Recti rect = { (int)knobPositionX, _size.y, 0, 0 };
+  Recti rect = { (int)knobPositionX, -_size.y, 0, 0 };
   auto desiredPosition = mapTo(rect, Coordinate::TopParent).position;
   tooltip.string(std::to_string(_value))
         ->absolutePosition(desiredPosition)

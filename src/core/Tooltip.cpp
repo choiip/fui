@@ -23,13 +23,13 @@ void Tooltip::draw(RenderContext& renderContext) {
 
   nvgTextBounds(vg, pos.x, pos.y, tooltipString.c_str(),
                 nullptr, bounds);
-  int halfw = (bounds[2] - bounds[0]) / 2;
+  int halfw = (bounds[2] - bounds[0]) * 0.5f;
   if (halfw > tooltipWidth / 2) {
       nvgTextAlign(vg, NVG_ALIGN_CENTER | NVG_ALIGN_TOP);
       nvgTextBoxBounds(vg, pos.x, pos.y, tooltipWidth,
                         tooltipString.c_str(), nullptr, bounds);
 
-      halfw = (bounds[2] - bounds[0]) / 2;
+      halfw = (bounds[2] - bounds[0]) * 0.5f;
   }
 
   nvgBeginPath(vg);
@@ -39,9 +39,15 @@ void Tooltip::draw(RenderContext& renderContext) {
                   (int)(bounds[3] - bounds[1]) + 8, 3);
 
   int px = (int)((bounds[2] + bounds[0]) * 0.5f) - halfw;
-  nvgMoveTo(vg, px, bounds[1] - 10);
-  nvgLineTo(vg, px + 7, bounds[1] + 1);
-  nvgLineTo(vg, px - 7, bounds[1] + 1);
+  if (_bubble == Bubble::TOP) {
+    nvgMoveTo(vg, px, bounds[3] + 10);
+    nvgLineTo(vg, px + 7, bounds[3] - 1);
+    nvgLineTo(vg, px - 7, bounds[3] - 1);
+  } else {
+    nvgMoveTo(vg, px, bounds[1] - 10);
+    nvgLineTo(vg, px + 7, bounds[1] + 1);
+    nvgLineTo(vg, px - 7, bounds[1] + 1);
+  }  
   nvgFill(vg);
 
   nvgFillColor(vg, NVGcolor{ 1, 1, 1, 1 });
