@@ -1,5 +1,7 @@
 #include "widget/GLCanvas.hpp"
 #include <GL/header.h>
+#include "core/RenderContext.hpp"
+#include "nanovg/nanovg.h"
 
 namespace fui {
 
@@ -7,23 +9,39 @@ GLCanvas::GLCanvas(WidgetContainer* parent)
 : Canvas(parent)
 {}
 
-void GLCanvas::drawScene() {
-  auto viewport = mapTo({ 0, 0, _size.x, _size.y }, Coordinate::Framebuffer);
-
-  auto x = viewport.x;
-  auto y = viewport.y;
-  auto w = viewport.w;
-  auto h = viewport.h;
-
-  GLint storedViewport[4];
-  glGetIntegerv(GL_VIEWPORT, storedViewport);
-  glViewport(x, y, w, h);
-  glEnable(GL_SCISSOR_TEST);
-  glScissor(x, y, w, h);
+int GLCanvas::drawScene(RenderContext& renderContext) {
+  auto vg = renderContext.vg();
+  auto w = _size.x, h = _size.y;
+  nvgBindFramebuffer(vg, _framebuffer);
+  glViewport(0, 0, w, h);
   _drawFunction(w, h);
-  glDisable(GL_SCISSOR_TEST);
-  glViewport(storedViewport[0], storedViewport[1],
-            storedViewport[2], storedViewport[3]);
+  nvgBindFramebuffer(vg, 0);
+
+  return _showTarget < _renderTarget.size() ? _renderTarget[_showTarget] : 0;
+}
+
+auto GLCanvas::_renderTargetSetter(const std::vector<int>& renderTarget, NVGcontext* ctx) -> decltype(this) {
+  for (auto rt: _renderTarget) {
+    nvgDeleteImage(ctx, rt);
+  }
+  _renderTarget = renderTarget;
+  if (!renderTarget.empty()) {
+    auto attachments = 0;
+    for (size_t i=0; i<renderTarget.size(); ++i) {
+      attachments |= (NVG_FBA_COLOR0 << i);
+    }
+    nvgAttachFramebuffer(ctx, _framebuffer, _renderTarget.data(), attachments);
+  }
+  return this;
+}
+
+auto GLCanvas::_framebufferSetter(int width, int height, int imageFlags, NVGcontext* ctx) -> decltype(this) {
+  if (_framebuffer != 0) nvgDeleteFramebuffer(ctx, _framebuffer);
+  _framebuffer = nvgCreateFramebuffer(ctx);
+  auto colorImage = nvgCreateImageRGBA(ctx, width, height, imageFlags | NVG_IMAGE_FLIPY | NVG_IMAGE_PREMULTIPLIED, NULL);
+  nvgAllocateFramebufferAttachment(ctx, _framebuffer, width, height, NVG_FBA_DEPTH | NVG_FBA_STENCIL);
+  std::vector<int> newRenderTarget = { colorImage };
+  return renderTarget(newRenderTarget, ctx);
 }
 
 } // namespace fui

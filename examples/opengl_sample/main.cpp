@@ -43,6 +43,7 @@ protected:
     Window* canvasWindow = nullptr;
     (canvasWindow = _renderWindow->addChild<Window>("Canvas Window"))->position({x, y})->size({640, 480});
     canvasWindow->addChild<GLCanvas>()
+      ->framebuffer(320, 240, 0, vg)
       ->drawFunction([this](int width, int height){
         glClearColor(.6f, .6f, .6f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);

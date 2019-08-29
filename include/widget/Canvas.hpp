@@ -12,7 +12,7 @@ namespace fui {
  */
 class Canvas : public Widget {
 public:
-  Canvas(WidgetContainer* parent);
+  explicit Canvas(WidgetContainer* parent);
 
   virtual ~Canvas() = default;
 
@@ -20,7 +20,7 @@ public:
   virtual void draw(RenderContext& renderContext) override final;
 
 protected:
-  virtual void drawScene() = 0;
+  virtual int drawScene(RenderContext& renderContext) = 0;
 
 //   virtual void onMouseMoveEvent(MouseMoveEvent& event) override;
 //   virtual void onMousePressEvent(MouseEvent& event) override;

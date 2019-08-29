@@ -12,7 +12,7 @@ namespace fui {
  */
 class Window : public WidgetContainer {
 public:
-  Window(WidgetContainer* parent, const Text& title = "Untitled");
+  explicit Window(WidgetContainer* parent, const Text& title = "Untitled");
 
   virtual ~Window();
 

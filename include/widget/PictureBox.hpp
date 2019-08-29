@@ -8,7 +8,7 @@ namespace fui {
 
 class PictureBox : public Widget {
 public:
-  PictureBox(WidgetContainer* parent);
+  explicit PictureBox(WidgetContainer* parent);
 
   virtual ~PictureBox();
 

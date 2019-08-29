@@ -39,7 +39,6 @@ void RenderWindow::drawGui() {
     getDrawableSize(fbWidth, fbHeight);
     auto pixelRatio = (float)fbWidth / (float)_size.x;
 
-    _renderContext->setViewport(viewport.x, viewport.y, viewport.w, viewport.h);
     nvgBeginFrame(vg, _size.x, _size.y, pixelRatio);
     WidgetContainer::drawChildren(*_renderContext);
 
@@ -50,6 +49,7 @@ void RenderWindow::drawGui() {
               ->draw(*_renderContext);
     }
     if (_perfGraph) _perfGraph->draw(*_renderContext);
+    _renderContext->setViewport(viewport.x, viewport.y, viewport.w, viewport.h);
     nvgEndFrame(vg);
   }
 }

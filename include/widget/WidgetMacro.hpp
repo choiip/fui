@@ -45,4 +45,13 @@ public:                                                                         
 protected:                                                                                                             \
   TYPE _##NAME = __VA_ARGS__;
 
+#define FUI_WIDGET_WRITEONLY_PROPERTY_ALT(TYPE, NAME, ...)                                                                           \
+public:                                                                                                                \
+  template <typename... Args> auto NAME(Args... args)->decltype(this) {                                 \
+    return _##NAME##Setter(std::forward<Args>(args)...);                                                            \
+  }                                                                                                                    \
+                                                                                                                       \
+protected:                                                                                                             \
+  TYPE _##NAME = __VA_ARGS__;
+
 #define FUI_WIDGET_EVENT(PROTOTYPE, EVENT) FUI_DEFINE_EVENT(PROTOTYPE, EVENT)

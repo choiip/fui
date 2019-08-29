@@ -11,7 +11,7 @@ namespace fui {
  */
 class Slider : public Widget {
 public:
-  Slider(WidgetContainer* parent);
+  explicit Slider(WidgetContainer* parent);
   virtual ~Slider() = default;
 
   /// Draw the label
