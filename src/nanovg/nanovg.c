@@ -847,6 +847,26 @@ void nvgDeleteImage(NVGcontext* ctx, int image)
 	ctx->params.renderDeleteTexture(ctx->params.userPtr, image);
 }
 
+int nvgCreateFramebuffer(NVGcontext* ctx) {
+	return ctx->params.renderCreateFramebuffer(ctx->params.userPtr);
+}
+
+void nvgBindFramebuffer(NVGcontext* ctx, int framebuffer) {
+	return ctx->params.renderBindFramebuffer(ctx->params.userPtr, framebuffer);	
+}
+
+void nvgAttachFramebuffer(NVGcontext* ctx, int framebuffer, int* image, int attachments) {
+	return ctx->params.renderAttachFramebuffer(ctx->params.userPtr, framebuffer, image, attachments);	
+}
+
+void nvgAllocateFramebufferAttachment(NVGcontext* ctx, int framebuffer, int w, int h, int attachments) {
+	return ctx->params.renderAllocateFramebufferAttachment(ctx->params.userPtr, framebuffer, w, h, attachments);
+}
+
+void nvgDeleteFramebuffer(NVGcontext* ctx, int framebuffer) {
+	ctx->params.renderDeleteFramebuffer(ctx->params.userPtr, framebuffer);
+}
+
 NVGpaint nvgLinearGradient(NVGcontext* ctx,
 								  float sx, float sy, float ex, float ey,
 								  NVGcolor icol, NVGcolor ocol)

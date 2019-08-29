@@ -149,6 +149,14 @@ struct GLNVGtexture {
 };
 typedef struct GLNVGtexture GLNVGtexture;
 
+struct GLNVGframebuffer {
+	int id;
+	GLuint fb;
+	GLuint rb;
+	int width, height;
+};
+typedef struct GLNVGframebuffer GLNVGframebuffer;
+
 struct GLNVGblend
 {
 	GLenum srcRGB;
@@ -237,6 +245,10 @@ struct GLNVGcontext {
 	int ctextures;
 	int textureId;
 	GLuint emptyTexture;
+	GLNVGframebuffer* framebuffers;
+	int nframebuffers;
+	int cframebuffers;
+	int framebufferId;
 	GLuint vertBuf;
 	int vertBufSize;
 #if defined (NANOVG_GL3) || defined (NANOVG_GLES3)
@@ -266,6 +278,7 @@ struct GLNVGcontext {
 	// cached state
 	#if NANOVG_GL_USE_STATE_FILTER
 	GLuint boundTexture;
+	GLuint boundFramebuffer;
 	GLuint stencilMask;
 	GLenum stencilFunc;
 	GLint stencilFuncRef;
@@ -300,6 +313,18 @@ static void glnvg__bindTexture(GLNVGcontext* gl, GLuint tex)
 	}
 #else
 	glBindTexture(GL_TEXTURE_2D, tex);
+#endif
+}
+
+static void glnvg__bindFramebuffer(GLNVGcontext* gl, GLuint fb)
+{
+#if NANOVG_GL_USE_STATE_FILTER
+	if (gl->boundFramebuffer != fb) {
+		gl->boundFramebuffer = fb;
+		glBindFramebuffer(GL_FRAMEBUFFER, fb);
+	}
+#else
+		glBindFramebuffer(GL_FRAMEBUFFER, fb);
 #endif
 }
 
@@ -393,6 +418,60 @@ static int glnvg__deleteTexture(GLNVGcontext* gl, int id)
 			if (gl->textures[i].tex != 0 && (gl->textures[i].flags & NVG_IMAGE_NODELETE) == 0)
 				glDeleteTextures(1, &gl->textures[i].tex);
 			memset(&gl->textures[i], 0, sizeof(gl->textures[i]));
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static GLNVGframebuffer* glnvg__allocFramebuffer(GLNVGcontext* gl)
+{
+	GLNVGframebuffer* fb = NULL;
+	int i;
+
+	for (i = 0; i < gl->nframebuffers; i++) {
+		if (gl->framebuffers[i].id == 0) {
+			fb = &gl->framebuffers[i];
+			break;
+		}
+	}
+	if (fb == NULL) {
+		if (gl->nframebuffers+1 > gl->cframebuffers) {
+			GLNVGframebuffer* framebuffers;
+			int cframebuffers = glnvg__maxi(gl->nframebuffers+1, 4) +  gl->cframebuffers/2; // 1.5x Overallocate
+			framebuffers = (GLNVGframebuffer*)realloc(gl->framebuffers, sizeof(GLNVGframebuffer)*cframebuffers);
+			if (framebuffers == NULL) return NULL;
+			gl->framebuffers = framebuffers;
+			gl->cframebuffers = cframebuffers;
+		}
+		fb = &gl->framebuffers[gl->nframebuffers++];
+	}
+
+	memset(fb, 0, sizeof(*fb));
+	fb->id = ++gl->framebufferId;
+
+	return fb;
+}
+
+static GLNVGframebuffer* glnvg__findFramebuffer(GLNVGcontext* gl, int id)
+{
+	int i;
+	for (i = 0; i < gl->nframebuffers; i++)
+		if (gl->framebuffers[i].id == id)
+			return &gl->framebuffers[i];
+	return NULL;
+}
+
+static int glnvg__deleteFramebuffer(GLNVGcontext* gl, int id)
+{
+	int i;
+	for (i = 0; i < gl->nframebuffers; i++) {
+		if (gl->framebuffers[i].id == id) {
+			if (gl->framebuffers[i].rb != 0)
+				glDeleteRenderbuffers(1, &gl->framebuffers[i].rb);
+			if (gl->framebuffers[i].fb != 0)
+				glDeleteFramebuffers(1, &gl->framebuffers[i].fb);
+			memset(&gl->framebuffers[i], 0, sizeof(gl->framebuffers[i]));
 			return 1;
 		}
 	}
@@ -933,6 +1012,83 @@ static int glnvg__renderGetTextureSize(void* uptr, int image, int* w, int* h)
 	*w = tex->width;
 	*h = tex->height;
 	return 1;
+}
+
+static int glnvg__renderCreateFramebuffer(void* uptr) {
+	GLNVGcontext* gl = (GLNVGcontext*)uptr;
+	GLNVGframebuffer* fb = glnvg__allocFramebuffer(gl);
+
+	if (fb == NULL) return 0;
+	glGenFramebuffers(1, &fb->fb);
+	glnvg__checkError(gl, "create fbo");
+	return fb->id;
+}
+
+static void glnvg__renderBindFramebuffer(void* uptr, int framebuffer) {
+	GLNVGcontext* gl = (GLNVGcontext*)uptr;
+	GLNVGframebuffer* fb = glnvg__findFramebuffer(gl, framebuffer);
+	glnvg__bindFramebuffer(gl, fb ? fb->fb : 0);
+}
+
+static void glnvg__renderAttachFramebuffer(void* uptr, int framebuffer, int* image, int attachments) {
+	GLNVGcontext* gl = (GLNVGcontext*)uptr;
+	GLNVGframebuffer* fb = glnvg__findFramebuffer(gl, framebuffer);
+	GLint storedFBO = 0;
+	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &storedFBO);	
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->fb);
+	
+	for (int i=0; i<8; ++i) {
+		if ((attachments & (NVGfbAttachments::NVG_FBA_COLOR0 << i)) != 0) {
+			GLNVGtexture* tex = glnvg__findTexture(gl, *image);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, tex->tex, 0);
+			image++;
+		}
+	}
+	if ((attachments & (NVGfbAttachments::NVG_FBA_DEPTH)) != 0) {
+			GLNVGtexture* tex = glnvg__findTexture(gl, *image);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, tex->tex, 0);
+			image++;
+	}
+	if ((attachments & (NVGfbAttachments::NVG_FBA_STENCIL)) != 0) {
+			GLNVGtexture* tex = glnvg__findTexture(gl, *image);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, tex->tex, 0);
+			image++;
+	}
+	glnvg__checkError(gl, "attach fbo");
+	glBindFramebuffer(GL_FRAMEBUFFER, storedFBO);
+}
+
+static void glnvg__renderAllocateFramebufferAttachment(void* uptr, int framebuffer, int w, int h, int attachments) {
+	GLNVGcontext* gl = (GLNVGcontext*)uptr;
+	GLNVGframebuffer* fb = glnvg__findFramebuffer(gl, framebuffer);
+	GLint storedFBO, storedRBO = 0;
+	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &storedFBO);	
+	glGetIntegerv(GL_RENDERBUFFER_BINDING, &storedRBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, fb->fb);
+	if (fb->rb != 0) {
+		glDeleteRenderbuffers(1, &fb->rb);
+	}
+	glGenRenderbuffers(1, &fb->rb);
+	glBindRenderbuffer(GL_RENDERBUFFER, fb->rb);
+
+#if defined(NANOVG_GLES2) || defined(NANOVG_GL2) 
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_STENCIL, w, h);
+#else
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
+#endif
+	
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fb->rb);
+	glnvg__checkError(gl, "allocate fbo attachment");
+
+	fb->width = w;
+	fb->height = h;
+	glBindRenderbuffer(GL_RENDERBUFFER, storedRBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, storedFBO);
+}
+
+static void glnvg__renderDeleteFramebuffer(void* uptr, int framebuffer) {
+	GLNVGcontext* gl = (GLNVGcontext*)uptr;
+	glnvg__deleteFramebuffer(gl, framebuffer);
 }
 
 static void glnvg__xformToMat3x4(float* m3, float* t)
@@ -1656,6 +1812,11 @@ NVGcontext* nvgCreateGLES3(int flags)
 	params.renderDeleteTexture = glnvg__renderDeleteTexture;
 	params.renderUpdateTexture = glnvg__renderUpdateTexture;
 	params.renderGetTextureSize = glnvg__renderGetTextureSize;
+	params.renderCreateFramebuffer = glnvg__renderCreateFramebuffer;
+	params.renderDeleteFramebuffer = glnvg__renderDeleteFramebuffer;
+	params.renderAllocateFramebufferAttachment = glnvg__renderAllocateFramebufferAttachment;
+	params.renderAttachFramebuffer = glnvg__renderAttachFramebuffer;
+	params.renderBindFramebuffer = glnvg__renderBindFramebuffer;
 	params.renderViewport = glnvg__renderViewport;
 	params.renderCancel = glnvg__renderCancel;
 	params.renderFlush = glnvg__renderFlush;

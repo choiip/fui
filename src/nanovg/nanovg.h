@@ -136,12 +136,25 @@ struct NVGtextRow {
 typedef struct NVGtextRow NVGtextRow;
 
 enum NVGimageFlags {
-    NVG_IMAGE_GENERATE_MIPMAPS	= 1<<0,     // Generate mipmaps during creation of the image.
+  NVG_IMAGE_GENERATE_MIPMAPS	= 1<<0,     // Generate mipmaps during creation of the image.
 	NVG_IMAGE_REPEATX			= 1<<1,		// Repeat image in X direction.
 	NVG_IMAGE_REPEATY			= 1<<2,		// Repeat image in Y direction.
 	NVG_IMAGE_FLIPY				= 1<<3,		// Flips (inverses) image in Y direction when rendered.
 	NVG_IMAGE_PREMULTIPLIED		= 1<<4,		// Image data has premultiplied alpha.
 	NVG_IMAGE_NEAREST			= 1<<5,		// Image interpolation is Nearest instead Linear
+};
+
+enum NVGfbAttachments {
+	NVG_FBA_COLOR0 	= 1<<0,
+	NVG_FBA_COLOR1 	= 1<<1,
+	NVG_FBA_COLOR2 	= 1<<2,
+	NVG_FBA_COLOR3 	= 1<<3,
+	NVG_FBA_COLOR4 	= 1<<4,
+	NVG_FBA_COLOR5 	= 1<<5,
+	NVG_FBA_COLOR6 	= 1<<6,
+	NVG_FBA_COLOR7 	= 1<<7,
+	NVG_FBA_DEPTH 	= 1<<8,
+	NVG_FBA_STENCIL = 1<<9,	
 };
 
 // Begin drawing a new frame
@@ -391,6 +404,25 @@ void nvgImageSize(NVGcontext* ctx, int image, int* w, int* h);
 
 // Deletes created image.
 void nvgDeleteImage(NVGcontext* ctx, int image);
+
+//
+// Framebuffer
+//
+
+// Creates framebuffer object
+int nvgCreateFramebuffer(NVGcontext* ctx);
+
+// Bind framebuffer
+void nvgBindFramebuffer(NVGcontext* ctx, int framebuffer);
+
+// Update target attachment of framebuffer with the given image
+void nvgAttachFramebuffer(NVGcontext* ctx, int framebuffer, int* image, int attachments);
+
+// Allocate target attachments of framebuffer with the desired width and height
+void nvgAllocateFramebufferAttachment(NVGcontext* ctx, int framebuffer, int w, int h, int attachments);
+
+// Deletes created framebuffer object.
+void nvgDeleteFramebuffer(NVGcontext* ctx, int framebuffer);
 
 //
 // Paints
@@ -659,6 +691,11 @@ struct NVGparams {
 	int (*renderDeleteTexture)(void* uptr, int image);
 	int (*renderUpdateTexture)(void* uptr, int image, int x, int y, int w, int h, const unsigned char* data);
 	int (*renderGetTextureSize)(void* uptr, int image, int* w, int* h);
+	int (*renderCreateFramebuffer)(void* uptr);
+	void (*renderDeleteFramebuffer)(void* uptr, int framebuffer);
+	void (*renderAllocateFramebufferAttachment)(void* uptr, int framebuffer, int w, int h, int attachments);
+	void (*renderAttachFramebuffer)(void* uptr, int framebuffer, int* image, int attachments);
+	void (*renderBindFramebuffer)(void* uptr, int framebuffer);
 	void (*renderViewport)(void* uptr, float width, float height, float devicePixelRatio);
 	void (*renderCancel)(void* uptr);
 	void (*renderFlush)(void* uptr);
