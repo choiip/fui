@@ -97,6 +97,7 @@ protected:
           ->type(Button::Type::TOGGLE)
           ->icon(ENTYPO_ICON_NEWS)
           ->backgroundColor({0.3f, 0.7f, 0.0f, 1.f})
+          ->onToggled([canvasWindow](bool v){ canvasWindow->visible(!v);})
           ->position({lx, ly})
           ->size({150, 28});
       ly += 40;

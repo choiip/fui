@@ -111,17 +111,13 @@ Vector2i Window::childrenOrigin() const {
 
 void Window::onMouseMoveEvent(MouseMoveEvent& event) {
   if (_snap && hasFlags(event.buttons, MouseButton::LEFT)) {
-    _position.x = event.position.x - _snap->relativePosition.x;
-    _position.y = event.position.y - _snap->relativePosition.y;
+    _position = event.position - _snap->relativePosition;
     // bound y to be non-negative
     if (_position.y < 0) {
       _position.y = 0;
     }
   } else {
-    auto headerHeight = style().windowHeaderHeight;
-    MouseMoveEvent altEvent({event.prevPosition.x, event.prevPosition.y - headerHeight}, event.movement, {event.position.x, event.position.y - headerHeight}, event.buttons,
-                              event.modifiers);    
-    WidgetContainer::onMouseMoveEvent(altEvent);
+    WidgetContainer::onMouseMoveEvent(event);
   }
 }
 
@@ -133,11 +129,9 @@ void Window::onMousePressEvent(MouseEvent& event) {
   }
   if (hitHeaderArea) {
     _snap.reset(new SnapState);
-    _snap->relativePosition.x = event.position.x - _position.x;
-    _snap->relativePosition.y = event.position.y - _position.y;
+    _snap->relativePosition = event.position - _position;
   } else {
-    MouseEvent altEvent = {{event.position.x, event.position.y - headerHeight}, event.button, event.buttons, event.modifiers};
-    WidgetContainer::onMousePressEvent(altEvent);
+    WidgetContainer::onMousePressEvent(event);
   }
 }
 

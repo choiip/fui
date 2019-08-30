@@ -1,6 +1,7 @@
 #include "widget/WidgetContainer.hpp"
 #include <algorithm>
 #include <cassert>
+#include "core/Log.hpp"
 #include "core/RenderContext.hpp"
 #include "event/FocusEvent.hpp"
 #include "event/MouseEvent.hpp"
@@ -91,18 +92,17 @@ void WidgetContainer::onFocusChangeEvent(FocusEvent& event) {
 }
 
 void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
-  auto localX = event.position.x - _position.x;
-  auto localY = event.position.y - _position.y;
-  auto localPrevX = event.prevPosition.x - _position.x;
-  auto localPrevY = event.prevPosition.y - _position.y;
+  auto cOrigin = childrenOrigin();
+  auto local = event.position - _position - cOrigin;
+  auto localPrev = event.prevPosition - _position - cOrigin;
 
   for (auto&& w : _children) {
     if (w->visible() && w->enabled()) {
-      auto prevContained = w->contain(localPrevX, localPrevY);
-      auto contained = w->contain(localX, localY);
+      auto prevContained = w->contain(localPrev.x, localPrev.y);
+      auto contained = w->contain(local.x, local.y);
       auto movement =
           prevContained == contained ? Movement::MOVING : (contained ? Movement::ENTERING : Movement::LEAVING);
-      MouseMoveEvent altEvent({localPrevX, localPrevY}, movement, {localX, localY}, event.buttons,
+      MouseMoveEvent altEvent(localPrev, movement, local, event.buttons,
                               event.modifiers);
       w->onMouseMoveEvent(altEvent);
     }
@@ -110,7 +110,7 @@ void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
 }
 
 void WidgetContainer::onMousePressEvent(MouseEvent& event) {
-  auto local = event.position - _position;
+  auto local = event.position - _position - childrenOrigin();
   auto found = std::find_if(std::rbegin(_children),
                             std::rend(_children),
                             [local](const Widget* w){
@@ -125,7 +125,7 @@ void WidgetContainer::onMousePressEvent(MouseEvent& event) {
 }
 
 void WidgetContainer::onMouseReleaseEvent(MouseEvent& event) {
-  auto local = event.position - _position;
+  auto local = event.position - _position - childrenOrigin();
   MouseEvent altEvent = {local, event.button, event.buttons, event.modifiers};
   for (auto&& w : _children) {
     if (w->visible() && w->enabled()) {
