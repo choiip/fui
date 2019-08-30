@@ -21,14 +21,11 @@ void Canvas::draw(RenderContext& renderContext) {
   auto borderShadow = reinterpret_cast<const NVGcolor*>(&canvasStyle.borderDark);
 
   auto renderTarget = drawScene(renderContext);
-  int rTWidth, rTHeight;
-  nvgImageSize(vg, renderTarget, &rTWidth, &rTHeight);
 
   // draw image
-  auto imgPaint = nvgImagePattern(vg, x, y, rTWidth,
-                                  rTHeight, 0.f, renderTarget, 1.0f);
+  auto imgPaint = nvgImagePattern(vg, x, y, w, h, 0.f, renderTarget, 1.0f);
   nvgBeginPath(vg);
-  nvgRoundedRect(vg, x, y, rTWidth, rTHeight, 5);
+  nvgRoundedRect(vg, x, y, w, h, 5);
   nvgFillPaint(vg, imgPaint);
   nvgFill(vg);
 

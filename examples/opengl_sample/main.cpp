@@ -27,24 +27,13 @@ protected:
 
     // Gui
     int x = 10, y = 10;
-    _renderWindow->addChild<Label>("1st Label")->textColor({0.7f, 0.0f, 0.3f, 1.f})->position({x, y})->size({150, 28});
-    y += 40;
-    _renderWindow->addChild<Label>("2nd Label")->textColor({0.3f, 0.7f, 0.0f, 1.f})->position({x, y})->size({150, 28});
-    y += 40;
-    _renderWindow->addChild<Label>("3rd Label")->textColor({0.f, 0.3f, 0.7f, 1.f})->position({x, y})->size({150, 28});
-    y += 40;
-    _renderWindow->addChild<Label>("Disabled Label")
-        ->textColor({0.f, 0.3f, 0.7f, 1.f})
-        ->position({x, y})
-        ->size({150, 28})
-        ->enabled(false);
-    y += 40;
 
     Window* canvasWindow = nullptr;
-    (canvasWindow = _renderWindow->addChild<Window>("Canvas Window"))->position({x, y})->size({640, 480});
+    (canvasWindow = _renderWindow->addChild<Window>("Canvas Window"))->position({x, y})->size({660, 500});
     canvasWindow->addChild<GLCanvas>()
-      ->framebuffer(320, 240, 0, vg)
+      ->framebuffer(960, 720, 0, vg)
       ->drawFunction([this](int width, int height){
+        glViewport(0, 0, width, height);
         glClearColor(.6f, .6f, .6f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
@@ -76,40 +65,28 @@ protected:
         
         drawCube(_cube, &mvp[0][0]);
       })
-      ->position({40, 0})
-      ->size({320, 240});
+      ->position({10, 10})
+      ->size({640, 480});
     y += 40;
 
-    x = 210, y = 10;
-    _renderWindow->addChild<Button>("Normal Button")
-        ->icon(ENTYPO_ICON_CLOUD)
-        ->backgroundColor({0.7f, 0.0f, 0.3f, 1.f})
-        ->position({x, y})
-        ->size({150, 28});
-    y += 40;
-    _renderWindow->addChild<Button>("Toggle Button")
-        ->type(Button::Type::TOGGLE)
-        ->icon(ENTYPO_ICON_NEWS)
-        ->backgroundColor({0.3f, 0.7f, 0.0f, 1.f})
-        ->position({x, y})
-        ->size({150, 28});
-    y += 40;
-    _renderWindow->addChild<Button>("Disabled Button")
-        ->icon(ENTYPO_ICON_STAR)
-        ->backgroundColor({0.f, 0.3f, 0.7f, 1.f})
-        ->position({x, y})
-        ->size({150, 28})
-        ->enabled(false);
-    y += 40;
-
-    (_progressBar = _renderWindow->addChild<ProgressBar>())->maxValue(360)->position({x, y})->size({150, 28});
-    y += 40;
-
-    x = 610, y = 210;
+    x = 680, y = 10;
     Window* widgetWindow = nullptr;
-    (widgetWindow = _renderWindow->addChild<Window>("Widget Window"))->position({x, y})->size({320, 240});
+    (widgetWindow = _renderWindow->addChild<Window>("Widget Window"))->position({x, y})->size({330, 500});
     {
       int lx = 10, ly = 10;
+      widgetWindow->addChild<Label>("1st Label")->textColor({0.7f, 0.0f, 0.3f, 1.f})->position({lx, ly})->size({150, 28});
+      ly += 40;
+      widgetWindow->addChild<Label>("2nd Label")->textColor({0.3f, 0.7f, 0.0f, 1.f})->position({lx, ly})->size({150, 28});
+      ly += 40;
+      widgetWindow->addChild<Label>("3rd Label")->textColor({0.f, 0.3f, 0.7f, 1.f})->position({lx, ly})->size({150, 28});
+      ly += 40;
+      widgetWindow->addChild<Label>("Disabled Label")
+          ->textColor({0.f, 0.3f, 0.7f, 1.f})
+          ->position({lx, ly})
+          ->size({150, 28})
+          ->enabled(false);
+      lx += 160;  ly = 10;
+
       widgetWindow->addChild<Button>("Normal Button")
           ->icon(ENTYPO_ICON_CLOUD)
           ->backgroundColor({0.7f, 0.0f, 0.3f, 1.f})
@@ -130,6 +107,10 @@ protected:
           ->position({lx, ly})
           ->size({150, 28});
       ly += 40;
+      (_progressBar = widgetWindow->addChild<ProgressBar>())->maxValue(360)->position({lx, ly})->size({150, 28});
+      ly += 40;
+      
+      lx = 10;
       (_pictureBox = widgetWindow->addChild<PictureBox>())
           ->orientation(0.f)
           ->picture("examples/assets/images/image1.jpg", vg)
@@ -244,7 +225,7 @@ int main() {
   if (!graphicsProfile)
     return -1;
 
-  auto window = windowManager.createWindow(1000, 600, *graphicsProfile);
+  auto window = windowManager.createWindow(1024, 576, *graphicsProfile);
   delete graphicsProfile;
 
   if (!window)

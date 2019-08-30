@@ -1,5 +1,4 @@
 #include "widget/GLCanvas.hpp"
-#include <GL/header.h>
 #include "core/RenderContext.hpp"
 #include "nanovg/nanovg.h"
 
@@ -12,8 +11,10 @@ GLCanvas::GLCanvas(WidgetContainer* parent)
 int GLCanvas::drawScene(RenderContext& renderContext) {
   auto vg = renderContext.vg();
   auto w = _size.x, h = _size.y;
+  if (!_renderTarget.empty()) {
+    nvgImageSize(vg, _renderTarget[0], &w, &h);
+  }
   nvgBindFramebuffer(vg, _framebuffer);
-  glViewport(0, 0, w, h);
   _drawFunction(w, h);
   nvgBindFramebuffer(vg, 0);
 
