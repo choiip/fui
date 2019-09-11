@@ -6,6 +6,8 @@ struct NVGcontext;
 
 namespace fui {
 
+struct Color;
+
 enum class PixelFormat {
   RGB   = 0,
   RGBA  = 1,
@@ -29,6 +31,8 @@ public:
   std::string loadFragmentShader(const std::string& filename);
   
   virtual auto setViewport(int x, int y, int width, int height) -> decltype(this) = 0;
+  virtual auto preDraw(const Color* clearColor = nullptr, const float* clearDepth = nullptr, const int* clearStencil = nullptr) -> decltype(this) = 0;
+  virtual auto postDraw() -> decltype(this) = 0;
 
 protected:
   virtual std::string versionLine() const = 0;

@@ -14,7 +14,9 @@ public:
   Status initVG();
 
   virtual auto setViewport(int x, int y, int width, int height) -> decltype(this) override;
-  
+  virtual auto preDraw(const Color* clearColor = nullptr, const float* clearDepth = nullptr, const int* clearStencil = nullptr) -> decltype(this) override;
+  virtual auto postDraw() -> decltype(this) override;
+
 protected:
   virtual std::string versionLine() const override;
   virtual std::string vertexMacro() const override;

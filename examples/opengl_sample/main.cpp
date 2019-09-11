@@ -16,12 +16,7 @@ public:
 protected:
   virtual Status onEnter() override {
     auto renderContext = _renderWindow->renderContext();
-    LOGD << glGetString(GL_VERSION);
-
-    // load shaders
-    auto vertSource = renderContext->loadVertexShader("examples/assets/shaders/sample.vert");
-    auto fragSource = renderContext->loadFragmentShader("examples/assets/shaders/sample.frag");
-    _programId = createProgram("sample", vertSource.c_str(), fragSource.c_str());
+    // LOGD << glGetString(GL_VERSION);
 
     auto vg = renderContext->vg();
 
@@ -39,6 +34,13 @@ protected:
         glEnable(GL_DEPTH_TEST);
         glDisable(GL_BLEND);
 
+        if (_programId == 0) {
+          auto renderContext = _renderWindow->renderContext();
+          // load shaders
+          auto vertSource = renderContext->loadVertexShader("examples/assets/shaders/sample.vert");
+          auto fragSource = renderContext->loadFragmentShader("examples/assets/shaders/sample.frag");
+          _programId = createProgram("sample", vertSource.c_str(), fragSource.c_str());
+        }
         if (_cube == nullptr && _programId != 0) {
           _cube = createCube(_programId);
         }
@@ -154,10 +156,16 @@ protected:
     _progressBar->value(_progress)->text(text);
     _pictureBox->orientation((float)_progress)->fit();
 
-    glClearColor(0.3f, 0.3f, 0.32f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    Color clearColor = { 0.3f, 0.3f, 0.32f, 1.0f };
+    auto renderContext = _renderWindow->renderContext();
+    renderContext->preDraw(&clearColor);
 
     _renderWindow->drawGui();
+
+    renderContext->postDraw();
+    
+    _renderWindow->swapBuffer();
+
     auto timeElapsed = _stopwatch.elapsed();
     _frameCount++;
     if (timeElapsed > std::chrono::milliseconds(500)) {
@@ -166,8 +174,6 @@ protected:
       _stopwatch.start();
       _frameCount = 0;
     }
-
-    _renderWindow->swapBuffer();
   }
 
 private:
