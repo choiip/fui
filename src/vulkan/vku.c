@@ -16,7 +16,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebu
   return VK_FALSE;
 }
 
-VkDebugReportCallbackEXT CreateDebugReport(VkInstance instance) {
+VkDebugReportCallbackEXT createDebugReport(VkInstance instance) {
   // load extensions
   _vkCreateDebugReportCallbackEXT =
       (PFN_vkCreateDebugReportCallbackEXT)(vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT"));
@@ -32,7 +32,7 @@ VkDebugReportCallbackEXT CreateDebugReport(VkInstance instance) {
   return debug_report_callback;
 }
 
-void DestroyDebugReport(VkInstance instance, VkDebugReportCallbackEXT debugReportCallback) {
+void destroyDebugReport(VkInstance instance, VkDebugReportCallbackEXT debugReportCallback) {
   if (_vkDestroyDebugReportCallbackEXT) {
     _vkDestroyDebugReportCallbackEXT(instance, debugReportCallback, 0);
   }
@@ -239,14 +239,13 @@ VkBool32 memory_type_from_properties(VkPhysicalDeviceMemoryProperties memoryProp
   // No memory types matched, return failure
   return VK_FALSE;
 }
-DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height) {
+DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height, VkFormat format) {
   VkResult res;
   DepthBuffer depth;
-  depth.format = VK_FORMAT_D24_UNORM_S8_UINT;
+  depth.format = format;
 
-  const VkFormat depth_format = depth.format;
   VkFormatProperties fprops;
-  vkGetPhysicalDeviceFormatProperties(device->gpu, depth_format, &fprops);
+  vkGetPhysicalDeviceFormatProperties(device->gpu, format, &fprops);
   VkImageTiling image_tilling;
   if (fprops.linearTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
     image_tilling = VK_IMAGE_TILING_LINEAR;
@@ -254,13 +253,13 @@ DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height)
     image_tilling = VK_IMAGE_TILING_OPTIMAL;
   } else {
     /* Try other depth formats? */
-    printf("depth_format %d Unsupported.\n", depth_format);
+    printf("depth_format %d Unsupported.\n", format);
     exit(-1);
   }
 
   VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
   image_info.imageType = VK_IMAGE_TYPE_2D;
-  image_info.format = depth_format;
+  image_info.format = format;
   image_info.tiling = image_tilling;
   image_info.extent.width = width;
   image_info.extent.height = height;
@@ -276,7 +275,7 @@ DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height)
   VkMemoryAllocateInfo mem_alloc = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
 
   VkImageViewCreateInfo view_info = {VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
-  view_info.format = depth_format;
+  view_info.format = format;
   view_info.components.r = VK_COMPONENT_SWIZZLE_R;
   view_info.components.g = VK_COMPONENT_SWIZZLE_G;
   view_info.components.b = VK_COMPONENT_SWIZZLE_B;
@@ -288,8 +287,8 @@ DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height)
   view_info.subresourceRange.layerCount = 1;
   view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
 
-  if (depth_format == VK_FORMAT_D16_UNORM_S8_UINT || depth_format == VK_FORMAT_D24_UNORM_S8_UINT ||
-      depth_format == VK_FORMAT_D32_SFLOAT_S8_UINT) {
+  if (format == VK_FORMAT_D16_UNORM_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT ||
+      format == VK_FORMAT_D32_SFLOAT_S8_UINT) {
     view_info.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
   }
 
@@ -530,8 +529,8 @@ VkRenderPass createRenderPass(VkDevice device, VkFormat color_format, VkFormat d
   return render_pass;
 }
 
-FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface, VkQueue queue, int winWidth,
-                                int winHeight, VkSwapchainKHR oldSwapchain) {
+FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface, VkQueue queue, 
+                                VkExtent2D windowExtent, VkSwapchainKHR oldSwapchain) {
 
   VkResult res;
 
@@ -574,14 +573,13 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface
   VkExtent2D buffer_size;
   // width and height are either both -1, or both not -1.
   if (surfCapabilities.currentExtent.width == (uint32_t)-1) {
-    buffer_size.width = winWidth;
-    buffer_size.width = winHeight;
+    buffer_size = windowExtent;
   } else {
     // If the surface size is defined, the swap chain size must match
     buffer_size = surfCapabilities.currentExtent;
   }
 
-  DepthBuffer depth = createDepthBuffer(device, buffer_size.width, buffer_size.height);
+  DepthBuffer depth = createDepthBuffer(device, buffer_size.width, buffer_size.height, VK_FORMAT_D32_SFLOAT);
 
   VkRenderPass render_pass = createRenderPass(device->device, colorFormat, depth.format);
 

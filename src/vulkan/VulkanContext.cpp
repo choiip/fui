@@ -19,11 +19,7 @@ VulkanContext::~VulkanContext() {
 
   destroyVulkanDevice(_resource.device);
 
-#ifndef NDEBUG
-  DestroyDebugReport(_resource.instance, _resource.debugCallback);
-#endif
-  vkDestroySurfaceKHR(_resource.instance, _resource.surface, NULL);
-  vkDestroyInstance(_resource.instance, NULL);
+  vkDestroySurfaceKHR(*_resource.instance, _resource.surface, NULL);
 }
 
 Status VulkanContext::initVG() {

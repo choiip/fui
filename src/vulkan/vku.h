@@ -57,15 +57,15 @@ VkInstance createVkInstance(const char** extensions, uint32_t extensionCount, in
 VulkanDevice* createVulkanDevice(VkPhysicalDevice gpu);
 void destroyVulkanDevice(VulkanDevice* device);
 
-VkDebugReportCallbackEXT CreateDebugReport(VkInstance instance);
-void DestroyDebugReport(VkInstance instance, VkDebugReportCallbackEXT debugReportCallback);
+VkDebugReportCallbackEXT createDebugReport(VkInstance instance);
+void destroyDebugReport(VkInstance instance, VkDebugReportCallbackEXT debugReportCallback);
 
 VkCommandPool createCmdPool(VulkanDevice* device);
 VkCommandBuffer createCmdBuffer(VkDevice device, VkCommandPool cmd_pool);
 VkCommandBuffer createAndBeginLocalCommandBuffer(VkDevice device, VkCommandPool commandPool);
 void endCommandAndSubmitToQueue(VkCommandBuffer commandBuffer, VkQueue queue);
 
-DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height);
+DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height, VkFormat format);
 
 void setupImageLayout(VkCommandBuffer cmdBuffer, VkImage image, VkFormat format, VkImageLayout oldImageLayout, VkImageLayout newImageLayout);
 
@@ -73,8 +73,8 @@ VkRenderPass createRenderPass(VkDevice device, VkFormat color_format, VkFormat d
 
 SwapchainBuffers createSwapchainBuffers(VkDevice device, VkFormat format, VkCommandBuffer cmdbuffer, VkImage image);
 
-FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface, VkQueue queue, int winWidth,
-                                int winHeight, VkSwapchainKHR oldSwapchain);
+FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface, VkQueue queue,
+                                VkExtent2D windowExtent, VkSwapchainKHR oldSwapchain);
 
 void destroyFrameBuffers(const VulkanDevice* device, FrameBuffers* buffer);
 

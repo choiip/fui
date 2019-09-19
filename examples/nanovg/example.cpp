@@ -36,7 +36,7 @@ public:
 
 protected:
   virtual Status onEnter() override {
-    LOGD << glGetString(GL_VERSION);
+    // LOGD << glGetString(GL_VERSION);
     if (loadDemoData(vg, &data) == -1) {
       LOGE << "loadDemoData error";
       return Status::UNKNOWN_ERROR;
@@ -110,7 +110,7 @@ protected:
     window->swapBuffer();
   }
 
-  virtual void onExit() override { freeDemoData(vg, &data); }
+  virtual void onExit() override { /*freeDemoData(vg, &data);*/ }
 
   RenderWindow* window;
   NVGcontext* vg;
@@ -274,7 +274,7 @@ int main() {
   Logger logger;
   GlfwWindowManager windowManager;
 
-  auto graphicAPI = GraphicsAPI::OPENGL;
+  auto graphicAPI = GraphicsAPI::VULKAN;
 #ifdef __EMSCRIPTEN__
   graphicAPI = GraphicsAPI::OPENGL_ES;
 #endif
@@ -288,7 +288,7 @@ int main() {
   if (!window)
     return -1;
 
-  std::unique_ptr<ApplicationContext> app(new ExampleApp(window));
+  std::unique_ptr<ApplicationContext> app(new VulkanExampleApp(window));
   app->run(windowManager);
 
   return 0;

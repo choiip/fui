@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "core/RenderContext.hpp"
 #include "vulkan/vku.h"
 
@@ -10,7 +11,7 @@ enum class Status;
 class VulkanContext : public RenderContext {
 public:
   struct Resource {
-    VkInstance instance;
+    std::shared_ptr<VkInstance> instance;
     VkSurfaceKHR surface;
     VkPhysicalDevice gpu;
     VulkanDevice* device;

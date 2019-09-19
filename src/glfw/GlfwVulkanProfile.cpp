@@ -14,7 +14,26 @@
 
 namespace fui {
 
-GlfwVulkanProfile::~GlfwVulkanProfile() {}
+GlfwVulkanProfile::GlfwVulkanProfile() 
+: _instance(new VkInstance(nullptr), 
+    [](VkInstance* i){
+      if (i!=nullptr) {
+        vkDestroyInstance(*i, NULL);
+        delete i;
+      }
+    }
+  )
+, _debugReportCallback(new VkDebugReportCallbackEXT(nullptr),
+    [this](VkDebugReportCallbackEXT* d){
+      if (d!=nullptr) {
+        destroyDebugReport(*_instance, *d);
+        delete d;
+      }
+    }
+  )
+{}
+
+GlfwVulkanProfile::~GlfwVulkanProfile() = default;
 
 void GlfwVulkanProfile::prepare() const {
   if (!glfwVulkanSupported()) {
@@ -28,39 +47,38 @@ void GlfwVulkanProfile::prepare() const {
 RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
   GLFWwindow* window = (GLFWwindow*)nativeWindow;
 
+  if (*_instance == nullptr) {
+    uint32_t extensionCount = 0;
+    const char** extensions = glfwGetRequiredInstanceExtensions(&extensionCount);
+
+    auto non_const_this = const_cast<GlfwVulkanProfile*>(this);
+    *(non_const_this->_instance) = createVkInstance(extensions, extensionCount, true);
+    *(non_const_this->_debugReportCallback) = createDebugReport(*_instance);
+  }
+
   VulkanContext::Resource resource;
-  uint32_t extensionCount = 0;
-  const char** extensions = glfwGetRequiredInstanceExtensions(&extensionCount);
-
-#ifdef NDEBUG
-  resource.instance = createVkInstance(extensions, extensionCount, false);
-#else
-  resource.instance = createVkInstance(extensions, extensionCount, true);
-  resource.debugCallback = CreateDebugReport(resource.instance);
-#endif
-
+  resource.instance = _instance;
   VkResult res;
 
   uint32_t gpu_count = 1;
-  res = vkEnumeratePhysicalDevices(resource.instance, &gpu_count, &resource.gpu);
+  res = vkEnumeratePhysicalDevices(*resource.instance, &gpu_count, &resource.gpu);
   if (res != VK_SUCCESS && res != VK_INCOMPLETE) {
     LOGE << "vkEnumeratePhysicalDevices failed " << res;
     return nullptr;
   }
   auto device = resource.device = createVulkanDevice(resource.gpu);
 
-  int winWidth, winHeight;
-  glfwGetWindowSize(window, &winWidth, &winHeight);
-
   vkGetDeviceQueue(device->device, device->graphicsQueueFamilyIndex, 0, &resource.queue);
 
-  res = glfwCreateWindowSurface(resource.instance, window, 0, &resource.surface);
+  res = glfwCreateWindowSurface(*resource.instance, window, 0, &resource.surface);
   if (VK_SUCCESS != res) {
     LOGE << "glfwCreateWindowSurface failed";
     return nullptr;
   }
 
-  resource.frameBuffer = createFrameBuffers(device, resource.surface, resource.queue, winWidth, winHeight, 0);
+  VkExtent2D windowExtent;
+  glfwGetWindowSize(window, (int*)(&windowExtent.width), (int*)(&windowExtent.height));
+  resource.frameBuffer = createFrameBuffers(device, resource.surface, resource.queue, windowExtent, 0);
   resource.cmdBuffer = createCmdBuffer(device->device, device->commandPool);
 
   std::unique_ptr<VulkanContext> context(new VulkanContext(resource));
