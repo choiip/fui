@@ -31,8 +31,10 @@ Status VulkanContext::initVG() {
     nvgDeleteVk(_vg);
   }
   VKNVGCreateInfo createInfo = {0};
-  createInfo.device = _resource.device->device;
   createInfo.gpu = _resource.gpu;
+  createInfo.device = _resource.device->device;
+  createInfo.commandPool = _resource.device->commandPool;
+  createInfo.queue = _resource.queue;
   createInfo.renderpass = _resource.frameBuffer.render_pass;
   createInfo.cmdBuffer = _resource.cmdBuffer;
   int flag = NVG_ANTIALIAS | NVG_STENCIL_STROKES;

@@ -62,7 +62,12 @@ void DestroyDebugReport(VkInstance instance, VkDebugReportCallbackEXT debugRepor
 
 VkCommandPool createCmdPool(VulkanDevice* device);
 VkCommandBuffer createCmdBuffer(VkDevice device, VkCommandPool cmd_pool);
+VkCommandBuffer createAndBeginLocalCommandBuffer(VkDevice device, VkCommandPool commandPool);
+void endCommandAndSubmitToQueue(VkCommandBuffer commandBuffer, VkQueue queue);
+
 DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height);
+
+void setupImageLayout(VkCommandBuffer cmdBuffer, VkImage image, VkFormat format, VkImageLayout oldImageLayout, VkImageLayout newImageLayout);
 
 VkRenderPass createRenderPass(VkDevice device, VkFormat color_format, VkFormat depth_format);
 

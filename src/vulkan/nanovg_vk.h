@@ -1,6 +1,7 @@
 #pragma once
 
 #include "nanovg/nanovg.h"
+#include "vku.h"
 
 enum NVGcreateFlags {
   // Flag indicating if geometry based anti-aliasing is used (may not be needed when using MSAA).
@@ -15,6 +16,8 @@ enum NVGcreateFlags {
 typedef struct VKNVGCreateInfo {
   VkPhysicalDevice gpu;
   VkDevice device;
+  VkCommandPool commandPool;
+  VkQueue queue;
   VkRenderPass renderpass;
   VkCommandBuffer cmdBuffer;
 
@@ -1266,6 +1269,15 @@ static int vknvg_renderCreateTexture(void* uptr, int type, int w, int h, int ima
   tex->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
   tex->type = type;
   tex->flags = imageFlags;
+
+  VkCommandBuffer localCommandBuffer = createAndBeginLocalCommandBuffer(vk->createInfo.device, vk->createInfo.commandPool);
+  setupImageLayout(localCommandBuffer, tex->image, tex->type == NVG_TEXTURE_RGBA ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_R8_UNORM, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+  endCommandAndSubmitToQueue(localCommandBuffer, vk->createInfo.queue);
+  vkQueueWaitIdle(vk->createInfo.queue);
+
+  vkFreeCommandBuffers(vk->createInfo.device, vk->createInfo.commandPool, 1, &localCommandBuffer);
+
   if (data) {
     vknvg_updateTexture(device, tex, 0, 0, w, h, data);
   }

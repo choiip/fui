@@ -203,6 +203,26 @@ VkCommandBuffer createCmdBuffer(VkDevice device, VkCommandPool cmd_pool) {
   return cmd_buffer;
 }
 
+VkCommandBuffer createAndBeginLocalCommandBuffer(VkDevice device, VkCommandPool commandPool) {
+  VkCommandBuffer commandBuffer = createCmdBuffer(device, commandPool);
+
+  const VkCommandBufferBeginInfo commandBufferBeginInfo = {
+      VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+  };
+  vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+
+  return commandBuffer;
+}
+
+void endCommandAndSubmitToQueue(VkCommandBuffer commandBuffer, VkQueue queue) {
+  vkEndCommandBuffer(commandBuffer);
+  VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &commandBuffer;
+
+  vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+}
+
 VkBool32 memory_type_from_properties(VkPhysicalDeviceMemoryProperties memoryProps, uint32_t typeBits,
                                      VkFlags requirements_mask, uint32_t* typeIndex) {
   // Search memtypes to find first index with those properties
@@ -304,46 +324,133 @@ DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height)
   return depth;
 }
 
-void setupImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageAspectFlags aspectMask,
-                      VkImageLayout old_image_layout, VkImageLayout new_image_layout) {
-
-  VkImageMemoryBarrier image_memory_barrier = {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
-  image_memory_barrier.oldLayout = old_image_layout;
-  image_memory_barrier.newLayout = new_image_layout;
-  image_memory_barrier.image = image;
-
-  VkImageSubresourceRange subresourceRange = {aspectMask, 0, 1, 0, 1};
-  image_memory_barrier.subresourceRange = subresourceRange;
-
-  if (new_image_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-    /* Make sure anything that was copying from this image has completed */
-    image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+void setupImageLayout(VkCommandBuffer cmdBuffer, VkImage image, VkFormat format, VkImageLayout oldImageLayout, VkImageLayout newImageLayout) {
+  // reference: https://github.com/DiligentGraphics/DiligentCore/blob/master/Graphics/GraphicsEngineVulkan/src/VulkanUtilities/VulkanCommandBuffer.cpp
+  VkAccessFlags sourceAccessMask = 0;
+  switch (oldImageLayout)
+  {
+    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+      sourceAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_PREINITIALIZED:
+      sourceAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_GENERAL:     // sourceAccessMask is empty
+      sourceAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_UNDEFINED:
+      break;
+    default:
+      assert(0);
+      break;
   }
 
-  if (new_image_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
-    image_memory_barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+  VkPipelineStageFlags sourceStage;
+  switch (oldImageLayout)
+  {
+    case VK_IMAGE_LAYOUT_GENERAL:
+    case VK_IMAGE_LAYOUT_PREINITIALIZED:
+      sourceStage = VK_PIPELINE_STAGE_HOST_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+      sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_UNDEFINED:
+      sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+      break;
+    default:
+      assert(0);
+      break;
   }
 
-  if (new_image_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
-    image_memory_barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+  VkAccessFlags destinationAccessMask;
+  switch (newImageLayout)
+  {
+    case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+      destinationAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+      destinationAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_GENERAL:   // empty destinationAccessMask
+      break;
+    case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+      destinationAccessMask = VK_ACCESS_SHADER_READ_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+      destinationAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+      destinationAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+      destinationAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+      break;
+    default:
+      assert(0);
+      break;
   }
 
-  if (new_image_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-    /* Make sure any Copy or CPU writes to image are flushed */
-    image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+  VkPipelineStageFlags destinationStage;
+  switch (newImageLayout)
+  {
+    case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+      destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+      destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_GENERAL:
+      destinationStage = VK_PIPELINE_STAGE_HOST_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+      destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+    case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+      destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+      destinationStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+      break;      
+    default:
+      assert(0);
+      break;
   }
 
-  VkImageMemoryBarrier* pmemory_barrier = &image_memory_barrier;
+  VkImageAspectFlags aspectMask;
+  if (newImageLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+  {
+    aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+    if (format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT)
+    {
+      aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+    }
+  }
+  else
+  {
+    aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  }
 
-  VkPipelineStageFlags src_stages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-  VkPipelineStageFlags dest_stages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-
-  vkCmdPipelineBarrier(cmdbuffer, src_stages, dest_stages, 0, 0, NULL, 0, NULL, 1, pmemory_barrier);
+  VkImageSubresourceRange imageSubresourceRange = { aspectMask, 0, 1, 0, 1 };
+  VkImageMemoryBarrier imageMemoryBarrier = { 
+                                              VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                                              0,
+                                              sourceAccessMask, 
+                                              destinationAccessMask, 
+                                              oldImageLayout, 
+                                              newImageLayout, 
+                                              VK_QUEUE_FAMILY_IGNORED, 
+                                              VK_QUEUE_FAMILY_IGNORED,
+                                              image,
+                                              imageSubresourceRange 
+                                            };
+  vkCmdPipelineBarrier(cmdBuffer, sourceStage, destinationStage, 0, 0, NULL, 0, NULL, 1, &imageMemoryBarrier);
 }
 
 SwapchainBuffers createSwapchainBuffers(VkDevice device, VkFormat format, VkCommandBuffer cmdbuffer, VkImage image) {
   VkResult res;
-  setupImageLayout(cmdbuffer, image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED,
+  setupImageLayout(cmdbuffer, image, format, VK_IMAGE_LAYOUT_UNDEFINED,
                    VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   VkImageSubresourceRange subresourceRange = {0};
@@ -433,12 +540,8 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface
   if (!supportsPresent) {
     exit(-1); // does not supported.
   }
-  VkCommandBuffer setup_cmd_buffer = createCmdBuffer(device->device, device->commandPool);
 
-  const VkCommandBufferBeginInfo cmd_buf_info = {
-      VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-  };
-  vkBeginCommandBuffer(setup_cmd_buffer, &cmd_buf_info);
+  VkCommandBuffer setup_cmd_buffer = createAndBeginLocalCommandBuffer(device->device, device->commandPool);
 
   VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
   VkColorSpaceKHR colorSpace;
@@ -579,12 +682,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface
     assert(res == VK_SUCCESS);
   }
 
-  vkEndCommandBuffer(setup_cmd_buffer);
-  VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
-  submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &setup_cmd_buffer;
-
-  vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
+  endCommandAndSubmitToQueue(setup_cmd_buffer, queue);
   vkQueueWaitIdle(queue);
 
   vkFreeCommandBuffers(device->device, device->commandPool, 1, &setup_cmd_buffer);
