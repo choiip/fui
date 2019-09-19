@@ -149,6 +149,7 @@ typedef struct VKNVGcontext {
   VKNVGtexture* textures;
   int ntextures;
   int ctextures;
+  int emptyTextureId;
 
   VkDescriptorSetLayout descLayout;
   VkPipelineLayout pipelineLayout;
@@ -757,7 +758,7 @@ static VkPipeline vknvg_bindPipeline(VKNVGcontext* vk, VkCommandBuffer cmdBuffer
   return pipeline->pipeline;
 }
 
-static int vknvg_UpdateTexture(VkDevice device, VKNVGtexture* tex, int dx, int dy, int w, int h,
+static int vknvg_updateTexture(VkDevice device, VKNVGtexture* tex, int dx, int dy, int w, int h,
                                const unsigned char* data) {
 
   VkMemoryRequirements mem_reqs;
@@ -903,8 +904,8 @@ static void vknvg_setUniforms(VKNVGcontext* vk, VkDescriptorSet descSet, int uni
     writes[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     writes[2].pImageInfo = &image_info;
   } else {
-    // fixme
-    VKNVGtexture* tex = vknvg_findTexture(vk, 1);
+    VKNVGtexture* tex = vknvg_findTexture(vk, vk->emptyTextureId);
+
     image_info.imageLayout = tex->imageLayout;
     image_info.imageView = tex->view;
     image_info.sampler = tex->sampler;
@@ -939,7 +940,7 @@ static void vknvg_fill(VKNVGcontext* vk, VKNVGcall* call) {
   };
   VkDescriptorSet descSet;
   NVGVK_CHECK_RESULT(vkAllocateDescriptorSets(device, alloc_info, &descSet));
-  vknvg_setUniforms(vk, descSet, call->uniformOffset, call->image); // fixme
+  vknvg_setUniforms(vk, descSet, call->uniformOffset, call->image);
   vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk->pipelineLayout, 0, 1, &descSet, 0, nullptr);
 
   for (int i = 0; i < npaths; i++) {
@@ -1262,11 +1263,11 @@ static int vknvg_renderCreateTexture(void* uptr, int type, int w, int h, int ima
   tex->image = mappableImage;
   tex->view = image_view;
   tex->mem = mappableMemory;
-  tex->imageLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
+  tex->imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
   tex->type = type;
   tex->flags = imageFlags;
   if (data) {
-    vknvg_UpdateTexture(device, tex, 0, 0, w, h, data);
+    vknvg_updateTexture(device, tex, 0, 0, w, h, data);
   }
 
   return vknvg_textureId(vk, tex);
@@ -1283,7 +1284,7 @@ static int vknvg_renderUpdateTexture(void* uptr, int image, int x, int y, int w,
   VKNVGcontext* vk = (VKNVGcontext*)uptr;
 
   VKNVGtexture* tex = vknvg_findTexture(vk, image);
-  vknvg_UpdateTexture(vk->createInfo.device, tex, x, y, w, h, data);
+  vknvg_updateTexture(vk->createInfo.device, tex, x, y, w, h, data);
   return 1;
 }
 static int vknvg_renderGetTextureSize(void* uptr, int image, int* w, int* h) {
@@ -1580,6 +1581,7 @@ static void vknvg_renderDelete(void* uptr) {
 inline NVGcontext* nvgCreateVk(VKNVGCreateInfo createInfo, int flags) {
   NVGparams params;
   NVGcontext* ctx = nullptr;
+	const unsigned char emptyTextureData[2*2*4] = { 0 };
   VKNVGcontext* vk = (VKNVGcontext*)malloc(sizeof(VKNVGcontext));
   if (vk == nullptr)
     goto error;
@@ -1607,6 +1609,8 @@ inline NVGcontext* nvgCreateVk(VKNVGCreateInfo createInfo, int flags) {
   ctx = nvgCreateInternal(&params);
   if (ctx == nullptr)
     goto error;
+
+  vk->emptyTextureId = vknvg_renderCreateTexture(vk, NVG_TEXTURE_RGBA, 2, 2, NVG_IMAGE_NEAREST, emptyTextureData);
 
   return ctx;
 
