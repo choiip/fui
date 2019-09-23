@@ -2,22 +2,25 @@
 
 #include <vulkan/vulkan.h>
 
+#define VK_CHECK_RESULT(f)                                                                                           \
+{                                                                                                                    \
+  VkResult res = (f);                                                                                                \
+  if (res != VK_SUCCESS) {                                                                                           \
+    assert(res == VK_SUCCESS);                                                                                       \
+  }                                                                                                                  \
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct VulkanDevice {
   VkPhysicalDevice gpu;
-  VkPhysicalDeviceProperties gpuProperties;
   VkPhysicalDeviceMemoryProperties memoryProperties;
-
-  VkQueueFamilyProperties* queueFamilyProperties;
-  uint32_t queueFamilyPropertiesCount;
 
   uint32_t graphicsQueueFamilyIndex;
 
   VkDevice device;
-
   VkCommandPool commandPool;
 } VulkanDevice;
 
@@ -53,12 +56,8 @@ typedef struct FrameBuffers {
 
 } FrameBuffers;
 
-VkInstance createVkInstance(const char** extensions, uint32_t extensionCount, int enableDebugLayer);
 VulkanDevice* createVulkanDevice(VkPhysicalDevice gpu);
 void destroyVulkanDevice(VulkanDevice* device);
-
-VkDebugReportCallbackEXT createDebugReport(VkInstance instance);
-void destroyDebugReport(VkInstance instance, VkDebugReportCallbackEXT debugReportCallback);
 
 VkCommandPool createCmdPool(VulkanDevice* device);
 VkCommandBuffer createCmdBuffer(VkDevice device, VkCommandPool cmd_pool);

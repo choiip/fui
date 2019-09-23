@@ -44,13 +44,7 @@ void nvgDeleteVk(NVGcontext* ctx);
 #define nullptr NULL
 #endif
 
-#define NVGVK_CHECK_RESULT(f)                                                                                          \
-  {                                                                                                                    \
-    VkResult res = (f);                                                                                                \
-    if (res != VK_SUCCESS) {                                                                                           \
-      assert(res == VK_SUCCESS);                                                                                       \
-    }                                                                                                                  \
-  }
+#define NVGVK_CHECK_RESULT(f) VK_CHECK_RESULT(f)
 
 enum VKNVGshaderType { NSVG_SHADER_FILLGRAD, NSVG_SHADER_FILLIMG, NSVG_SHADER_SIMPLE, NSVG_SHADER_IMG };
 

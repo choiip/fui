@@ -19,8 +19,8 @@ public:
   virtual RenderContext* createContext(void* nativeWindow) const override;
 
 private:
-  std::shared_ptr<VkInstance>               _instance;
-  std::shared_ptr<VkDebugReportCallbackEXT> _debugReportCallback;
+  std::shared_ptr<vk::UniqueInstance>               _instance;
+  std::shared_ptr<vk::UniqueDebugReportCallbackEXT> _debugReportCallback;
 };
 
 } // namespace fui

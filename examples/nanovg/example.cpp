@@ -149,12 +149,7 @@ protected:
     // Calculate pixel ration for hi-dpi devices.
     pxRatio = (float)fbWidth / (float)winWidth;
 
-    auto device = _vulkanContext->device();
-    auto queue = _vulkanContext->queue();
-    auto cmdBuffer = _vulkanContext->cmdBuffer();
-    auto frameBuffer = _vulkanContext->frameBuffer();
-
-    prepareFrame(device->device, cmdBuffer, frameBuffer);
+    _vulkanContext->preDraw();
 
     nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
 
@@ -166,6 +161,7 @@ protected:
     // if (gpuTimer.supported)
     // 	renderGraph(vg, 5+200+5+200+5,5, &gpuGraph);
 
+    _vulkanContext->setViewport(0, 0, fbWidth, fbHeight);
     nvgEndFrame(vg);
 
     // Measure the CPU time taken excluding swap buffers (as the swap may wait
@@ -175,96 +171,9 @@ protected:
     updateGraph(&fps, dt);
     updateGraph(&cpuGraph, cpuTime);
 
-    submitFrame(device->device, queue, cmdBuffer, frameBuffer);
+    _vulkanContext->postDraw();
   }
-
-private:
-  void prepareFrame(VkDevice device, VkCommandBuffer cmd_buffer, FrameBuffers* fb) {
-    VkResult res;
-
-    // Get the index of the next available swapchain image:
-    res = vkAcquireNextImageKHR(device, fb->swap_chain, UINT64_MAX, fb->present_complete_semaphore, 0,
-                                &fb->current_buffer);
-    assert(res == VK_SUCCESS);
-
-    const VkCommandBufferBeginInfo cmd_buf_info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
-    res = vkBeginCommandBuffer(cmd_buffer, &cmd_buf_info);
-    assert(res == VK_SUCCESS);
-
-    VkClearValue clear_values[2];
-    clear_values[0].color.float32[0] = 0.3f;
-    clear_values[0].color.float32[1] = 0.3f;
-    clear_values[0].color.float32[2] = 0.32f;
-    clear_values[0].color.float32[3] = 1.0f;
-    clear_values[1].depthStencil.depth = 1.0f;
-    clear_values[1].depthStencil.stencil = 0;
-
-    VkRenderPassBeginInfo rp_begin;
-    rp_begin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    rp_begin.pNext = NULL;
-    rp_begin.renderPass = fb->render_pass;
-    rp_begin.framebuffer = fb->framebuffers[fb->current_buffer];
-    rp_begin.renderArea.offset.x = 0;
-    rp_begin.renderArea.offset.y = 0;
-    rp_begin.renderArea.extent.width = fb->buffer_size.width;
-    rp_begin.renderArea.extent.height = fb->buffer_size.height;
-    rp_begin.clearValueCount = 2;
-    rp_begin.pClearValues = clear_values;
-
-    vkCmdBeginRenderPass(cmd_buffer, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
-
-    VkViewport viewport;
-    viewport.width = fb->buffer_size.width;
-    viewport.height = fb->buffer_size.height;
-    viewport.minDepth = (float)0.0f;
-    viewport.maxDepth = (float)1.0f;
-    viewport.x = rp_begin.renderArea.offset.x;
-    viewport.y = rp_begin.renderArea.offset.y;
-    vkCmdSetViewport(cmd_buffer, 0, 1, &viewport);
-    
-    VkRect2D scissor = rp_begin.renderArea;
-    vkCmdSetScissor(cmd_buffer, 0, 1, &scissor);
-  }
-
-  void submitFrame(VkDevice device, VkQueue queue, VkCommandBuffer cmd_buffer, FrameBuffers* fb) {
-    VkResult res;
-
-    vkCmdEndRenderPass(cmd_buffer);
-
-    vkEndCommandBuffer(cmd_buffer);
-
-    VkPipelineStageFlags pipe_stage_flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-    VkSubmitInfo submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
-    submit_info.pNext = NULL;
-    submit_info.waitSemaphoreCount = 1;
-    submit_info.pWaitSemaphores = &fb->present_complete_semaphore;
-    submit_info.pWaitDstStageMask = &pipe_stage_flags;
-    submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &cmd_buffer;
-    submit_info.signalSemaphoreCount = 1;
-    submit_info.pSignalSemaphores = &fb->render_complete_semaphore;
-
-    /* Queue the command buffer for execution */
-    res = vkQueueSubmit(queue, 1, &submit_info, 0);
-    assert(res == VK_SUCCESS);
-
-    /* Now present the image in the window */
-
-    VkPresentInfoKHR present = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
-    present.pNext = NULL;
-    present.swapchainCount = 1;
-    present.pSwapchains = &fb->swap_chain;
-    present.pImageIndices = &fb->current_buffer;
-    present.waitSemaphoreCount = 1;
-    present.pWaitSemaphores = &fb->render_complete_semaphore;
-
-    res = vkQueuePresentKHR(queue, &present);
-    assert(res == VK_SUCCESS);
-
-    res = vkQueueWaitIdle(queue);
-  }
-
+  
 private:
   VulkanContext* _vulkanContext;
 };

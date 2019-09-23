@@ -4,139 +4,32 @@
 #include <stdlib.h>
 #include <string.h>
 
-PFN_vkCreateDebugReportCallbackEXT _vkCreateDebugReportCallbackEXT;
-PFN_vkDebugReportMessageEXT _vkDebugReportMessageEXT;
-PFN_vkDestroyDebugReportCallbackEXT _vkDestroyDebugReportCallbackEXT;
-
-VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT report_object_type,
-                                             uint64_t object, size_t location, int32_t messageCode,
-                                             const char* pLayerPrefix, const char* pMessage, void* pUserData) {
-
-  printf("%s\n", pMessage);
-  return VK_FALSE;
-}
-
-VkDebugReportCallbackEXT createDebugReport(VkInstance instance) {
-  // load extensions
-  _vkCreateDebugReportCallbackEXT =
-      (PFN_vkCreateDebugReportCallbackEXT)(vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT"));
-  _vkDebugReportMessageEXT = (PFN_vkDebugReportMessageEXT)(vkGetInstanceProcAddr(instance, "vkDebugReportMessageEXT"));
-  _vkDestroyDebugReportCallbackEXT =
-      (PFN_vkDestroyDebugReportCallbackEXT)(vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT"));
-  VkDebugReportCallbackCreateInfoEXT callbackInfo = {VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT};
-  callbackInfo.flags =
-      VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-  callbackInfo.pfnCallback = &debugCallback;
-  VkDebugReportCallbackEXT debug_report_callback;
-  _vkCreateDebugReportCallbackEXT(instance, &callbackInfo, 0, &debug_report_callback);
-  return debug_report_callback;
-}
-
-void destroyDebugReport(VkInstance instance, VkDebugReportCallbackEXT debugReportCallback) {
-  if (_vkDestroyDebugReportCallbackEXT) {
-    _vkDestroyDebugReportCallbackEXT(instance, debugReportCallback, 0);
-  }
-}
-
-VkInstance createVkInstance(const char** extensions, uint32_t extensionCount, int enableDebugLayer) {
-
-  // initialize the VkApplicationInfo structure
-  VkApplicationInfo app_info = {VK_STRUCTURE_TYPE_APPLICATION_INFO};
-  app_info.pApplicationName = "NanoVG";
-  app_info.applicationVersion = 1;
-  app_info.pEngineName = "fui";
-  app_info.engineVersion = 1;
-  app_info.apiVersion = VK_API_VERSION_1_0;
-
-  static const char* append_extensions[] = {
-      VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
-  };
-  uint32_t append_extensions_count = enableDebugLayer ? (sizeof(append_extensions) / sizeof(append_extensions[0])) : 0;
-
-  uint32_t enabledExtensionCount = extensionCount;
-
-  const char** enabledExtensions = (const char**)calloc(extensionCount + append_extensions_count, sizeof(char*));
-
-  for (int i = 0; i < extensionCount; ++i) {
-    enabledExtensions[i] = extensions[i];
-  }
-  for (int i = 0; i < append_extensions_count; ++i) {
-    enabledExtensions[enabledExtensionCount++] = append_extensions[i];
-  }
-
-  // initialize the VkInstanceCreateInfo structure
-  VkInstanceCreateInfo inst_info = {VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
-  inst_info.pApplicationInfo = &app_info;
-  inst_info.enabledExtensionCount = enabledExtensionCount;
-  inst_info.ppEnabledExtensionNames = enabledExtensions;
-  if (enableDebugLayer) {
-    uint32_t layerCount = 0;
-    vkEnumerateInstanceLayerProperties(&layerCount, 0);
-    VkLayerProperties* layerprop = (VkLayerProperties*)malloc(sizeof(VkLayerProperties) * layerCount);
-    vkEnumerateInstanceLayerProperties(&layerCount, layerprop);
-    printf("supported layers:");
-    for (int i = 0; i < layerCount; ++i) {
-      printf("%s ,", layerprop[i].layerName);
-    }
-    printf("\n");
-    free(layerprop);
-
-    static const char* instance_validation_layers[] = {
-        "VK_LAYER_LUNARG_standard_validation"
-        //      "VK_LAYER_GOOGLE_threading",
-        //      "VK_LAYER_GOOGLE_unique_objects",
-        //      "VK_LAYER_LUNARG_api_dump",
-        //     "VK_LAYER_LUNARG_device_limits",
-        //      "VK_LAYER_LUNARG_draw_state",
-        //   "VK_LAYER_LUNARG_image",
-        //  "VK_LAYER_LUNARG_mem_tracker",
-        // "VK_LAYER_LUNARG_object_tracker",
-        //   "VK_LAYER_LUNARG_param_checker",
-        //  "VK_LAYER_LUNARG_screenshot",
-        //  "VK_LAYER_LUNARG_swapchain",
-    };
-    inst_info.enabledLayerCount = sizeof(instance_validation_layers) / sizeof(instance_validation_layers[0]);
-    inst_info.ppEnabledLayerNames = instance_validation_layers;
-  }
-  VkInstance inst;
-  VkResult res;
-  res = vkCreateInstance(&inst_info, NULL, &inst);
-
-  free(enabledExtensions);
-
-  if (res == VK_ERROR_INCOMPATIBLE_DRIVER) {
-    printf("cannot find a compatible Vulkan ICD\n");
-    exit(-1);
-  } else if (res) {
-    printf("unknown error\n");
-    exit(-1);
-  }
-  return inst;
-}
-
 VulkanDevice* createVulkanDevice(VkPhysicalDevice gpu) {
   VulkanDevice* device = (VulkanDevice*)malloc(sizeof(VulkanDevice));
   memset(device, 0, sizeof(VulkanDevice));
 
   device->gpu = gpu;
   vkGetPhysicalDeviceMemoryProperties(gpu, &device->memoryProperties);
-  vkGetPhysicalDeviceProperties(gpu, &device->gpuProperties);
 
-  vkGetPhysicalDeviceQueueFamilyProperties(gpu, &device->queueFamilyPropertiesCount, NULL);
-  assert(device->queueFamilyPropertiesCount >= 1);
+  VkQueueFamilyProperties* queueFamilyProperties;
+  uint32_t queueFamilyPropertiesCount;
 
-  device->queueFamilyProperties =
-      (VkQueueFamilyProperties*)malloc(device->queueFamilyPropertiesCount * sizeof(VkQueueFamilyProperties));
+  vkGetPhysicalDeviceQueueFamilyProperties(gpu, &queueFamilyPropertiesCount, NULL);
+  assert(queueFamilyPropertiesCount >= 1);
 
-  vkGetPhysicalDeviceQueueFamilyProperties(gpu, &device->queueFamilyPropertiesCount, device->queueFamilyProperties);
-  assert(device->queueFamilyPropertiesCount >= 1);
+  queueFamilyProperties =
+      (VkQueueFamilyProperties*)malloc(queueFamilyPropertiesCount * sizeof(VkQueueFamilyProperties));
+
+  vkGetPhysicalDeviceQueueFamilyProperties(gpu, &queueFamilyPropertiesCount, queueFamilyProperties);
+  assert(queueFamilyPropertiesCount >= 1);
 
   device->graphicsQueueFamilyIndex = UINT32_MAX;
-  for (uint32_t i = 0; i < device->queueFamilyPropertiesCount; ++i) {
-    if ((device->queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+  for (uint32_t i = 0; i < queueFamilyPropertiesCount; ++i) {
+    if ((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
       device->graphicsQueueFamilyIndex = i;
     }
   }
+  free(queueFamilyProperties);
 
   float queuePriorities[1] = {0.0};
   VkDeviceQueueCreateInfo queue_info = {VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
@@ -152,22 +45,17 @@ VulkanDevice* createVulkanDevice(VkPhysicalDevice gpu) {
   deviceInfo.pQueueCreateInfos = &queue_info;
   deviceInfo.enabledExtensionCount = sizeof(deviceExtensions) / sizeof(deviceExtensions[0]);
   deviceInfo.ppEnabledExtensionNames = deviceExtensions;
-  VkResult res = vkCreateDevice(gpu, &deviceInfo, NULL, &device->device);
-
-  assert(res == VK_SUCCESS);
-
+  VK_CHECK_RESULT(vkCreateDevice(gpu, &deviceInfo, NULL, &device->device));
+  
   /* Create a command pool to allocate our command buffer from */
   VkCommandPoolCreateInfo cmd_pool_info = {VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
   cmd_pool_info.queueFamilyIndex = device->graphicsQueueFamilyIndex;
   cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-  res = vkCreateCommandPool(device->device, &cmd_pool_info, NULL, &device->commandPool);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkCreateCommandPool(device->device, &cmd_pool_info, NULL, &device->commandPool));
 
   return device;
 }
 void destroyVulkanDevice(VulkanDevice* device) {
-  free(device->queueFamilyProperties);
-
   if (device->commandPool) {
     vkDestroyCommandPool(device->device, device->commandPool, 0);
   }
@@ -178,28 +66,23 @@ void destroyVulkanDevice(VulkanDevice* device) {
 }
 
 VkCommandPool createCmdPool(VulkanDevice* device) {
-  VkResult res;
   /* Create a command pool to allocate our command buffer from */
   VkCommandPoolCreateInfo cmd_pool_info = {VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
   cmd_pool_info.queueFamilyIndex = device->graphicsQueueFamilyIndex;
   cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
   VkCommandPool cmd_pool;
-  res = vkCreateCommandPool(device->device, &cmd_pool_info, NULL, &cmd_pool);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkCreateCommandPool(device->device, &cmd_pool_info, NULL, &cmd_pool));
   return cmd_pool;
 }
 
 VkCommandBuffer createCmdBuffer(VkDevice device, VkCommandPool cmd_pool) {
-
-  VkResult res;
   VkCommandBufferAllocateInfo cmd = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
   cmd.commandPool = cmd_pool;
   cmd.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
   cmd.commandBufferCount = 1;
 
   VkCommandBuffer cmd_buffer;
-  res = vkAllocateCommandBuffers(device, &cmd, &cmd_buffer);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &cmd, &cmd_buffer));
   return cmd_buffer;
 }
 
@@ -240,7 +123,6 @@ VkBool32 memory_type_from_properties(VkPhysicalDeviceMemoryProperties memoryProp
   return VK_FALSE;
 }
 DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height, VkFormat format) {
-  VkResult res;
   DepthBuffer depth;
   depth.format = format;
 
@@ -295,8 +177,7 @@ DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height,
   VkMemoryRequirements mem_reqs;
 
   /* Create image */
-  res = vkCreateImage(device->device, &image_info, NULL, &depth.image);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkCreateImage(device->device, &image_info, NULL, &depth.image));
 
   vkGetImageMemoryRequirements(device->device, depth.image, &mem_reqs);
 
@@ -308,17 +189,14 @@ DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height,
   assert(pass);
 
   /* Allocate memory */
-  res = vkAllocateMemory(device->device, &mem_alloc, NULL, &depth.mem);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkAllocateMemory(device->device, &mem_alloc, NULL, &depth.mem));
 
   /* Bind memory */
-  res = vkBindImageMemory(device->device, depth.image, depth.mem, 0);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkBindImageMemory(device->device, depth.image, depth.mem, 0));
 
   /* Create image view */
   view_info.image = depth.image;
-  res = vkCreateImageView(device->device, &view_info, NULL, &depth.view);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkCreateImageView(device->device, &view_info, NULL, &depth.view));
 
   return depth;
 }
@@ -448,7 +326,6 @@ void setupImageLayout(VkCommandBuffer cmdBuffer, VkImage image, VkFormat format,
 }
 
 SwapchainBuffers createSwapchainBuffers(VkDevice device, VkFormat format, VkCommandBuffer cmdbuffer, VkImage image) {
-  VkResult res;
   setupImageLayout(cmdbuffer, image, format, VK_IMAGE_LAYOUT_UNDEFINED,
                    VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
@@ -472,8 +349,7 @@ SwapchainBuffers createSwapchainBuffers(VkDevice device, VkFormat format, VkComm
   SwapchainBuffers buffer;
   buffer.image = image;
 
-  res = vkCreateImageView(device, &color_attachment_view, NULL, &buffer.view);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkCreateImageView(device, &color_attachment_view, NULL, &buffer.view));
   return buffer;
 }
 
@@ -523,17 +399,12 @@ VkRenderPass createRenderPass(VkDevice device, VkFormat color_format, VkFormat d
   rp_info.subpassCount = 1;
   rp_info.pSubpasses = &subpass;
   VkRenderPass render_pass;
-  VkResult res;
-  res = vkCreateRenderPass(device, &rp_info, NULL, &render_pass);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkCreateRenderPass(device, &rp_info, NULL, &render_pass));
   return render_pass;
 }
 
 FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface, VkQueue queue, 
                                 VkExtent2D windowExtent, VkSwapchainKHR oldSwapchain) {
-
-  VkResult res;
-
   VkBool32 supportsPresent;
   vkGetPhysicalDeviceSurfaceSupportKHR(device->gpu, device->graphicsQueueFamilyIndex, surface, &supportsPresent);
   if (!supportsPresent) {
@@ -547,11 +418,9 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface
   {
     // Get the list of VkFormats that are supported:
     uint32_t formatCount;
-    res = vkGetPhysicalDeviceSurfaceFormatsKHR(device->gpu, surface, &formatCount, NULL);
-    assert(res == VK_SUCCESS);
+    VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(device->gpu, surface, &formatCount, NULL));
     VkSurfaceFormatKHR* surfFormats = (VkSurfaceFormatKHR*)malloc(formatCount * sizeof(VkSurfaceFormatKHR));
-    res = vkGetPhysicalDeviceSurfaceFormatsKHR(device->gpu, surface, &formatCount, surfFormats);
-    assert(res == VK_SUCCESS);
+    VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(device->gpu, surface, &formatCount, surfFormats));
     // If the format list includes just one entry of VK_FORMAT_UNDEFINED,
     // the surface has no preferred format.  Otherwise, at least one
     // supported format will be returned.
@@ -567,8 +436,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface
 
   // Check the surface capabilities and formats
   VkSurfaceCapabilitiesKHR surfCapabilities;
-  res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device->gpu, surface, &surfCapabilities);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device->gpu, surface, &surfCapabilities));
 
   VkExtent2D buffer_size;
   // width and height are either both -1, or both not -1.
@@ -579,7 +447,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface
     buffer_size = surfCapabilities.currentExtent;
   }
 
-  DepthBuffer depth = createDepthBuffer(device, buffer_size.width, buffer_size.height, VK_FORMAT_D32_SFLOAT);
+  DepthBuffer depth = createDepthBuffer(device, buffer_size.width, buffer_size.height, VK_FORMAT_D24_UNORM_S8_UINT);
 
   VkRenderPass render_pass = createRenderPass(device->device, colorFormat, depth.format);
 
@@ -635,23 +503,20 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface
   swapchainInfo.clipped = VK_TRUE;
 
   VkSwapchainKHR swap_chain;
-  res = vkCreateSwapchainKHR(device->device, &swapchainInfo, NULL, &swap_chain);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkCreateSwapchainKHR(device->device, &swapchainInfo, NULL, &swap_chain));
 
   if (oldSwapchain != VK_NULL_HANDLE) {
     vkDestroySwapchainKHR(device->device, oldSwapchain, NULL);
   }
 
   uint32_t swapchain_image_count;
-  res = vkGetSwapchainImagesKHR(device->device, swap_chain, &swapchain_image_count, NULL);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkGetSwapchainImagesKHR(device->device, swap_chain, &swapchain_image_count, NULL));
 
   VkImage* swapchainImages = (VkImage*)malloc(swapchain_image_count * sizeof(VkImage));
 
   assert(swapchainImages);
 
-  res = vkGetSwapchainImagesKHR(device->device, swap_chain, &swapchain_image_count, swapchainImages);
-  assert(res == VK_SUCCESS);
+  VK_CHECK_RESULT(vkGetSwapchainImagesKHR(device->device, swap_chain, &swapchain_image_count, swapchainImages));
 
   SwapchainBuffers* swap_chain_buffers = (SwapchainBuffers*)malloc(swapchain_image_count * sizeof(SwapchainBuffers));
   for (uint32_t i = 0; i < swapchain_image_count; i++) {
@@ -676,8 +541,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface
 
   for (i = 0; i < swapchain_image_count; i++) {
     attachments[0] = swap_chain_buffers[i].view;
-    res = vkCreateFramebuffer(device->device, &fb_info, NULL, &framebuffers[i]);
-    assert(res == VK_SUCCESS);
+    VK_CHECK_RESULT(vkCreateFramebuffer(device->device, &fb_info, NULL, &framebuffers[i]));
   }
 
   endCommandAndSubmitToQueue(setup_cmd_buffer, queue);
@@ -697,11 +561,8 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface
   buffer.depth = depth;
 
   VkSemaphoreCreateInfo presentCompleteSemaphoreCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-  res =
-      vkCreateSemaphore(device->device, &presentCompleteSemaphoreCreateInfo, NULL, &buffer.present_complete_semaphore);
-  assert(res == VK_SUCCESS);
-
-  res = vkCreateSemaphore(device->device, &presentCompleteSemaphoreCreateInfo, NULL, &buffer.render_complete_semaphore);
+  VK_CHECK_RESULT(vkCreateSemaphore(device->device, &presentCompleteSemaphoreCreateInfo, NULL, &buffer.present_complete_semaphore));
+  VK_CHECK_RESULT(vkCreateSemaphore(device->device, &presentCompleteSemaphoreCreateInfo, NULL, &buffer.render_complete_semaphore));
 
   return buffer;
 }

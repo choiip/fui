@@ -9,29 +9,12 @@
 #include <GLFW/glfw3.h>
 #include "core/Log.hpp"
 #include "core/Status.hpp"
-#include "vulkan/vku.h"
+#include "vulkan/vku.hpp"
 #include "vulkan/VulkanContext.hpp"
 
 namespace fui {
 
-GlfwVulkanProfile::GlfwVulkanProfile() 
-: _instance(new VkInstance(nullptr), 
-    [](VkInstance* i){
-      if (i!=nullptr) {
-        vkDestroyInstance(*i, NULL);
-        delete i;
-      }
-    }
-  )
-, _debugReportCallback(new VkDebugReportCallbackEXT(nullptr),
-    [this](VkDebugReportCallbackEXT* d){
-      if (d!=nullptr) {
-        destroyDebugReport(*_instance, *d);
-        delete d;
-      }
-    }
-  )
-{}
+GlfwVulkanProfile::GlfwVulkanProfile() = default;
 
 GlfwVulkanProfile::~GlfwVulkanProfile() = default;
 
@@ -47,41 +30,42 @@ void GlfwVulkanProfile::prepare() const {
 RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
   GLFWwindow* window = (GLFWwindow*)nativeWindow;
 
-  if (*_instance == nullptr) {
+  if (_instance == nullptr) {
     uint32_t extensionCount = 0;
-    const char** extensions = glfwGetRequiredInstanceExtensions(&extensionCount);
+    const char** requiredExtensions = glfwGetRequiredInstanceExtensions(&extensionCount);
+    std::vector<std::string> extensions;
+    for (auto i=0; i<extensionCount; ++i) {
+      extensions.push_back(requiredExtensions[i]);
+    }
 
+    std::vector<std::string> layers = {
+#if !defined(NDEBUG)
+      "VK_LAYER_LUNARG_standard_validation",
+      // "VK_LAYER_LUNARG_core_validation",
+      // "VK_LAYER_KHRONOS_validation",
+      // "VK_LAYER_LUNARG_api_dump",
+      // "VK_LAYER_LUNARG_object_tracker",
+      // "VK_LAYER_LUNARG_screenshot",
+#endif
+    };
     auto non_const_this = const_cast<GlfwVulkanProfile*>(this);
-    *(non_const_this->_instance) = createVkInstance(extensions, extensionCount, true);
-    *(non_const_this->_debugReportCallback) = createDebugReport(*_instance);
+    non_const_this->_instance = std::make_shared<vk::UniqueInstance>(vk::su::createInstance("", "fui", layers, extensions));
+#if !defined(NDEBUG)
+    non_const_this->_debugReportCallback = std::make_shared<vk::UniqueDebugReportCallbackEXT>(vk::su::createDebugReportCallback(*_instance));
+#endif
   }
 
-  VulkanContext::Resource resource;
-  resource.instance = _instance;
-  VkResult res;
-
-  uint32_t gpu_count = 1;
-  res = vkEnumeratePhysicalDevices(*resource.instance, &gpu_count, &resource.gpu);
-  if (res != VK_SUCCESS && res != VK_INCOMPLETE) {
-    LOGE << "vkEnumeratePhysicalDevices failed " << res;
-    return nullptr;
-  }
-  auto device = resource.device = createVulkanDevice(resource.gpu);
-
-  vkGetDeviceQueue(device->device, device->graphicsQueueFamilyIndex, 0, &resource.queue);
-
-  res = glfwCreateWindowSurface(*resource.instance, window, 0, &resource.surface);
+  VkSurfaceKHR surface;
+  auto res = glfwCreateWindowSurface(_instance->get(), window, 0, &surface);
   if (VK_SUCCESS != res) {
     LOGE << "glfwCreateWindowSurface failed";
     return nullptr;
   }
 
-  VkExtent2D windowExtent;
+  vk::Extent2D windowExtent;
   glfwGetWindowSize(window, (int*)(&windowExtent.width), (int*)(&windowExtent.height));
-  resource.frameBuffer = createFrameBuffers(device, resource.surface, resource.queue, windowExtent, 0);
-  resource.cmdBuffer = createCmdBuffer(device->device, device->commandPool);
 
-  std::unique_ptr<VulkanContext> context(new VulkanContext(resource));
+  std::unique_ptr<VulkanContext> context(new VulkanContext(_instance, surface, windowExtent, _debugReportCallback));
   if (!context) {
     LOGE << "Could not create render context.";
     return nullptr;
