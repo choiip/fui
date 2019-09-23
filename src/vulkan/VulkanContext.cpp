@@ -14,9 +14,9 @@ struct VulkanContext::Private {
   std::shared_ptr<vk::UniqueInstance> instance;
   vk::SurfaceKHR surface;
   vk::PhysicalDevice gpu;
-  VulkanDevice* device;
+  vk::UniqueDevice device;
   vk::UniqueCommandPool commandPool;
-  vk::Queue queue;
+  vk::Queue graphicsQueue;
   FrameBuffers frameBuffer;
   vk::UniqueCommandBuffer commandBuffer;
   vk::UniqueSemaphore presentComplete;
@@ -39,19 +39,36 @@ VulkanContext::VulkanContext(const std::shared_ptr<vk::UniqueInstance>& instance
   } else {
     LOGE << "vkEnumeratePhysicalDevices failed ";
   }
-  auto device = _p->device = createVulkanDevice(_p->gpu);
+
+  auto queueIndices = vk::su::findGraphicsAndPresentQueueFamilyIndex(_p->gpu, surface);
+  auto graphicsQueueFamilyIndex = queueIndices.first;
+  auto presentQueueFamilyIndex = queueIndices.second;
+  assert(graphicsQueueFamilyIndex == presentQueueFamilyIndex);  //TODO: make it better
+
+  constexpr float queuePriorities[] = {0.f};
+  vk::DeviceQueueCreateInfo deviceQueueCreateInfo(vk::DeviceQueueCreateFlags(),
+                                                  graphicsQueueFamilyIndex,
+                                                  1, queuePriorities);
+  const char* deviceExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+  constexpr auto deviceExtensionsCount = sizeof(deviceExtensions) / sizeof(deviceExtensions[0]);
+  vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(),
+                                        1, &deviceQueueCreateInfo,
+                                        0, nullptr,
+                                        deviceExtensionsCount, deviceExtensions);
+  _p->device = _p->gpu.createDeviceUnique(deviceCreateInfo);
+
+  auto d = _p->device.get();
 
   /* Create a command pool to allocate our command buffer from */
-  vk::Device d(device->device);
-  _p->commandPool = d.createCommandPoolUnique({vk::CommandPoolCreateFlagBits::eResetCommandBuffer, device->graphicsQueueFamilyIndex});
-  _p->queue = d.getQueue(device->graphicsQueueFamilyIndex, 0);
+  _p->commandPool = d.createCommandPoolUnique({vk::CommandPoolCreateFlagBits::eResetCommandBuffer, graphicsQueueFamilyIndex});
+  _p->graphicsQueue = d.getQueue(graphicsQueueFamilyIndex, 0);
 
-  _p->frameBuffer = createFrameBuffers(device, _p->commandPool.get(), surface, _p->queue, windowExtent, 0);
+  _p->frameBuffer = createFrameBuffers(_p->gpu, _p->device.get(), _p->commandPool.get(), surface, _p->graphicsQueue, windowExtent, 0);
+  _p->presentComplete = d.createSemaphoreUnique(vk::SemaphoreCreateInfo());
+  _p->renderComplete = d.createSemaphoreUnique(vk::SemaphoreCreateInfo());
 
   auto commandBuffers = d.allocateCommandBuffersUnique({_p->commandPool.get(), vk::CommandBufferLevel::ePrimary, 1});
   _p->commandBuffer = std::move(commandBuffers[0]);
-  _p->presentComplete = d.createSemaphoreUnique(vk::SemaphoreCreateInfo());
-  _p->renderComplete = d.createSemaphoreUnique(vk::SemaphoreCreateInfo());
 }
 
 VulkanContext::~VulkanContext() {
@@ -60,12 +77,12 @@ VulkanContext::~VulkanContext() {
   _p->renderComplete.reset();
   _p->presentComplete.reset();
 
-  destroyFrameBuffers(_p->device, &_p->frameBuffer);
+  destroyFrameBuffers(_p->device.get(), &_p->frameBuffer);
 
   _p->commandBuffer.reset();
   _p->commandPool.reset();
 
-  destroyVulkanDevice(_p->device);
+  _p->device.reset();
 
   _p->instance->get().destroySurfaceKHR(_p->surface, NULL);
 }
@@ -76,9 +93,9 @@ Status VulkanContext::initVG() {
   }
   VKNVGCreateInfo createInfo = {0};
   createInfo.gpu = _p->gpu;
-  createInfo.device = _p->device->device;
+  createInfo.device = _p->device.get();
   createInfo.commandPool = _p->commandPool.get();
-  createInfo.queue = _p->queue;
+  createInfo.queue = _p->graphicsQueue;
   createInfo.renderpass = _p->frameBuffer.render_pass;
   createInfo.cmdBuffer = _p->commandBuffer.get();
   int flag = NVG_ANTIALIAS | NVG_STENCIL_STROKES;
@@ -132,7 +149,7 @@ auto VulkanContext::preDraw(const Color* clearColor, const float* clearDepth, co
   renderPassBeginInfo.clearValueCount = 2;
   renderPassBeginInfo.pClearValues = clearValues;
   
-  vk::Device d(_p->device->device);
+  vk::Device d = _p->device.get();
   vk::SwapchainKHR swapchain(fb.swap_chain);
   // Get the index of the next available swapchain image:
   d.acquireNextImageKHR(swapchain, vk::su::FenceTimeout, _p->presentComplete.get(), nullptr, &fb.current_buffer);
@@ -168,7 +185,7 @@ auto VulkanContext::postDraw() -> decltype(this) {
                             1, &_p->renderComplete.get());
 
   /* Queue the command buffer for execution */
-  _p->queue.submit(submitInfo, nullptr);
+  _p->graphicsQueue.submit(submitInfo, nullptr);
 
   /* Now present the image in the window */
   vk::SwapchainKHR swapChain(fb.swap_chain);
@@ -176,9 +193,9 @@ auto VulkanContext::postDraw() -> decltype(this) {
                                  1, &swapChain,
                                  &fb.current_buffer);
 
-  _p->queue.presentKHR(presentInfo);
+  _p->graphicsQueue.presentKHR(presentInfo);
   
-  _p->queue.waitIdle();
+  _p->graphicsQueue.waitIdle();
 
   return this;
 }

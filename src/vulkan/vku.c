@@ -4,58 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-VulkanDevice* createVulkanDevice(VkPhysicalDevice gpu) {
-  VulkanDevice* device = (VulkanDevice*)malloc(sizeof(VulkanDevice));
-  memset(device, 0, sizeof(VulkanDevice));
-
-  device->gpu = gpu;
-  vkGetPhysicalDeviceMemoryProperties(gpu, &device->memoryProperties);
-
-  VkQueueFamilyProperties* queueFamilyProperties;
-  uint32_t queueFamilyPropertiesCount;
-
-  vkGetPhysicalDeviceQueueFamilyProperties(gpu, &queueFamilyPropertiesCount, NULL);
-  assert(queueFamilyPropertiesCount >= 1);
-
-  queueFamilyProperties =
-      (VkQueueFamilyProperties*)malloc(queueFamilyPropertiesCount * sizeof(VkQueueFamilyProperties));
-
-  vkGetPhysicalDeviceQueueFamilyProperties(gpu, &queueFamilyPropertiesCount, queueFamilyProperties);
-  assert(queueFamilyPropertiesCount >= 1);
-
-  device->graphicsQueueFamilyIndex = UINT32_MAX;
-  for (uint32_t i = 0; i < queueFamilyPropertiesCount; ++i) {
-    if ((queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
-      device->graphicsQueueFamilyIndex = i;
-    }
-  }
-  free(queueFamilyProperties);
-
-  float queuePriorities[1] = {0.0};
-  VkDeviceQueueCreateInfo queue_info = {VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
-  queue_info.queueCount = 1;
-  queue_info.pQueuePriorities = queuePriorities;
-  queue_info.queueFamilyIndex = device->graphicsQueueFamilyIndex;
-
-  const char* deviceExtensions[] = {
-      VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-  };
-  VkDeviceCreateInfo deviceInfo = {VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
-  deviceInfo.queueCreateInfoCount = 1;
-  deviceInfo.pQueueCreateInfos = &queue_info;
-  deviceInfo.enabledExtensionCount = sizeof(deviceExtensions) / sizeof(deviceExtensions[0]);
-  deviceInfo.ppEnabledExtensionNames = deviceExtensions;
-  VK_CHECK_RESULT(vkCreateDevice(gpu, &deviceInfo, NULL, &device->device));
-  
-  return device;
-}
-void destroyVulkanDevice(VulkanDevice* device) {
-  if (device->device) {
-    vkDestroyDevice(device->device, 0);
-  }
-  free(device);
-}
-
 VkCommandBuffer createCmdBuffer(VkDevice device, VkCommandPool cmd_pool) {
   VkCommandBufferAllocateInfo cmd = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
   cmd.commandPool = cmd_pool;
@@ -103,12 +51,12 @@ VkBool32 memory_type_from_properties(VkPhysicalDeviceMemoryProperties memoryProp
   // No memory types matched, return failure
   return VK_FALSE;
 }
-DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height, VkFormat format) {
+DepthBuffer createDepthBuffer(VkPhysicalDevice gpu, VkDevice device, int width, int height, VkFormat format) {
   DepthBuffer depth;
   depth.format = format;
 
   VkFormatProperties fprops;
-  vkGetPhysicalDeviceFormatProperties(device->gpu, format, &fprops);
+  vkGetPhysicalDeviceFormatProperties(gpu, format, &fprops);
   VkImageTiling image_tilling;
   if (fprops.linearTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
     image_tilling = VK_IMAGE_TILING_LINEAR;
@@ -158,26 +106,27 @@ DepthBuffer createDepthBuffer(const VulkanDevice* device, int width, int height,
   VkMemoryRequirements mem_reqs;
 
   /* Create image */
-  VK_CHECK_RESULT(vkCreateImage(device->device, &image_info, NULL, &depth.image));
+  VK_CHECK_RESULT(vkCreateImage(device, &image_info, NULL, &depth.image));
 
-  vkGetImageMemoryRequirements(device->device, depth.image, &mem_reqs);
+  vkGetImageMemoryRequirements(device, depth.image, &mem_reqs);
 
   mem_alloc.allocationSize = mem_reqs.size;
   /* Use the memory properties to determine the type of memory required */
-
-  VkBool32 pass = memory_type_from_properties(device->memoryProperties, mem_reqs.memoryTypeBits,
+  VkPhysicalDeviceMemoryProperties memoryProperties;
+  vkGetPhysicalDeviceMemoryProperties(gpu, &memoryProperties);
+  VkBool32 pass = memory_type_from_properties(memoryProperties, mem_reqs.memoryTypeBits,
                                               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &mem_alloc.memoryTypeIndex);
   assert(pass);
 
   /* Allocate memory */
-  VK_CHECK_RESULT(vkAllocateMemory(device->device, &mem_alloc, NULL, &depth.mem));
+  VK_CHECK_RESULT(vkAllocateMemory(device, &mem_alloc, NULL, &depth.mem));
 
   /* Bind memory */
-  VK_CHECK_RESULT(vkBindImageMemory(device->device, depth.image, depth.mem, 0));
+  VK_CHECK_RESULT(vkBindImageMemory(device, depth.image, depth.mem, 0));
 
   /* Create image view */
   view_info.image = depth.image;
-  VK_CHECK_RESULT(vkCreateImageView(device->device, &view_info, NULL, &depth.view));
+  VK_CHECK_RESULT(vkCreateImageView(device, &view_info, NULL, &depth.view));
 
   return depth;
 }
@@ -384,24 +333,18 @@ VkRenderPass createRenderPass(VkDevice device, VkFormat color_format, VkFormat d
   return render_pass;
 }
 
-FrameBuffers createFrameBuffers(const VulkanDevice* device, VkCommandPool commandPool, VkSurfaceKHR surface, VkQueue queue, 
+FrameBuffers createFrameBuffers(VkPhysicalDevice gpu, VkDevice device, VkCommandPool commandPool, VkSurfaceKHR surface, VkQueue queue, 
                                 VkExtent2D windowExtent, VkSwapchainKHR oldSwapchain) {
-  VkBool32 supportsPresent;
-  vkGetPhysicalDeviceSurfaceSupportKHR(device->gpu, device->graphicsQueueFamilyIndex, surface, &supportsPresent);
-  if (!supportsPresent) {
-    exit(-1); // does not supported.
-  }
-
-  VkCommandBuffer setup_cmd_buffer = createAndBeginLocalCommandBuffer(device->device, commandPool);
+  VkCommandBuffer setup_cmd_buffer = createAndBeginLocalCommandBuffer(device, commandPool);
 
   VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
   VkColorSpaceKHR colorSpace;
   {
     // Get the list of VkFormats that are supported:
     uint32_t formatCount;
-    VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(device->gpu, surface, &formatCount, NULL));
+    VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(gpu, surface, &formatCount, NULL));
     VkSurfaceFormatKHR* surfFormats = (VkSurfaceFormatKHR*)malloc(formatCount * sizeof(VkSurfaceFormatKHR));
-    VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(device->gpu, surface, &formatCount, surfFormats));
+    VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(gpu, surface, &formatCount, surfFormats));
     // If the format list includes just one entry of VK_FORMAT_UNDEFINED,
     // the surface has no preferred format.  Otherwise, at least one
     // supported format will be returned.
@@ -417,7 +360,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkCommandPool comman
 
   // Check the surface capabilities and formats
   VkSurfaceCapabilitiesKHR surfCapabilities;
-  VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device->gpu, surface, &surfCapabilities));
+  VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu, surface, &surfCapabilities));
 
   VkExtent2D buffer_size;
   // width and height are either both -1, or both not -1.
@@ -428,18 +371,18 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkCommandPool comman
     buffer_size = surfCapabilities.currentExtent;
   }
 
-  DepthBuffer depth = createDepthBuffer(device, buffer_size.width, buffer_size.height, VK_FORMAT_D24_UNORM_S8_UINT);
+  DepthBuffer depth = createDepthBuffer(gpu, device, buffer_size.width, buffer_size.height, VK_FORMAT_D24_UNORM_S8_UINT);
 
-  VkRenderPass render_pass = createRenderPass(device->device, colorFormat, depth.format);
+  VkRenderPass render_pass = createRenderPass(device, colorFormat, depth.format);
 
   VkPresentModeKHR swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 
   uint32_t presentModeCount;
-  vkGetPhysicalDeviceSurfacePresentModesKHR(device->gpu, surface, &presentModeCount, NULL);
+  vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface, &presentModeCount, NULL);
   assert(presentModeCount > 0);
 
   VkPresentModeKHR* presentModes = (VkPresentModeKHR*)malloc(sizeof(VkPresentModeKHR) * presentModeCount);
-  vkGetPhysicalDeviceSurfacePresentModesKHR(device->gpu, surface, &presentModeCount, presentModes);
+  vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface, &presentModeCount, presentModes);
 
   for (size_t i = 0; i < presentModeCount; i++) {
     if (presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
@@ -484,24 +427,24 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkCommandPool comman
   swapchainInfo.clipped = VK_TRUE;
 
   VkSwapchainKHR swap_chain;
-  VK_CHECK_RESULT(vkCreateSwapchainKHR(device->device, &swapchainInfo, NULL, &swap_chain));
+  VK_CHECK_RESULT(vkCreateSwapchainKHR(device, &swapchainInfo, NULL, &swap_chain));
 
   if (oldSwapchain != VK_NULL_HANDLE) {
-    vkDestroySwapchainKHR(device->device, oldSwapchain, NULL);
+    vkDestroySwapchainKHR(device, oldSwapchain, NULL);
   }
 
   uint32_t swapchain_image_count;
-  VK_CHECK_RESULT(vkGetSwapchainImagesKHR(device->device, swap_chain, &swapchain_image_count, NULL));
+  VK_CHECK_RESULT(vkGetSwapchainImagesKHR(device, swap_chain, &swapchain_image_count, NULL));
 
   VkImage* swapchainImages = (VkImage*)malloc(swapchain_image_count * sizeof(VkImage));
 
   assert(swapchainImages);
 
-  VK_CHECK_RESULT(vkGetSwapchainImagesKHR(device->device, swap_chain, &swapchain_image_count, swapchainImages));
+  VK_CHECK_RESULT(vkGetSwapchainImagesKHR(device, swap_chain, &swapchain_image_count, swapchainImages));
 
   SwapchainBuffers* swap_chain_buffers = (SwapchainBuffers*)malloc(swapchain_image_count * sizeof(SwapchainBuffers));
   for (uint32_t i = 0; i < swapchain_image_count; i++) {
-    swap_chain_buffers[i] = createSwapchainBuffers(device->device, colorFormat, setup_cmd_buffer, swapchainImages[i]);
+    swap_chain_buffers[i] = createSwapchainBuffers(device, colorFormat, setup_cmd_buffer, swapchainImages[i]);
   }
   free(swapchainImages);
 
@@ -522,13 +465,13 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkCommandPool comman
 
   for (i = 0; i < swapchain_image_count; i++) {
     attachments[0] = swap_chain_buffers[i].view;
-    VK_CHECK_RESULT(vkCreateFramebuffer(device->device, &fb_info, NULL, &framebuffers[i]));
+    VK_CHECK_RESULT(vkCreateFramebuffer(device, &fb_info, NULL, &framebuffers[i]));
   }
 
   endCommandAndSubmitToQueue(setup_cmd_buffer, queue);
   vkQueueWaitIdle(queue);
 
-  vkFreeCommandBuffers(device->device, commandPool, 1, &setup_cmd_buffer);
+  vkFreeCommandBuffers(device, commandPool, 1, &setup_cmd_buffer);
 
   FrameBuffers buffer = {0};
   buffer.swap_chain = swap_chain;
@@ -543,18 +486,18 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkCommandPool comman
 
   return buffer;
 }
-void destroyFrameBuffers(const VulkanDevice* device, FrameBuffers* buffer) {
+void destroyFrameBuffers(VkDevice device, FrameBuffers* buffer) {
   for (int i = 0; i < buffer->swapchain_image_count; ++i) {
-    vkDestroyImageView(device->device, buffer->swap_chain_buffers[i].view, 0);
-    vkDestroyFramebuffer(device->device, buffer->framebuffers[i], 0);
+    vkDestroyImageView(device, buffer->swap_chain_buffers[i].view, 0);
+    vkDestroyFramebuffer(device, buffer->framebuffers[i], 0);
   }
 
-  vkDestroyImageView(device->device, buffer->depth.view, 0);
-  vkDestroyImage(device->device, buffer->depth.image, 0);
-  vkFreeMemory(device->device, buffer->depth.mem, 0);
+  vkDestroyImageView(device, buffer->depth.view, 0);
+  vkDestroyImage(device, buffer->depth.image, 0);
+  vkFreeMemory(device, buffer->depth.mem, 0);
 
-  vkDestroyRenderPass(device->device, buffer->render_pass, 0);
-  vkDestroySwapchainKHR(device->device, buffer->swap_chain, 0);
+  vkDestroyRenderPass(device, buffer->render_pass, 0);
+  vkDestroySwapchainKHR(device, buffer->swap_chain, 0);
 
   free(buffer->framebuffers);
   free(buffer->swap_chain_buffers);
