@@ -357,7 +357,7 @@ namespace vk
 
     vk::Format pickDepthFormat(vk::PhysicalDevice const& physicalDevice)
     {
-      std::vector<vk::Format> candidates = {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint};
+      std::vector<vk::Format> candidates = {vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint, vk::Format::eD32Sfloat};
       for (vk::Format format : candidates)
       {
         vk::FormatProperties props = physicalDevice.getFormatProperties(format);

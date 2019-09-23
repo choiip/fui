@@ -16,10 +16,12 @@ public:
                 const std::shared_ptr<vk::UniqueDebugReportCallbackEXT>& debugReportCallback);
   ~VulkanContext();
 
+  Status initSwapchain(const vk::SurfaceKHR& surface, const vk::Extent2D& windowExtent);
+  Status initFramebuffer(const vk::Extent2D& extent);
   Status initVG();
 
   virtual auto setViewport(int x, int y, int width, int height) -> decltype(this) override;
-  virtual auto preDraw(const Color* clearColor = nullptr, const float* clearDepth = nullptr, const int* clearStencil = nullptr) -> decltype(this) override;
+  virtual auto preDraw(const Recti& renderArea, const Color* clearColor = nullptr, const float* clearDepth = nullptr, const int* clearStencil = nullptr) -> decltype(this) override;
   virtual auto postDraw() -> decltype(this) override;
 
 protected:

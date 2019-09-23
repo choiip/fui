@@ -149,7 +149,7 @@ protected:
     // Calculate pixel ration for hi-dpi devices.
     pxRatio = (float)fbWidth / (float)winWidth;
 
-    _vulkanContext->preDraw();
+    _vulkanContext->preDraw({ 0, 0, fbWidth, fbHeight });
 
     nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
 
@@ -161,7 +161,6 @@ protected:
     // if (gpuTimer.supported)
     // 	renderGraph(vg, 5+200+5+200+5,5, &gpuGraph);
 
-    _vulkanContext->setViewport(0, 0, fbWidth, fbHeight);
     nvgEndFrame(vg);
 
     // Measure the CPU time taken excluding swap buffers (as the swap may wait

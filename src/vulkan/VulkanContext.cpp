@@ -1,7 +1,5 @@
 #include "VulkanContext.hpp"
-#include "vku.h"
 #include "vku.hpp"
-#include <vulkan/vulkan.h>
 #define NANOVG_VULKAN_IMPLEMENTATION
 #include "nanovg_vk.h"
 #include "core/Log.hpp"
@@ -13,14 +11,18 @@ namespace fui {
 struct VulkanContext::Private {
   std::shared_ptr<vk::UniqueInstance> instance;
   vk::SurfaceKHR surface;
+  std::shared_ptr<vk::su::SwapChainData> swapchain;
   vk::PhysicalDevice gpu;
   vk::UniqueDevice device;
   vk::UniqueCommandPool commandPool;
   vk::Queue graphicsQueue;
-  FrameBuffers frameBuffer;
   vk::UniqueCommandBuffer commandBuffer;
   vk::UniqueSemaphore presentComplete;
   vk::UniqueSemaphore renderComplete;
+  vk::UniqueRenderPass renderPass;
+  std::vector<vk::UniqueFramebuffer> framebuffers;
+  uint32_t currentBuffer;
+  std::shared_ptr<vk::su::DepthBufferData> depthBuffer;
   std::shared_ptr<vk::UniqueDebugReportCallbackEXT> debugCallback;
 };
 
@@ -63,10 +65,6 @@ VulkanContext::VulkanContext(const std::shared_ptr<vk::UniqueInstance>& instance
   _p->commandPool = d.createCommandPoolUnique({vk::CommandPoolCreateFlagBits::eResetCommandBuffer, graphicsQueueFamilyIndex});
   _p->graphicsQueue = d.getQueue(graphicsQueueFamilyIndex, 0);
 
-  _p->frameBuffer = createFrameBuffers(_p->gpu, _p->device.get(), _p->commandPool.get(), surface, _p->graphicsQueue, windowExtent, 0);
-  _p->presentComplete = d.createSemaphoreUnique(vk::SemaphoreCreateInfo());
-  _p->renderComplete = d.createSemaphoreUnique(vk::SemaphoreCreateInfo());
-
   auto commandBuffers = d.allocateCommandBuffersUnique({_p->commandPool.get(), vk::CommandBufferLevel::ePrimary, 1});
   _p->commandBuffer = std::move(commandBuffers[0]);
 }
@@ -77,7 +75,12 @@ VulkanContext::~VulkanContext() {
   _p->renderComplete.reset();
   _p->presentComplete.reset();
 
-  destroyFrameBuffers(_p->device.get(), &_p->frameBuffer);
+  _p->framebuffers.clear();
+  _p->renderPass.reset();
+  _p->depthBuffer.reset();
+  _p->swapchain.reset();
+
+  // destroyFrameBuffers(_p->device.get(), &_p->frameBuffer);
 
   _p->commandBuffer.reset();
   _p->commandPool.reset();
@@ -85,6 +88,41 @@ VulkanContext::~VulkanContext() {
   _p->device.reset();
 
   _p->instance->get().destroySurfaceKHR(_p->surface, NULL);
+}
+
+Status VulkanContext::initSwapchain(const vk::SurfaceKHR& surface, const vk::Extent2D& windowExtent) {
+  auto queueIndices = vk::su::findGraphicsAndPresentQueueFamilyIndex(_p->gpu, surface);
+  auto graphicsQueueFamilyIndex = queueIndices.first;
+  auto presentQueueFamilyIndex = queueIndices.second;  
+  _p->swapchain = std::make_shared<vk::su::SwapChainData>(_p->gpu, _p->device, 
+                                                          surface, windowExtent,
+                                                          vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc, vk::UniqueSwapchainKHR(), 
+                                                          graphicsQueueFamilyIndex, presentQueueFamilyIndex);
+  return Status::OK;
+}
+
+Status VulkanContext::initFramebuffer(const vk::Extent2D& extent) {
+  vk::Format depthFormat = vk::su::pickDepthFormat(_p->gpu);
+
+  _p->depthBuffer = std::make_shared<vk::su::DepthBufferData>(_p->gpu, 
+                                                              _p->device,
+                                                              depthFormat,
+                                                              extent);
+
+  auto colorFormat = _p->swapchain->colorFormat;
+
+  _p->renderPass = vk::su::createRenderPass(_p->device, colorFormat, depthFormat);
+
+  _p->framebuffers = vk::su::createFramebuffers(_p->device, 
+                                                _p->renderPass, 
+                                                _p->swapchain->imageViews, 
+                                                _p->depthBuffer->imageView, 
+                                                extent);
+
+  _p->presentComplete = _p->device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
+  _p->renderComplete = _p->device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
+
+  return Status::OK;
 }
 
 Status VulkanContext::initVG() {
@@ -96,7 +134,7 @@ Status VulkanContext::initVG() {
   createInfo.device = _p->device.get();
   createInfo.commandPool = _p->commandPool.get();
   createInfo.queue = _p->graphicsQueue;
-  createInfo.renderpass = _p->frameBuffer.render_pass;
+  createInfo.renderpass = _p->renderPass.get();
   createInfo.cmdBuffer = _p->commandBuffer.get();
   int flag = NVG_ANTIALIAS | NVG_STENCIL_STROKES;
 #ifdef NDEBUG
@@ -117,12 +155,17 @@ auto VulkanContext::setViewport(int x, int y, int width, int height) -> decltype
     (float)width, (float)height,
     0.f, 1.f    
   };
+  vk::Rect2D scissor = { {x, y}, {(uint32_t)width, (uint32_t)height}};
   _p->commandBuffer->setViewport(0, 1, &viewport);
+  _p->commandBuffer->setScissor(0, 1, &scissor);
   return this;
 }
 
-auto VulkanContext::preDraw(const Color* clearColor, const float* clearDepth, const int* clearStencil) -> decltype(this) {
-  auto&& fb = _p->frameBuffer;
+auto VulkanContext::preDraw(const Recti& renderArea, const Color* clearColor, const float* clearDepth, const int* clearStencil) -> decltype(this) {
+  auto&& cb = _p->currentBuffer;
+
+  // Get the index of the next available swapchain image:
+  _p->device->acquireNextImageKHR(_p->swapchain->swapChain.get(), vk::su::FenceTimeout, _p->presentComplete.get(), nullptr, &cb);
 
   if (clearColor != nullptr) {
   }
@@ -140,39 +183,23 @@ auto VulkanContext::preDraw(const Color* clearColor, const float* clearDepth, co
 
   vk::RenderPassBeginInfo renderPassBeginInfo;
   renderPassBeginInfo.pNext = NULL;
-  renderPassBeginInfo.renderPass = fb.render_pass;
-  renderPassBeginInfo.framebuffer = fb.framebuffers[fb.current_buffer];
-  renderPassBeginInfo.renderArea.offset.x = 0;
-  renderPassBeginInfo.renderArea.offset.y = 0;
-  renderPassBeginInfo.renderArea.extent.width = fb.buffer_size.width;
-  renderPassBeginInfo.renderArea.extent.height = fb.buffer_size.height;
+  renderPassBeginInfo.renderPass = _p->renderPass.get();
+  renderPassBeginInfo.framebuffer = _p->framebuffers[cb].get();
+  renderPassBeginInfo.renderArea.offset.x = renderArea.x;
+  renderPassBeginInfo.renderArea.offset.y = renderArea.y;
+  renderPassBeginInfo.renderArea.extent.width = renderArea.w;
+  renderPassBeginInfo.renderArea.extent.height = renderArea.h;
   renderPassBeginInfo.clearValueCount = 2;
   renderPassBeginInfo.pClearValues = clearValues;
   
-  vk::Device d = _p->device.get();
-  vk::SwapchainKHR swapchain(fb.swap_chain);
-  // Get the index of the next available swapchain image:
-  d.acquireNextImageKHR(swapchain, vk::su::FenceTimeout, _p->presentComplete.get(), nullptr, &fb.current_buffer);
-
   _p->commandBuffer->begin(vk::CommandBufferBeginInfo());
   _p->commandBuffer->beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 
-  // VkViewport viewport;
-  // viewport.width = fb.buffer_size.width;
-  // viewport.height = fb.buffer_size.height;
-  // viewport.minDepth = (float)0.0f;
-  // viewport.maxDepth = (float)1.0f;
-  // viewport.x = rp_begin.renderArea.offset.x;
-  // viewport.y = rp_begin.renderArea.offset.y;
-  // vkCmdSetViewport(_p->cmdBuffer, 0, 1, &viewport);
-  
-  vk::Rect2D scissor = renderPassBeginInfo.renderArea;
-  _p->commandBuffer->setScissor(0, 1, &scissor);
-  return this;
+  return setViewport(renderArea.x, renderArea.y, renderArea.w, renderArea.h);
 }
 
 auto VulkanContext::postDraw() -> decltype(this) {
-  auto&& fb = _p->frameBuffer;
+  auto&& cb = _p->currentBuffer;
 
   _p->commandBuffer->endRenderPass();
   _p->commandBuffer->end();
@@ -188,10 +215,9 @@ auto VulkanContext::postDraw() -> decltype(this) {
   _p->graphicsQueue.submit(submitInfo, nullptr);
 
   /* Now present the image in the window */
-  vk::SwapchainKHR swapChain(fb.swap_chain);
   vk::PresentInfoKHR presentInfo(1, &_p->renderComplete.get(),
-                                 1, &swapChain,
-                                 &fb.current_buffer);
+                                 1, &_p->swapchain->swapChain.get(),
+                                 &cb);
 
   _p->graphicsQueue.presentKHR(presentInfo);
   

@@ -33,7 +33,8 @@ auto GLES2Context::setViewport(int x, int y, int width, int height) -> decltype(
   return this;
 }
 
-auto GLES2Context::preDraw(const Color* clearColor, const float* clearDepth, const int* clearStencil) -> decltype(this) {
+auto GLES2Context::preDraw(const Recti& renderArea, const Color* clearColor, const float* clearDepth, const int* clearStencil) -> decltype(this) {
+  setViewport(renderArea.x, renderArea.y, renderArea.w, renderArea.h);
   GLbitfield clearBits = 0;
   if (clearColor != nullptr) {
     glClearColor(clearColor->r, clearColor->g, clearColor->b, clearColor->a);

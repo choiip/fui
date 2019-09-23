@@ -156,9 +156,11 @@ protected:
     _progressBar->value(_progress)->text(text);
     _pictureBox->orientation((float)_progress)->fit();
 
+    Recti renderArea = { 0, 0, 0 ,0 };
     Color clearColor = { 0.3f, 0.3f, 0.32f, 1.0f };
+    _renderWindow->getDrawableSize(renderArea.w, renderArea.h);
     auto renderContext = _renderWindow->renderContext();
-    renderContext->preDraw(&clearColor);
+    renderContext->preDraw(renderArea, &clearColor);
 
     _renderWindow->drawGui();
 

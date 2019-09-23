@@ -70,6 +70,14 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
     LOGE << "Could not create render context.";
     return nullptr;
   }
+  if (context->initSwapchain(surface, windowExtent) != Status::OK) {
+    LOGE << "Could not init swapchain";
+    return nullptr;
+  }
+  if (context->initFramebuffer(windowExtent) != Status::OK) {
+    LOGE << "Could not init framebuffer";
+    return nullptr;
+  }
   if (context->initVG() != Status::OK) {
     return nullptr;
   }
