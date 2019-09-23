@@ -21,7 +21,6 @@ typedef struct VulkanDevice {
   uint32_t graphicsQueueFamilyIndex;
 
   VkDevice device;
-  VkCommandPool commandPool;
 } VulkanDevice;
 
 typedef struct SwapchainBuffers {
@@ -51,15 +50,11 @@ typedef struct FrameBuffers {
 
   VkFormat format;
   DepthBuffer depth;
-  VkSemaphore present_complete_semaphore;
-  VkSemaphore render_complete_semaphore;
-
 } FrameBuffers;
 
 VulkanDevice* createVulkanDevice(VkPhysicalDevice gpu);
 void destroyVulkanDevice(VulkanDevice* device);
 
-VkCommandPool createCmdPool(VulkanDevice* device);
 VkCommandBuffer createCmdBuffer(VkDevice device, VkCommandPool cmd_pool);
 VkCommandBuffer createAndBeginLocalCommandBuffer(VkDevice device, VkCommandPool commandPool);
 void endCommandAndSubmitToQueue(VkCommandBuffer commandBuffer, VkQueue queue);
@@ -72,7 +67,7 @@ VkRenderPass createRenderPass(VkDevice device, VkFormat color_format, VkFormat d
 
 SwapchainBuffers createSwapchainBuffers(VkDevice device, VkFormat format, VkCommandBuffer cmdbuffer, VkImage image);
 
-FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface, VkQueue queue,
+FrameBuffers createFrameBuffers(const VulkanDevice* device, VkCommandPool commandPool, VkSurfaceKHR surface, VkQueue queue,
                                 VkExtent2D windowExtent, VkSwapchainKHR oldSwapchain);
 
 void destroyFrameBuffers(const VulkanDevice* device, FrameBuffers* buffer);

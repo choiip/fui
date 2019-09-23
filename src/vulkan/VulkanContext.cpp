@@ -1,5 +1,6 @@
 #include "VulkanContext.hpp"
 #include "vku.h"
+#include "vku.hpp"
 #include <vulkan/vulkan.h>
 #define NANOVG_VULKAN_IMPLEMENTATION
 #include "nanovg_vk.h"
@@ -12,11 +13,14 @@ namespace fui {
 struct VulkanContext::Private {
   std::shared_ptr<vk::UniqueInstance> instance;
   vk::SurfaceKHR surface;
-  VkPhysicalDevice gpu;
+  vk::PhysicalDevice gpu;
   VulkanDevice* device;
-  VkQueue queue;
+  vk::UniqueCommandPool commandPool;
+  vk::Queue queue;
   FrameBuffers frameBuffer;
-  VkCommandBuffer cmdBuffer;
+  vk::UniqueCommandBuffer commandBuffer;
+  vk::UniqueSemaphore presentComplete;
+  vk::UniqueSemaphore renderComplete;
   std::shared_ptr<vk::UniqueDebugReportCallbackEXT> debugCallback;
 };
 
@@ -29,27 +33,41 @@ VulkanContext::VulkanContext(const std::shared_ptr<vk::UniqueInstance>& instance
   _p->instance = instance;
   _p->surface = surface;
   _p->debugCallback = debugReportCallback;
-  uint32_t gpu_count = 1;
-  VkResult res = vkEnumeratePhysicalDevices(instance->get(), &gpu_count, &_p->gpu);
-  if (res != VK_SUCCESS && res != VK_INCOMPLETE) {
-    LOGE << "vkEnumeratePhysicalDevices failed " << res;
+  auto gpuResult = instance->get().enumeratePhysicalDevices();
+  if (!gpuResult.empty()) {
+    _p->gpu = gpuResult[0];
+  } else {
+    LOGE << "vkEnumeratePhysicalDevices failed ";
   }
   auto device = _p->device = createVulkanDevice(_p->gpu);
 
-  vkGetDeviceQueue(device->device, device->graphicsQueueFamilyIndex, 0, &_p->queue);
+  /* Create a command pool to allocate our command buffer from */
+  vk::Device d(device->device);
+  _p->commandPool = d.createCommandPoolUnique({vk::CommandPoolCreateFlagBits::eResetCommandBuffer, device->graphicsQueueFamilyIndex});
+  _p->queue = d.getQueue(device->graphicsQueueFamilyIndex, 0);
 
-  _p->frameBuffer = createFrameBuffers(device, surface, _p->queue, windowExtent, 0);
-  _p->cmdBuffer = createCmdBuffer(device->device, device->commandPool);
+  _p->frameBuffer = createFrameBuffers(device, _p->commandPool.get(), surface, _p->queue, windowExtent, 0);
+
+  auto commandBuffers = d.allocateCommandBuffersUnique({_p->commandPool.get(), vk::CommandBufferLevel::ePrimary, 1});
+  _p->commandBuffer = std::move(commandBuffers[0]);
+  _p->presentComplete = d.createSemaphoreUnique(vk::SemaphoreCreateInfo());
+  _p->renderComplete = d.createSemaphoreUnique(vk::SemaphoreCreateInfo());
 }
 
 VulkanContext::~VulkanContext() {
   nvgDeleteVk(vg());
 
+  _p->renderComplete.reset();
+  _p->presentComplete.reset();
+
   destroyFrameBuffers(_p->device, &_p->frameBuffer);
+
+  _p->commandBuffer.reset();
+  _p->commandPool.reset();
 
   destroyVulkanDevice(_p->device);
 
-  vkDestroySurfaceKHR(_p->instance->get(), _p->surface, NULL);
+  _p->instance->get().destroySurfaceKHR(_p->surface, NULL);
 }
 
 Status VulkanContext::initVG() {
@@ -59,10 +77,10 @@ Status VulkanContext::initVG() {
   VKNVGCreateInfo createInfo = {0};
   createInfo.gpu = _p->gpu;
   createInfo.device = _p->device->device;
-  createInfo.commandPool = _p->device->commandPool;
+  createInfo.commandPool = _p->commandPool.get();
   createInfo.queue = _p->queue;
   createInfo.renderpass = _p->frameBuffer.render_pass;
-  createInfo.cmdBuffer = _p->cmdBuffer;
+  createInfo.cmdBuffer = _p->commandBuffer.get();
   int flag = NVG_ANTIALIAS | NVG_STENCIL_STROKES;
 #ifdef NDEBUG
   flag |= NVG_DEBUG;
@@ -77,18 +95,17 @@ Status VulkanContext::initVG() {
 }
 
 auto VulkanContext::setViewport(int x, int y, int width, int height) -> decltype(this) {
-  VkViewport viewport = {
+  vk::Viewport viewport = {
     (float)x, (float)y,
     (float)width, (float)height,
     0.f, 1.f    
   };
-  vkCmdSetViewport(_p->cmdBuffer, 0, 1, &viewport);
+  _p->commandBuffer->setViewport(0, 1, &viewport);
   return this;
 }
 
 auto VulkanContext::preDraw(const Color* clearColor, const float* clearDepth, const int* clearStencil) -> decltype(this) {
   auto&& fb = _p->frameBuffer;
-  VkResult res;
 
   if (clearColor != nullptr) {
   }
@@ -96,37 +113,32 @@ auto VulkanContext::preDraw(const Color* clearColor, const float* clearDepth, co
   }
   if (clearStencil != nullptr) {
   }
-  VkClearValue clear_values[2];
-  clear_values[0].color.float32[0] = 0.3f;
-  clear_values[0].color.float32[1] = 0.3f;
-  clear_values[0].color.float32[2] = 0.32f;
-  clear_values[0].color.float32[3] = 1.0f;
-  clear_values[1].depthStencil.depth = 1.0f;
-  clear_values[1].depthStencil.stencil = 0;
+  vk::ClearValue clearValues[2];
+  clearValues[0].color.float32[0] = 0.3f;
+  clearValues[0].color.float32[1] = 0.3f;
+  clearValues[0].color.float32[2] = 0.32f;
+  clearValues[0].color.float32[3] = 1.0f;
+  clearValues[1].depthStencil.depth = 1.0f;
+  clearValues[1].depthStencil.stencil = 0;
 
-  VkRenderPassBeginInfo rp_begin;
-  rp_begin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-  rp_begin.pNext = NULL;
-  rp_begin.renderPass = fb.render_pass;
-  rp_begin.framebuffer = fb.framebuffers[fb.current_buffer];
-  rp_begin.renderArea.offset.x = 0;
-  rp_begin.renderArea.offset.y = 0;
-  rp_begin.renderArea.extent.width = fb.buffer_size.width;
-  rp_begin.renderArea.extent.height = fb.buffer_size.height;
-  rp_begin.clearValueCount = 2;
-  rp_begin.pClearValues = clear_values;
+  vk::RenderPassBeginInfo renderPassBeginInfo;
+  renderPassBeginInfo.pNext = NULL;
+  renderPassBeginInfo.renderPass = fb.render_pass;
+  renderPassBeginInfo.framebuffer = fb.framebuffers[fb.current_buffer];
+  renderPassBeginInfo.renderArea.offset.x = 0;
+  renderPassBeginInfo.renderArea.offset.y = 0;
+  renderPassBeginInfo.renderArea.extent.width = fb.buffer_size.width;
+  renderPassBeginInfo.renderArea.extent.height = fb.buffer_size.height;
+  renderPassBeginInfo.clearValueCount = 2;
+  renderPassBeginInfo.pClearValues = clearValues;
   
+  vk::Device d(_p->device->device);
+  vk::SwapchainKHR swapchain(fb.swap_chain);
   // Get the index of the next available swapchain image:
-  res = vkAcquireNextImageKHR(_p->device->device, fb.swap_chain, UINT64_MAX, fb.present_complete_semaphore, 0,
-                              &fb.current_buffer);
-  assert(res == VK_SUCCESS);
+  d.acquireNextImageKHR(swapchain, vk::su::FenceTimeout, _p->presentComplete.get(), nullptr, &fb.current_buffer);
 
-  const VkCommandBufferBeginInfo cmd_buf_info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
-  res = vkBeginCommandBuffer(_p->cmdBuffer, &cmd_buf_info);
-  assert(res == VK_SUCCESS);  
-  
-  
-  vkCmdBeginRenderPass(_p->cmdBuffer, &rp_begin, VK_SUBPASS_CONTENTS_INLINE);
+  _p->commandBuffer->begin(vk::CommandBufferBeginInfo());
+  _p->commandBuffer->beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 
   // VkViewport viewport;
   // viewport.width = fb.buffer_size.width;
@@ -137,50 +149,36 @@ auto VulkanContext::preDraw(const Color* clearColor, const float* clearDepth, co
   // viewport.y = rp_begin.renderArea.offset.y;
   // vkCmdSetViewport(_p->cmdBuffer, 0, 1, &viewport);
   
-  VkRect2D scissor = rp_begin.renderArea;
-  vkCmdSetScissor(_p->cmdBuffer, 0, 1, &scissor);
+  vk::Rect2D scissor = renderPassBeginInfo.renderArea;
+  _p->commandBuffer->setScissor(0, 1, &scissor);
   return this;
 }
 
 auto VulkanContext::postDraw() -> decltype(this) {
   auto&& fb = _p->frameBuffer;
-  VkResult res;
 
-  vkCmdEndRenderPass(_p->cmdBuffer);
+  _p->commandBuffer->endRenderPass();
+  _p->commandBuffer->end();
 
-  vkEndCommandBuffer(_p->cmdBuffer);
+  vk::PipelineStageFlags pipelineStageFlags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
-  VkPipelineStageFlags pipe_stage_flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-  VkSubmitInfo submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
-  submit_info.pNext = NULL;
-  submit_info.waitSemaphoreCount = 1;
-  submit_info.pWaitSemaphores = &fb.present_complete_semaphore;
-  submit_info.pWaitDstStageMask = &pipe_stage_flags;
-  submit_info.commandBufferCount = 1;
-  submit_info.pCommandBuffers = &_p->cmdBuffer;
-  submit_info.signalSemaphoreCount = 1;
-  submit_info.pSignalSemaphores = &fb.render_complete_semaphore;
+  vk::SubmitInfo submitInfo(1, &_p->presentComplete.get(),
+                            &pipelineStageFlags,
+                            1, &_p->commandBuffer.get(),
+                            1, &_p->renderComplete.get());
 
   /* Queue the command buffer for execution */
-  res = vkQueueSubmit(_p->queue, 1, &submit_info, 0);
-  assert(res == VK_SUCCESS);
+  _p->queue.submit(submitInfo, nullptr);
 
   /* Now present the image in the window */
+  vk::SwapchainKHR swapChain(fb.swap_chain);
+  vk::PresentInfoKHR presentInfo(1, &_p->renderComplete.get(),
+                                 1, &swapChain,
+                                 &fb.current_buffer);
 
-  VkPresentInfoKHR present = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
-  present.pNext = NULL;
-  present.swapchainCount = 1;
-  present.pSwapchains = &fb.swap_chain;
-  present.pImageIndices = &fb.current_buffer;
-  present.waitSemaphoreCount = 1;
-  present.pWaitSemaphores = &fb.render_complete_semaphore;
-
-  res = vkQueuePresentKHR(_p->queue, &present);
-  assert(res == VK_SUCCESS);
-
-  res = vkQueueWaitIdle(_p->queue);
-  assert(res == VK_SUCCESS);
+  _p->queue.presentKHR(presentInfo);
+  
+  _p->queue.waitIdle();
 
   return this;
 }

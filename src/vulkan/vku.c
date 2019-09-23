@@ -47,32 +47,13 @@ VulkanDevice* createVulkanDevice(VkPhysicalDevice gpu) {
   deviceInfo.ppEnabledExtensionNames = deviceExtensions;
   VK_CHECK_RESULT(vkCreateDevice(gpu, &deviceInfo, NULL, &device->device));
   
-  /* Create a command pool to allocate our command buffer from */
-  VkCommandPoolCreateInfo cmd_pool_info = {VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
-  cmd_pool_info.queueFamilyIndex = device->graphicsQueueFamilyIndex;
-  cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-  VK_CHECK_RESULT(vkCreateCommandPool(device->device, &cmd_pool_info, NULL, &device->commandPool));
-
   return device;
 }
 void destroyVulkanDevice(VulkanDevice* device) {
-  if (device->commandPool) {
-    vkDestroyCommandPool(device->device, device->commandPool, 0);
-  }
   if (device->device) {
     vkDestroyDevice(device->device, 0);
   }
   free(device);
-}
-
-VkCommandPool createCmdPool(VulkanDevice* device) {
-  /* Create a command pool to allocate our command buffer from */
-  VkCommandPoolCreateInfo cmd_pool_info = {VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
-  cmd_pool_info.queueFamilyIndex = device->graphicsQueueFamilyIndex;
-  cmd_pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-  VkCommandPool cmd_pool;
-  VK_CHECK_RESULT(vkCreateCommandPool(device->device, &cmd_pool_info, NULL, &cmd_pool));
-  return cmd_pool;
 }
 
 VkCommandBuffer createCmdBuffer(VkDevice device, VkCommandPool cmd_pool) {
@@ -403,7 +384,7 @@ VkRenderPass createRenderPass(VkDevice device, VkFormat color_format, VkFormat d
   return render_pass;
 }
 
-FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface, VkQueue queue, 
+FrameBuffers createFrameBuffers(const VulkanDevice* device, VkCommandPool commandPool, VkSurfaceKHR surface, VkQueue queue, 
                                 VkExtent2D windowExtent, VkSwapchainKHR oldSwapchain) {
   VkBool32 supportsPresent;
   vkGetPhysicalDeviceSurfaceSupportKHR(device->gpu, device->graphicsQueueFamilyIndex, surface, &supportsPresent);
@@ -411,7 +392,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface
     exit(-1); // does not supported.
   }
 
-  VkCommandBuffer setup_cmd_buffer = createAndBeginLocalCommandBuffer(device->device, device->commandPool);
+  VkCommandBuffer setup_cmd_buffer = createAndBeginLocalCommandBuffer(device->device, commandPool);
 
   VkFormat colorFormat = VK_FORMAT_B8G8R8A8_UNORM;
   VkColorSpaceKHR colorSpace;
@@ -547,7 +528,7 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface
   endCommandAndSubmitToQueue(setup_cmd_buffer, queue);
   vkQueueWaitIdle(queue);
 
-  vkFreeCommandBuffers(device->device, device->commandPool, 1, &setup_cmd_buffer);
+  vkFreeCommandBuffers(device->device, commandPool, 1, &setup_cmd_buffer);
 
   FrameBuffers buffer = {0};
   buffer.swap_chain = swap_chain;
@@ -560,21 +541,9 @@ FrameBuffers createFrameBuffers(const VulkanDevice* device, VkSurfaceKHR surface
   buffer.render_pass = render_pass;
   buffer.depth = depth;
 
-  VkSemaphoreCreateInfo presentCompleteSemaphoreCreateInfo = {VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
-  VK_CHECK_RESULT(vkCreateSemaphore(device->device, &presentCompleteSemaphoreCreateInfo, NULL, &buffer.present_complete_semaphore));
-  VK_CHECK_RESULT(vkCreateSemaphore(device->device, &presentCompleteSemaphoreCreateInfo, NULL, &buffer.render_complete_semaphore));
-
   return buffer;
 }
 void destroyFrameBuffers(const VulkanDevice* device, FrameBuffers* buffer) {
-
-  if (buffer->present_complete_semaphore != VK_NULL_HANDLE) {
-    vkDestroySemaphore(device->device, buffer->present_complete_semaphore, NULL);
-  }
-  if (buffer->render_complete_semaphore != VK_NULL_HANDLE) {
-    vkDestroySemaphore(device->device, buffer->render_complete_semaphore, NULL);
-  }
-
   for (int i = 0; i < buffer->swapchain_image_count; ++i) {
     vkDestroyImageView(device->device, buffer->swap_chain_buffers[i].view, 0);
     vkDestroyFramebuffer(device->device, buffer->framebuffers[i], 0);
