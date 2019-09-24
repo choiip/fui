@@ -22,18 +22,16 @@ struct VulkanContext::Private {
   vk::UniqueRenderPass renderPass;
   std::vector<vk::UniqueFramebuffer> framebuffers;
   uint32_t currentBuffer;
+  vk::Extent2D frameExtent;
   std::shared_ptr<vk::su::DepthBufferData> depthBuffer;
   std::shared_ptr<vk::UniqueDebugReportCallbackEXT> debugCallback;
 };
 
 VulkanContext::VulkanContext(const std::shared_ptr<vk::UniqueInstance>& instance, 
-                             vk::SurfaceKHR surface, 
-                             const vk::Extent2D& windowExtent,
                              const std::shared_ptr<vk::UniqueDebugReportCallbackEXT>& debugReportCallback)
 {
   _p.reset(new Private);
   _p->instance = instance;
-  _p->surface = surface;
   _p->debugCallback = debugReportCallback;
   auto gpuResult = instance->get().enumeratePhysicalDevices();
   if (!gpuResult.empty()) {
@@ -41,11 +39,8 @@ VulkanContext::VulkanContext(const std::shared_ptr<vk::UniqueInstance>& instance
   } else {
     LOGE << "vkEnumeratePhysicalDevices failed ";
   }
-
-  auto queueIndices = vk::su::findGraphicsAndPresentQueueFamilyIndex(_p->gpu, surface);
-  auto graphicsQueueFamilyIndex = queueIndices.first;
-  auto presentQueueFamilyIndex = queueIndices.second;
-  assert(graphicsQueueFamilyIndex == presentQueueFamilyIndex);  //TODO: make it better
+  auto queueFamilyProperties = _p->gpu.getQueueFamilyProperties();
+  auto graphicsQueueFamilyIndex = vk::su::findGraphicsQueueFamilyIndex(queueFamilyProperties);
 
   constexpr float queuePriorities[] = {0.f};
   vk::DeviceQueueCreateInfo deviceQueueCreateInfo(vk::DeviceQueueCreateFlags(),
@@ -90,13 +85,17 @@ VulkanContext::~VulkanContext() {
   _p->instance->get().destroySurfaceKHR(_p->surface, NULL);
 }
 
-Status VulkanContext::initSwapchain(const vk::SurfaceKHR& surface, const vk::Extent2D& windowExtent) {
+Status VulkanContext::initSwapchain(const vk::SurfaceKHR& surface, const vk::Extent2D& extent) {
   auto queueIndices = vk::su::findGraphicsAndPresentQueueFamilyIndex(_p->gpu, surface);
   auto graphicsQueueFamilyIndex = queueIndices.first;
-  auto presentQueueFamilyIndex = queueIndices.second;  
+  auto presentQueueFamilyIndex = queueIndices.second;
+  auto oldSwapChainData = _p->swapchain ? std::move(_p->swapchain->swapChain) : vk::UniqueSwapchainKHR();
+  _p->surface = surface;
+  _p->frameExtent = extent;
   _p->swapchain = std::make_shared<vk::su::SwapChainData>(_p->gpu, _p->device, 
-                                                          surface, windowExtent,
-                                                          vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc, vk::UniqueSwapchainKHR(), 
+                                                          surface, _p->frameExtent,
+                                                          vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc,  
+                                                          oldSwapChainData, 
                                                           graphicsQueueFamilyIndex, presentQueueFamilyIndex);
   return Status::OK;
 }
@@ -104,23 +103,28 @@ Status VulkanContext::initSwapchain(const vk::SurfaceKHR& surface, const vk::Ext
 Status VulkanContext::initFramebuffer(const vk::Extent2D& extent) {
   vk::Format depthFormat = vk::su::pickDepthFormat(_p->gpu);
 
+  auto colorFormat = _p->swapchain->colorFormat;
+
+  _p->renderPass = vk::su::createRenderPass(_p->device, colorFormat, depthFormat);
+  _p->presentComplete = _p->device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
+  _p->renderComplete = _p->device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
+
   _p->depthBuffer = std::make_shared<vk::su::DepthBufferData>(_p->gpu, 
                                                               _p->device,
                                                               depthFormat,
                                                               extent);
 
-  auto colorFormat = _p->swapchain->colorFormat;
-
-  _p->renderPass = vk::su::createRenderPass(_p->device, colorFormat, depthFormat);
+  vk::su::oneTimeSubmit(_p->commandBuffer, _p->graphicsQueue,
+                        [&](vk::UniqueCommandBuffer const& commandBuffer)
+                        {
+                          vk::su::setImageLayout(commandBuffer, *_p->depthBuffer->image, depthFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+                        });
 
   _p->framebuffers = vk::su::createFramebuffers(_p->device, 
                                                 _p->renderPass, 
                                                 _p->swapchain->imageViews, 
                                                 _p->depthBuffer->imageView, 
                                                 extent);
-
-  _p->presentComplete = _p->device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
-  _p->renderComplete = _p->device->createSemaphoreUnique(vk::SemaphoreCreateInfo());
 
   return Status::OK;
 }
@@ -149,6 +153,30 @@ Status VulkanContext::initVG() {
   return Status::OK;
 }
 
+Status VulkanContext::rebuildSwapchain() {
+  auto extent = _p->frameExtent;
+
+  _p->device->waitIdle();
+  initSwapchain(_p->surface, extent);
+
+  vk::Format depthFormat = _p->depthBuffer->format;
+
+  *(_p->depthBuffer) = vk::su::DepthBufferData(_p->gpu, _p->device, depthFormat, extent);
+
+  vk::su::oneTimeSubmit(_p->commandBuffer, _p->graphicsQueue,
+                        [&](vk::UniqueCommandBuffer const& commandBuffer)
+                        {
+                          vk::su::setImageLayout(commandBuffer, *_p->depthBuffer->image, depthFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+                        });
+
+  _p->framebuffers = vk::su::createFramebuffers(_p->device, 
+                                                _p->renderPass, 
+                                                _p->swapchain->imageViews, 
+                                                _p->depthBuffer->imageView, 
+                                                extent);
+  return Status::OK;
+}
+
 auto VulkanContext::setViewport(int x, int y, int width, int height) -> decltype(this) {
   vk::Viewport viewport = {
     (float)x, (float)y,
@@ -162,6 +190,10 @@ auto VulkanContext::setViewport(int x, int y, int width, int height) -> decltype
 }
 
 auto VulkanContext::preDraw(const Recti& renderArea, const Color* clearColor, const float* clearDepth, const int* clearStencil) -> decltype(this) {
+  if (renderArea.w != _p->frameExtent.width || renderArea.h != _p->frameExtent.height) {
+    _p->frameExtent = vk::Extent2D(renderArea.w, renderArea.h);
+    rebuildSwapchain();
+  }
   auto&& cb = _p->currentBuffer;
 
   // Get the index of the next available swapchain image:
@@ -218,10 +250,11 @@ auto VulkanContext::postDraw() -> decltype(this) {
   vk::PresentInfoKHR presentInfo(1, &_p->renderComplete.get(),
                                  1, &_p->swapchain->swapChain.get(),
                                  &cb);
-
-  _p->graphicsQueue.presentKHR(presentInfo);
-  
-  _p->graphicsQueue.waitIdle();
+  try {
+    _p->graphicsQueue.presentKHR(presentInfo);
+    _p->graphicsQueue.waitIdle();
+  } catch(const vk::OutOfDateKHRError&) {
+  }
 
   return this;
 }

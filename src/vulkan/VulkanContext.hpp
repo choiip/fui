@@ -11,8 +11,6 @@ enum class Status;
 class VulkanContext : public RenderContext {
 public:
   VulkanContext(const std::shared_ptr<vk::UniqueInstance>& instance, 
-                vk::SurfaceKHR surface, 
-                const vk::Extent2D& windowExtent,
                 const std::shared_ptr<vk::UniqueDebugReportCallbackEXT>& debugReportCallback);
   ~VulkanContext();
 
@@ -25,6 +23,8 @@ public:
   virtual auto postDraw() -> decltype(this) override;
 
 protected:
+  Status rebuildSwapchain();
+
   virtual std::string versionLine() const override;
   virtual std::string vertexMacro() const override;
   virtual std::string fragmentMacro() const override;

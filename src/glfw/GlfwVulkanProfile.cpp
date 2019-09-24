@@ -42,8 +42,8 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
     std::vector<std::string> layers = {
 #if !defined(NDEBUG)
       "VK_LAYER_LUNARG_standard_validation",
-      // "VK_LAYER_LUNARG_core_validation",
-      // "VK_LAYER_KHRONOS_validation",
+      "VK_LAYER_LUNARG_core_validation",
+      "VK_LAYER_KHRONOS_validation",
       // "VK_LAYER_LUNARG_api_dump",
       // "VK_LAYER_LUNARG_object_tracker",
       // "VK_LAYER_LUNARG_screenshot",
@@ -71,7 +71,7 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
   vk::Extent2D windowExtent;
   glfwGetFramebufferSize(window, (int*)(&windowExtent.width), (int*)(&windowExtent.height));
 
-  std::unique_ptr<VulkanContext> context(new VulkanContext(_instance, surface, windowExtent, _debugReportCallback));
+  std::unique_ptr<VulkanContext> context(new VulkanContext(_instance, _debugReportCallback));
   if (!context) {
     LOGE << "Could not create render context.";
     return nullptr;

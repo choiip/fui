@@ -80,4 +80,8 @@
     "editor.tabSize": 2,
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
     "C_Cpp.configurationWarnings": "Disabled",
+    "files.watcherExclude": {
+        "**/build/**": true,
+        "**/vcpkg/**": true
+    },
 }
