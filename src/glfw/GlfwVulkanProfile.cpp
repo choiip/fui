@@ -9,6 +9,7 @@
 #include <GLFW/glfw3.h>
 #include "core/Log.hpp"
 #include "core/Status.hpp"
+#include "vulkan/debug.hpp"
 #include "vulkan/vku.hpp"
 #include "vulkan/VulkanContext.hpp"
 
@@ -51,7 +52,12 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
     auto non_const_this = const_cast<GlfwVulkanProfile*>(this);
     non_const_this->_instance = std::make_shared<vk::UniqueInstance>(vk::su::createInstance("", "fui", layers, extensions));
 #if !defined(NDEBUG)
-    non_const_this->_debugReportCallback = std::make_shared<vk::UniqueDebugReportCallbackEXT>(vk::su::createDebugReportCallback(*_instance));
+    vk::DebugReportFlagsEXT flags(vk::DebugReportFlagBitsEXT::ePerformanceWarning | 
+                                  vk::DebugReportFlagBitsEXT::eInformation | 
+                                  vk::DebugReportFlagBitsEXT::eWarning | 
+                                  vk::DebugReportFlagBitsEXT::eDebug | 
+                                  vk::DebugReportFlagBitsEXT::eError);
+    non_const_this->_debugReportCallback = std::make_shared<vk::UniqueDebugReportCallbackEXT>((*_instance)->createDebugReportCallbackEXTUnique(vk::DebugReportCallbackCreateInfoEXT(flags, &fui::vulkanDebugReportCallback)));
 #endif
   }
 
@@ -63,7 +69,7 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
   }
 
   vk::Extent2D windowExtent;
-  glfwGetWindowSize(window, (int*)(&windowExtent.width), (int*)(&windowExtent.height));
+  glfwGetFramebufferSize(window, (int*)(&windowExtent.width), (int*)(&windowExtent.height));
 
   std::unique_ptr<VulkanContext> context(new VulkanContext(_instance, surface, windowExtent, _debugReportCallback));
   if (!context) {
