@@ -13,3 +13,8 @@ add_subdirectory(opengl_sample)
 
 ## fonts loading sample
 add_subdirectory(fonts_loading)
+
+## vulkan sample
+if (NOT EMSCRIPTEN)
+  add_subdirectory(vulkan_sample)
+endif()
