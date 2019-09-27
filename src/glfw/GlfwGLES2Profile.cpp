@@ -26,7 +26,7 @@ void GlfwGLES2Profile::prepare() const {
 RenderContext* GlfwGLES2Profile::createContext(void* nativeWindow) const {
   GLFWwindow* window = (GLFWwindow*)nativeWindow;
   glfwMakeContextCurrent(window);
-#ifndef __EMSCRIPTEN__  
+#ifndef __EMSCRIPTEN__
   //// https://emscripten.org/docs/optimizing/Optimizing-WebGL.html#optimizing-load-times-and-other-best-practices
   if (!gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress)) {
     LOGE << "Could not initialize GLAD!";
@@ -46,10 +46,8 @@ RenderContext* GlfwGLES2Profile::createContext(void* nativeWindow) const {
       LOGE << "Could not create render context.";
       return nullptr;
     }
-    if (context->initVG() != Status::OK) {
-      return nullptr;
-    }
-    return context.release();    
+    if (context->initVG() != Status::OK) { return nullptr; }
+    return context.release();
   }
 
   if (glMajor == 2) {
@@ -58,10 +56,8 @@ RenderContext* GlfwGLES2Profile::createContext(void* nativeWindow) const {
       LOGE << "Could not create render context.";
       return nullptr;
     }
-    if (context->initVG() != Status::OK) {
-      return nullptr;
-    }
-    return context.release();    
+    if (context->initVG() != Status::OK) { return nullptr; }
+    return context.release();
   }
   return nullptr;
 }

@@ -39,7 +39,7 @@ protected:
 
 private:
   struct SnapState;
-  std::unique_ptr<SnapState> _snap;  
+  std::unique_ptr<SnapState> _snap;
 };
 
 } // namespace fui

@@ -44,7 +44,7 @@ protected:
 
     initGraph(&fps, GRAPH_RENDER_FPS, "FPS");
     initGraph(&cpuGraph, GRAPH_RENDER_MS, "CPU");
-    
+
     // window->setSwapInterval(0);
     // initGPUTimer(&gpuTimer);
     prevt = clock::now();
@@ -110,7 +110,8 @@ protected:
     window->swapBuffer();
   }
 
-  virtual void onExit() override { /*freeDemoData(vg, &data);*/ }
+  virtual void onExit() override { /*freeDemoData(vg, &data);*/
+  }
 
   RenderWindow* window;
   NVGcontext* vg;
@@ -149,7 +150,7 @@ protected:
     // Calculate pixel ration for hi-dpi devices.
     pxRatio = (float)fbWidth / (float)winWidth;
 
-    _vulkanContext->preDraw({ 0, 0, fbWidth, fbHeight });
+    _vulkanContext->preDraw({0, 0, fbWidth, fbHeight});
 
     nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
 
@@ -172,7 +173,7 @@ protected:
 
     _vulkanContext->postDraw();
   }
-  
+
 private:
   VulkanContext* _vulkanContext;
 };
@@ -182,21 +183,19 @@ int main() {
   Logger logger;
   GlfwWindowManager windowManager;
 
-  auto graphicAPI = GraphicsAPI::VULKAN;
+  auto graphicAPI = GraphicsAPI::OPENGL;
 #ifdef __EMSCRIPTEN__
   graphicAPI = GraphicsAPI::OPENGL_ES;
 #endif
   auto graphicsProfile = windowManager.createGraphicsProfile(graphicAPI, 3, 2);
-  if (!graphicsProfile)
-    return -1;
+  if (!graphicsProfile) return -1;
 
   auto window = windowManager.createWindow(1000, 600, *graphicsProfile);
   delete graphicsProfile;
 
-  if (!window)
-    return -1;
+  if (!window) return -1;
 
-  std::unique_ptr<ApplicationContext> app(new VulkanExampleApp(window));
+  std::unique_ptr<ApplicationContext> app(new ExampleApp(window));
   app->run(windowManager);
 
   return 0;

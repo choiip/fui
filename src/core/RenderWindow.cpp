@@ -24,9 +24,7 @@ RenderWindow::RenderWindow(RenderContext* renderContext)
   _tooltip.reset(new Tooltip);
 }
 
-RenderWindow::~RenderWindow() {
-  delete _renderContext;
-}
+RenderWindow::~RenderWindow() { delete _renderContext; }
 
 void RenderWindow::drawGui() {
   if (_renderContext && _visible) {
@@ -45,8 +43,7 @@ void RenderWindow::drawGui() {
     auto hover = WidgetContainer::findWidget(_prevCursorPosition);
     if (hover != nullptr) {
       hover->prepareTooltip(*_tooltip);
-      _tooltip->fontSize(20.f)
-              ->draw(*_renderContext);
+      _tooltip->fontSize(20.f)->draw(*_renderContext);
     }
     if (_perfGraph) _perfGraph->draw(*_renderContext);
     _renderContext->setViewport(viewport.x, viewport.y, viewport.w, viewport.h);
@@ -73,26 +70,23 @@ void RenderWindow::onMouseButtonEvent(MouseButton button, ButtonAction action, M
 }
 void RenderWindow::onMouseMoveEvent(int xpos, int ypos) {
   Vector2i localPos = {xpos, ypos};
-  MouseMoveEvent event(_prevCursorPosition, Movement::MOVING, localPos, _buttonInPressing,
-                       Modifier::NONE);
+  MouseMoveEvent event(_prevCursorPosition, Movement::MOVING, localPos, _buttonInPressing, Modifier::NONE);
 
   WidgetContainer::onMouseMoveEvent(event);
   _signalMouseMove.emit(localPos.x, localPos.y);
   _prevCursorPosition = localPos;
 }
-void RenderWindow::onResizeEvent(int width, int height) { 
-  _size = { width, height };
-  _signalResize.emit(width, height); 
+void RenderWindow::onResizeEvent(int width, int height) {
+  _size = {width, height};
+  _signalResize.emit(width, height);
 }
 
 Recti RenderWindow::regionAtFrameBuffer(const Recti& rect) const {
   int fbWidth, fbHeight;
   getDrawableSize(fbWidth, fbHeight);
   auto pixelRatio = (float)fbWidth / (float)_size.x;
-  return { (int)(rect.x * pixelRatio), 
-          fbHeight - (int)((rect.y + rect.h) * pixelRatio),
-          (int)(rect.w * pixelRatio),
-          (int)(rect.h * pixelRatio) };
+  return {(int)(rect.x * pixelRatio), fbHeight - (int)((rect.y + rect.h) * pixelRatio), (int)(rect.w * pixelRatio),
+          (int)(rect.h * pixelRatio)};
 }
 
 } // namespace fui

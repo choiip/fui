@@ -90,10 +90,8 @@ private:
     }
     void unlink() {
       function = NULL;
-      if (next)
-        next->prev = prev;
-      if (prev)
-        prev->next = next;
+      if (next) next->prev = prev;
+      if (prev) prev->next = next;
       decref();
       // leave intact ->next, ->prev for stale iterators
     }
@@ -175,15 +173,13 @@ public:
   /// with the Collector.
   CollectorResult emit(Args... args) {
     Collector collector;
-    if (!callback_ring_)
-      return collector.result();
+    if (!callback_ring_) return collector.result();
     SignalLink* link = callback_ring_;
     link->incref();
     do {
       if (link->function != NULL) {
         const bool continue_emission = this->invoke(collector, link->function, args...);
-        if (!continue_emission)
-          break;
+        if (!continue_emission) break;
       }
       SignalLink* old = link;
       link = old->next;

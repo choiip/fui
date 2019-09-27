@@ -29,8 +29,8 @@ public:
   const MouseButton buttons;
   const Modifier modifiers;
 
-  MouseMoveEvent(const Vector2i& prevPosition, Movement movement, const Vector2i& position,
-                 MouseButton buttons, Modifier modifiers)
+  MouseMoveEvent(const Vector2i& prevPosition, Movement movement, const Vector2i& position, MouseButton buttons,
+                 Modifier modifiers)
   : prevPosition(prevPosition)
   , movement(movement)
   , position(position)
@@ -38,25 +38,14 @@ public:
   , modifiers(modifiers) {}
 };
 
-inline std::ostream& operator<<(std::ostream& os, const Modifier& v) {
-  return os << (int)v;
-}
-inline std::ostream& operator<<(std::ostream& os, const MouseButton& v) {
-  return os << (int)v;
-}
+inline std::ostream& operator<<(std::ostream& os, const Modifier& v) { return os << (int)v; }
+inline std::ostream& operator<<(std::ostream& os, const MouseButton& v) { return os << (int)v; }
 inline std::ostream& operator<<(std::ostream& os, const MouseEvent& v) {
   return os << v.position << ',' << v.button << ',' << v.buttons << ',' << v.modifiers;
 }
-inline std::ostream& operator<<(std::ostream& os, const Movement& v) {
-  return os << (int)v;
-}
+inline std::ostream& operator<<(std::ostream& os, const Movement& v) { return os << (int)v; }
 inline std::ostream& operator<<(std::ostream& os, const fui::MouseMoveEvent& v) {
-  return os << v.prevPosition << ',' 
-            << v.movement << ',' 
-            << v.position << ','
-            << v.buttons << ','
-            << v.modifiers;
+  return os << v.prevPosition << ',' << v.movement << ',' << v.position << ',' << v.buttons << ',' << v.modifiers;
 }
 
 } // namespace fui
-

@@ -43,8 +43,7 @@ static char* cpToUTF8(int cp, char* str) {
     str[1] = 0x80 | (cp & 0x3f);
     cp = cp >> 6;
     cp |= 0xc0;
-  case 1:
-    str[0] = cp;
+  case 1: str[0] = cp;
   }
   return str;
 }
@@ -145,16 +144,10 @@ void Button::onMousePressEvent(MouseEvent& event) {
 
 void Button::onMouseReleaseEvent(MouseEvent& event) {
   if (_snap && event.button == MouseButton::LEFT) {
-    if (_type == Type::NORMAL) {
-      pushed(false);
-    }
+    if (_type == Type::NORMAL) { pushed(false); }
     if (contain(event.position.x, event.position.y)) {
-      if (!_snap->pushed) {
-        _signalPressed.emit();
-      }
-      if (_snap->pushed == !pushed()) {
-        _signalToggled.emit(pushed());
-      }
+      if (!_snap->pushed) { _signalPressed.emit(); }
+      if (_snap->pushed == !pushed()) { _signalToggled.emit(pushed()); }
     }
     _snap.reset();
   }

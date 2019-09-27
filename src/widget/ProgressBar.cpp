@@ -5,14 +5,14 @@
 #include "widget/WidgetStyle.hpp"
 
 #ifndef WIN32
-using std::min;
 using std::max;
+using std::min;
 #else
 #include <windows.h>
 #endif
 
 namespace fui {
-  
+
 ProgressBar::ProgressBar(WidgetContainer* parent)
 : Widget(parent) {}
 
@@ -58,7 +58,7 @@ void ProgressBar::draw(RenderContext& renderContext) {
     nvgFillColor(vg, *tShadow);
     nvgText(vg, x + w * 0.5f - tw * 0.5f, y + h * 0.5f - 1, text, NULL);
     nvgFillColor(vg, *tColor);
-    nvgText(vg, x + w * 0.5f - tw * 0.5f, y + h * 0.5f, text, NULL);  
+    nvgText(vg, x + w * 0.5f - tw * 0.5f, y + h * 0.5f, text, NULL);
   }
 }
 

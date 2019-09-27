@@ -10,13 +10,12 @@ GlfwRenderWindow::GlfwRenderWindow(GLFWwindow* window, RenderContext* renderCont
 : RenderWindow(renderContext)
 , _window(window)
 , _cursor(window) {
-   glfwGetWindowSize(_window, &_size.x, &_size.y);
+  glfwGetWindowSize(_window, &_size.x, &_size.y);
 }
 
 GlfwRenderWindow::~GlfwRenderWindow() {
   if (_window) {
-    if (!glfwWindowShouldClose(_window))
-      glfwDestroyWindow(_window);
+    if (!glfwWindowShouldClose(_window)) glfwDestroyWindow(_window);
     _window = nullptr;
   }
 }
@@ -27,7 +26,9 @@ Cursor* GlfwRenderWindow::cursor() { return &_cursor; }
 
 void GlfwRenderWindow::getWindowSize(int& width, int& height) { glfwGetWindowSize(_window, &width, &height); }
 
-void GlfwRenderWindow::getDrawableSize(int& width, int& height) const { glfwGetFramebufferSize(_window, &width, &height); }
+void GlfwRenderWindow::getDrawableSize(int& width, int& height) const {
+  glfwGetFramebufferSize(_window, &width, &height);
+}
 
 void GlfwRenderWindow::close() { glfwSetWindowShouldClose(_window, GLFW_TRUE); }
 

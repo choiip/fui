@@ -30,12 +30,11 @@ void Slider::draw(RenderContext& renderContext) {
   float startX = kr + kshadow + _position.x;
   float widthX = _size.x - 2 * (kr + kshadow);
 
-  Vector2f knobPos = {  startX + (_value - _range.first) / (_range.second - _range.first) * widthX,
-                        center + 0.5f };
+  Vector2f knobPos = {startX + (_value - _range.first) / (_range.second - _range.first) * widthX, center + 0.5f};
 
-  NVGpaint bg = nvgBoxGradient(vg, startX, center - 3 + 1, widthX, 6, 3,
-                                3, NVGcolor{ 0, 0, 0, enabled() ? 32/255.f : 10/255.f },
-                                NVGcolor{ 0, enabled() ? 128/255.f : 210/255.f});
+  NVGpaint bg = nvgBoxGradient(vg, startX, center - 3 + 1, widthX, 6, 3, 3,
+                               NVGcolor{0, 0, 0, enabled() ? 32 / 255.f : 10 / 255.f},
+                               NVGcolor{0, enabled() ? 128 / 255.f : 210 / 255.f});
 
   nvgBeginPath(vg);
   nvgRoundedRect(vg, startX, center - 3 + 1, widthX, 6, 2);
@@ -43,34 +42,27 @@ void Slider::draw(RenderContext& renderContext) {
   nvgFill(vg);
 
   if (_highlightedRange.second != _highlightedRange.first) {
-      nvgBeginPath(vg);
-      nvgRoundedRect(
-          vg, startX + _highlightedRange.first * _size.x,
-          center - kshadow + 1,
-          widthX * (_highlightedRange.second - _highlightedRange.first),
-          kshadow * 2, 2);
-      nvgFillColor(vg, *hlColor);
-      nvgFill(vg);
+    nvgBeginPath(vg);
+    nvgRoundedRect(vg, startX + _highlightedRange.first * _size.x, center - kshadow + 1,
+                   widthX * (_highlightedRange.second - _highlightedRange.first), kshadow * 2, 2);
+    nvgFillColor(vg, *hlColor);
+    nvgFill(vg);
   }
 
-  NVGpaint knobShadow =
-      nvgRadialGradient(vg, knobPos.x, knobPos.y, kr - kshadow,
-                        kr + kshadow, NVGcolor{0, 0, 0, 64/255.f}, NVGcolor{0, 0, 0, 0});
+  NVGpaint knobShadow = nvgRadialGradient(vg, knobPos.x, knobPos.y, kr - kshadow, kr + kshadow,
+                                          NVGcolor{0, 0, 0, 64 / 255.f}, NVGcolor{0, 0, 0, 0});
 
   nvgBeginPath(vg);
-  nvgRect(vg, knobPos.x - kr - 5, knobPos.y - kr - 5, kr * 2 + 10,
-          kr * 2 + 10 + kshadow);
+  nvgRect(vg, knobPos.x - kr - 5, knobPos.y - kr - 5, kr * 2 + 10, kr * 2 + 10 + kshadow);
   nvgCircle(vg, knobPos.x, knobPos.y, kr);
   nvgPathWinding(vg, NVG_HOLE);
   nvgFillPaint(vg, knobShadow);
   nvgFill(vg);
 
-  NVGpaint knob = nvgLinearGradient(
-      vg, _position.x, center - kr, _position.x, center + kr,
-      *borderLight, *borderMedium);
-  NVGpaint knobReverse = nvgLinearGradient(
-      vg, _position.x, center - kr, _position.x, center + kr,
-      *borderMedium, *borderLight);
+  NVGpaint knob =
+      nvgLinearGradient(vg, _position.x, center - kr, _position.x, center + kr, *borderLight, *borderMedium);
+  NVGpaint knobReverse =
+      nvgLinearGradient(vg, _position.x, center - kr, _position.x, center + kr, *borderMedium, *borderLight);
 
   nvgBeginPath(vg);
   nvgCircle(vg, knobPos.x, knobPos.y, kr);
@@ -80,7 +72,7 @@ void Slider::draw(RenderContext& renderContext) {
   nvgFill(vg);
   nvgBeginPath(vg);
   nvgCircle(vg, knobPos.x, knobPos.y, kr * 0.5f);
-  nvgFillColor(vg, NVGcolor{150/255.f, 150/255.f, 150/255.f, enabled() ? 1.f : 100/255.f});
+  nvgFillColor(vg, NVGcolor{150 / 255.f, 150 / 255.f, 150 / 255.f, enabled() ? 1.f : 100 / 255.f});
   nvgStrokePaint(vg, knobReverse);
   nvgStroke(vg);
   nvgFill(vg);
@@ -94,11 +86,9 @@ void Slider::prepareTooltip(Tooltip& tooltip) {
 
   float knobPositionX = startX + (_value - _range.first) / (_range.second - _range.first) * widthX;
 
-  Recti rect = { (int)knobPositionX, -_size.y, 0, 0 };
+  Recti rect = {(int)knobPositionX, -_size.y, 0, 0};
   auto desiredPosition = mapTo(rect, Coordinate::TopParent).position;
-  tooltip.string(std::to_string(_value))
-        ->absolutePosition(desiredPosition)
-        ->bubble(Tooltip::Bubble::TOP);
+  tooltip.string(std::to_string(_value))->absolutePosition(desiredPosition)->bubble(Tooltip::Bubble::TOP);
 }
 
 void Slider::onMouseMoveEvent(MouseMoveEvent& event) {
@@ -118,7 +108,7 @@ void Slider::onMousePressEvent(MouseEvent& event) {
   const float startX = kr + kshadow + _position.x - 1;
   const float widthX = _size.x - 2 * (kr + kshadow);
 
-  _snap.reset(new SnapState { startX, widthX } );
+  _snap.reset(new SnapState{startX, widthX});
 
   auto value = (event.position.x - _snap->startX) / _snap->widthX;
   value = value * (_range.second - _range.first) + _range.first;
@@ -130,9 +120,7 @@ void Slider::onMousePressEvent(MouseEvent& event) {
 }
 
 void Slider::onMouseReleaseEvent(MouseEvent& event) {
-  if (_snap) {
-    _snap.reset();
-  }
+  if (_snap) { _snap.reset(); }
 }
 
 } // namespace fui

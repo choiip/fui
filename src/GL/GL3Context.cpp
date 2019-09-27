@@ -13,13 +13,11 @@ GL3Context::GL3Context() {}
 GL3Context::~GL3Context() { nvgDeleteGL3(vg()); }
 
 Status GL3Context::initVG() {
-  if (_vg != nullptr) {
-    nvgDeleteGL3(_vg);
-  }
+  if (_vg != nullptr) { nvgDeleteGL3(_vg); }
   int flag = NVG_ANTIALIAS | NVG_STENCIL_STROKES;
 #ifdef NDEBUG
   flag |= NVG_DEBUG;
-#endif  
+#endif
   _vg = nvgCreateGL3(flag);
   if (_vg == NULL) {
     LOGE << "Could not init nanovg (GL3).";
@@ -33,7 +31,8 @@ auto GL3Context::setViewport(int x, int y, int width, int height) -> decltype(th
   return this;
 }
 
-auto GL3Context::preDraw(const Recti& renderArea, const Color* clearColor, const float* clearDepth, const int* clearStencil) -> decltype(this) {
+auto GL3Context::preDraw(const Recti& renderArea, const Color* clearColor, const float* clearDepth,
+                         const int* clearStencil) -> decltype(this) {
   setViewport(renderArea.x, renderArea.y, renderArea.w, renderArea.h);
   GLbitfield clearBits = 0;
   if (clearColor != nullptr) {
@@ -48,19 +47,13 @@ auto GL3Context::preDraw(const Recti& renderArea, const Color* clearColor, const
     glClearStencil(*clearStencil);
     clearBits |= GL_STENCIL_BUFFER_BIT;
   }
-  if (clearBits != 0) {
-    glClear(clearBits);
-  }
+  if (clearBits != 0) { glClear(clearBits); }
   return this;
 }
 
-auto GL3Context::postDraw() -> decltype(this) {
-  return this;
-}
+auto GL3Context::postDraw() -> decltype(this) { return this; }
 
-std::string GL3Context::versionLine() const {
-  return "#version 150";
-}
+std::string GL3Context::versionLine() const { return "#version 150"; }
 
 std::string GL3Context::vertexMacro() const {
   return R"(

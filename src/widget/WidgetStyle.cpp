@@ -10,9 +10,7 @@ namespace fui {
 WidgetStyle::WidgetStyle(RenderContext& renderContext) {
   // build in fonts
   fontIcons = renderContext.loadFont("icons", (unsigned char*)EntypoTFF, sizeof(EntypoTFF));
-  if (fontIcons == -1) {
-    LOGE << "Could not add font icons.";
-  }
+  if (fontIcons == -1) { LOGE << "Could not add font icons."; }
 
   FontDescriptor requestFont;
   requestFont.lang = "zh-hk";
@@ -20,16 +18,12 @@ WidgetStyle::WidgetStyle(RenderContext& renderContext) {
   auto resultFontDescriptor = std::unique_ptr<FontDescriptor>(findFont(&requestFont));
 
   fontStandard = renderContext.loadFont("sans", resultFontDescriptor->path);
-  if (fontStandard == -1) {
-    LOGE << "Could not add standard font.";
-  }
+  if (fontStandard == -1) { LOGE << "Could not add standard font."; }
   requestFont.style = "Bold";
   resultFontDescriptor = std::unique_ptr<FontDescriptor>(findFont(&requestFont));
 
   fontBold = renderContext.loadFont("sans-bold", resultFontDescriptor->path);
-  if (fontBold == -1) {
-    LOGE << "Could not add bold font.";
-  }
+  if (fontBold == -1) { LOGE << "Could not add bold font."; }
 }
 
 } // namespace fui

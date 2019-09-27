@@ -35,9 +35,7 @@ RenderContext* GlfwGL3Profile::createContext(void* nativeWindow) const {
     LOGE << "Could not create render context.";
     return nullptr;
   }
-  if (context->initVG() != Status::OK) {
-    return nullptr;
-  }
+  if (context->initVG() != Status::OK) { return nullptr; }
 
   return context.release();
 }

@@ -29,7 +29,6 @@ public:
   }
 };
 
-template <typename T>
-T* Singleton<T>::_singleton = nullptr;
- 
+template <typename T> T* Singleton<T>::_singleton = nullptr;
+
 } // namespace fui

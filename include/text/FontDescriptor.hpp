@@ -7,29 +7,29 @@
 namespace fui {
 
 enum FontWeight {
-  FontWeightUndefined   = 0,
-  FontWeightThin        = 100,
-  FontWeightUltraLight  = 200,
-  FontWeightLight       = 300,
-  FontWeightNormal      = 400,
-  FontWeightMedium      = 500,
-  FontWeightSemiBold    = 600,
-  FontWeightBold        = 700,
-  FontWeightUltraBold   = 800,
-  FontWeightHeavy       = 900
+  FontWeightUndefined = 0,
+  FontWeightThin = 100,
+  FontWeightUltraLight = 200,
+  FontWeightLight = 300,
+  FontWeightNormal = 400,
+  FontWeightMedium = 500,
+  FontWeightSemiBold = 600,
+  FontWeightBold = 700,
+  FontWeightUltraBold = 800,
+  FontWeightHeavy = 900
 };
 
 enum FontWidth {
-  FontWidthUndefined      = 0,
+  FontWidthUndefined = 0,
   FontWidthUltraCondensed = 1,
   FontWidthExtraCondensed = 2,
-  FontWidthCondensed      = 3,
-  FontWidthSemiCondensed  = 4,
-  FontWidthNormal         = 5,
-  FontWidthSemiExpanded   = 6,
-  FontWidthExpanded       = 7,
-  FontWidthExtraExpanded  = 8,
-  FontWidthUltraExpanded  = 9
+  FontWidthCondensed = 3,
+  FontWidthSemiCondensed = 4,
+  FontWidthNormal = 5,
+  FontWidthSemiExpanded = 6,
+  FontWidthExpanded = 7,
+  FontWidthExtraExpanded = 8,
+  FontWidthUltraExpanded = 9
 };
 
 struct FontDescriptor {
@@ -43,22 +43,22 @@ public:
   FontWidth width;
   bool italic;
   bool monospace;
-  
+
   FontDescriptor();
-  
-  FontDescriptor(const char *path, const char *postscriptName, const char *family, const char *style, 
+
+  FontDescriptor(const char* path, const char* postscriptName, const char* family, const char* style,
                  const std::string& lang, FontWeight weight, FontWidth width, bool italic, bool monospace);
 };
 
 typedef std::vector<std::shared_ptr<FontDescriptor>> ResultSet;
 
-}
+} // namespace fui
 
 // these functions are implemented by the platform
 fui::ResultSet getAvailableFonts();
-fui::ResultSet findFonts(fui::FontDescriptor *);
-fui::FontDescriptor *findFont(fui::FontDescriptor *);
-fui::FontDescriptor *substituteFont(char *, char *);
+fui::ResultSet findFonts(fui::FontDescriptor*);
+fui::FontDescriptor* findFont(fui::FontDescriptor*);
+fui::FontDescriptor* substituteFont(char*, char*);
 
 #ifdef __EMSCRIPTEN__
 void setupWebFonts(const std::vector<fui::FontDescriptor>& fontDescriptors);

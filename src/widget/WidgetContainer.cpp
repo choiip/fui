@@ -43,16 +43,13 @@ void WidgetContainer::draw(RenderContext& renderContext) {
   nvgRestore(vg);
 }
 
-Vector2i WidgetContainer::childrenOrigin() const {
-  return Vector2i::Zero;
-}
+Vector2i WidgetContainer::childrenOrigin() const { return Vector2i::Zero; }
 
 Widget* WidgetContainer::findWidget(const Vector2i& point, int recursiveLevel) {
   auto local = point - _position - childrenOrigin();
   auto beginChild = _children.crbegin();
-  auto foundChild = std::find_if(beginChild, _children.crend(), [local](const Widget* w){
-    return w->contain(local.x, local.y);
-  });
+  auto foundChild =
+      std::find_if(beginChild, _children.crend(), [local](const Widget* w) { return w->contain(local.x, local.y); });
   if (foundChild == _children.crend()) return nullptr;
   if (recursiveLevel == 0) return *foundChild;
   return (*foundChild)->findWidget(local, --recursiveLevel);
@@ -68,15 +65,13 @@ void WidgetContainer::drawChildren(RenderContext& renderContext) {
       nvgRestore(vg);
     }
   }
-}  
+}
 
 void WidgetContainer::onChildFocusChangeEvent(FocusEvent& event) {
   if (event.value == Focus::IN) {
     const Widget* lastChild = _children.back();
     if (lastChild != event.source) {
-      if (lastChild->focused()) {
-        _children.back()->focused(false);
-      }
+      if (lastChild->focused()) { _children.back()->focused(false); }
       auto itr = std::find(_children.begin(), _children.end(), event.source);
       _children.erase(itr);
       _children.push_back(event.source);
@@ -86,9 +81,7 @@ void WidgetContainer::onChildFocusChangeEvent(FocusEvent& event) {
 }
 
 void WidgetContainer::onFocusChangeEvent(FocusEvent& event) {
-  if (!_children.empty()) {
-    _children.back()->focused(event.value == Focus::IN);
-  }
+  if (!_children.empty()) { _children.back()->focused(event.value == Focus::IN); }
 }
 
 void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
@@ -102,8 +95,7 @@ void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
       auto contained = w->contain(local.x, local.y);
       auto movement =
           prevContained == contained ? Movement::MOVING : (contained ? Movement::ENTERING : Movement::LEAVING);
-      MouseMoveEvent altEvent(localPrev, movement, local, event.buttons,
-                              event.modifiers);
+      MouseMoveEvent altEvent(localPrev, movement, local, event.buttons, event.modifiers);
       w->onMouseMoveEvent(altEvent);
     }
   }
@@ -111,11 +103,9 @@ void WidgetContainer::onMouseMoveEvent(MouseMoveEvent& event) {
 
 void WidgetContainer::onMousePressEvent(MouseEvent& event) {
   auto local = event.position - _position - childrenOrigin();
-  auto found = std::find_if(std::rbegin(_children),
-                            std::rend(_children),
-                            [local](const Widget* w){
-                              return w->visible() && w->enabled() && w->contain(local.x, local.y);
-                            });
+  auto found = std::find_if(std::rbegin(_children), std::rend(_children), [local](const Widget* w) {
+    return w->visible() && w->enabled() && w->contain(local.x, local.y);
+  });
   if (found != std::rend(_children)) {
     auto hitChild = *found;
     hitChild->focused(true);
@@ -128,9 +118,7 @@ void WidgetContainer::onMouseReleaseEvent(MouseEvent& event) {
   auto local = event.position - _position - childrenOrigin();
   MouseEvent altEvent = {local, event.button, event.buttons, event.modifiers};
   for (auto&& w : _children) {
-    if (w->visible() && w->enabled()) {
-      w->onMouseReleaseEvent(altEvent);
-    }
+    if (w->visible() && w->enabled()) { w->onMouseReleaseEvent(altEvent); }
   }
 }
 

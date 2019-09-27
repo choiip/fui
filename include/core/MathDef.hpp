@@ -18,8 +18,11 @@ struct ConstantColor {
   constexpr static Color Black = {0, 0, 0, 0};
 };
 
-template <typename T> struct Vector2 { static const Vector2 Zero; T x, y; };
-template <typename T> const Vector2<T> Vector2<T>::Zero = { 0, 0 };
+template <typename T> struct Vector2 {
+  static const Vector2 Zero;
+  T x, y;
+};
+template <typename T> const Vector2<T> Vector2<T>::Zero = {0, 0};
 
 typedef Vector2<int> Vector2i;
 typedef Vector2<float> Vector2f;
@@ -32,7 +35,7 @@ template <typename T> constexpr Vector2<T> operator-(const Vector2<T>& lhs, cons
   return {lhs.x - rhs.x, lhs.y - rhs.y};
 }
 
-template <typename T> struct Rect { 
+template <typename T> struct Rect {
   union {
     struct {
       T x, y, w, h;
@@ -51,13 +54,11 @@ enum class Coordinate {
   Screen,
 };
 
-template<typename T>
-inline std::ostream& operator<<(std::ostream& os, const Vector2<T>& v) {
+template <typename T> inline std::ostream& operator<<(std::ostream& os, const Vector2<T>& v) {
   return os << v.x << ',' << v.y;
 }
 
-template<typename T>
-inline std::ostream& operator<<(std::ostream& os, const Rect<T>& v) {
+template <typename T> inline std::ostream& operator<<(std::ostream& os, const Rect<T>& v) {
   return os << v.position << ',' << v.size;
 }
 

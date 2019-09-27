@@ -13,7 +13,7 @@ class ProgressBar : public Widget {
 public:
   explicit ProgressBar(WidgetContainer* parent);
   virtual ~ProgressBar() = default;
-  
+
   /// Draw the progress bar
   virtual void draw(RenderContext& renderContext) override;
 

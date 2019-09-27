@@ -30,9 +30,7 @@ static void setupCallbacks(GLFWwindow* glfwWindow, RenderWindow* renderWindow) {
   glfwSetWindowSizeCallback(glfwWindow, [](GLFWwindow* window, int width, int height) {
     const auto& windows = GlfwWindowManager::instance().getWindows();
     auto targetWindow = windows.find(window);
-    if (targetWindow != windows.end()) {
-      targetWindow->second->onResizeEvent(width, height);
-    }
+    if (targetWindow != windows.end()) { targetWindow->second->onResizeEvent(width, height); }
   });
   glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
     const auto& windows = GlfwWindowManager::instance().getWindows();
@@ -45,8 +43,7 @@ static void setupCallbacks(GLFWwindow* glfwWindow, RenderWindow* renderWindow) {
     constexpr MouseButton mouseButton[]{
         MouseButton::LEFT, MouseButton::RIGHT, MouseButton::MIDDLE, MouseButton::X1, MouseButton::X2,
     };
-    if (button < 0 || button > 4)
-      return;
+    if (button < 0 || button > 4) return;
     const auto& windows = GlfwWindowManager::instance().getWindows();
     auto targetWindow = windows.find(window);
     if (targetWindow != windows.end()) {
@@ -56,18 +53,14 @@ static void setupCallbacks(GLFWwindow* glfwWindow, RenderWindow* renderWindow) {
   glfwSetCursorPosCallback(glfwWindow, [](GLFWwindow* window, double xpos, double ypos) {
     const auto& windows = GlfwWindowManager::instance().getWindows();
     auto targetWindow = windows.find(window);
-    if (targetWindow != windows.end()) {
-      targetWindow->second->onMouseMoveEvent((int)xpos, (int)ypos);
-    }
+    if (targetWindow != windows.end()) { targetWindow->second->onMouseMoveEvent((int)xpos, (int)ypos); }
   });
 }
 
 GlfwWindowManager::GlfwWindowManager() {
   glfwSetErrorCallback(errorCallback);
 
-  if (!glfwInit()) {
-    LOGE << "Failed to init GLFW.";
-  }
+  if (!glfwInit()) { LOGE << "Failed to init GLFW."; }
 }
 
 GlfwWindowManager::~GlfwWindowManager() { glfwTerminate(); }
@@ -106,14 +99,11 @@ RenderWindow* GlfwWindowManager::createWindow(int width, int height, const Graph
 
 GraphicsProfile* GlfwWindowManager::createGraphicsProfile(GraphicsAPI api, int major, int minor) {
 #ifndef __EMSCRIPTEN__
-  if (api == GraphicsAPI::OPENGL)
-    return new GlfwGL3Profile();
+  if (api == GraphicsAPI::OPENGL) return new GlfwGL3Profile();
 #endif
-  if (api == GraphicsAPI::OPENGL_ES)
-    return new GlfwGLES2Profile();
+  if (api == GraphicsAPI::OPENGL_ES) return new GlfwGLES2Profile();
 #ifdef FUI_ENABLE_VULKAN
-  if (api == GraphicsAPI::VULKAN)
-    return new GlfwVulkanProfile();
+  if (api == GraphicsAPI::VULKAN) return new GlfwVulkanProfile();
 #endif
   return nullptr;
 }
@@ -124,9 +114,7 @@ bool GlfwWindowManager::shouldQuit() { return !hasRunableWindow(); }
 
 bool GlfwWindowManager::hasRunableWindow() const {
   for (auto&& w : _windows) {
-    if (!glfwWindowShouldClose(w.first)) {
-      return true;
-    }
+    if (!glfwWindowShouldClose(w.first)) { return true; }
   }
   return false;
 }

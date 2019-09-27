@@ -6,8 +6,7 @@
 namespace fui {
 
 Canvas::Canvas(WidgetContainer* parent)
-: Widget(parent)
-{}
+: Widget(parent) {}
 
 void Canvas::draw(RenderContext& renderContext) {
   auto vg = renderContext.vg();

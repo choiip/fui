@@ -113,9 +113,7 @@ void Window::onMouseMoveEvent(MouseMoveEvent& event) {
   if (_snap && hasFlags(event.buttons, MouseButton::LEFT)) {
     _position = event.position - _snap->relativePosition;
     // bound y to be non-negative
-    if (_position.y < 0) {
-      _position.y = 0;
-    }
+    if (_position.y < 0) { _position.y = 0; }
   } else {
     WidgetContainer::onMouseMoveEvent(event);
   }
@@ -124,9 +122,7 @@ void Window::onMouseMoveEvent(MouseMoveEvent& event) {
 void Window::onMousePressEvent(MouseEvent& event) {
   auto headerHeight = style().windowHeaderHeight;
   auto hitHeaderArea = false;
-  if (event.button == MouseButton::LEFT) {
-    hitHeaderArea = (event.position.y - _position.y < headerHeight);
-  }
+  if (event.button == MouseButton::LEFT) { hitHeaderArea = (event.position.y - _position.y < headerHeight); }
   if (hitHeaderArea) {
     _snap.reset(new SnapState);
     _snap->relativePosition = event.position - _position;
@@ -136,9 +132,7 @@ void Window::onMousePressEvent(MouseEvent& event) {
 }
 
 void Window::onMouseReleaseEvent(MouseEvent& event) {
-  if (_snap && event.button == MouseButton::LEFT) {
-    _snap.reset();
-  }
+  if (_snap && event.button == MouseButton::LEFT) { _snap.reset(); }
   WidgetContainer::onMouseReleaseEvent(event);
 }
 

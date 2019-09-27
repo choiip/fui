@@ -20,7 +20,7 @@ public:                                                                         
 protected:                                                                                                             \
   TYPE _##NAME = __VA_ARGS__;
 
-#define FUI_WIDGET_WRITEONLY_PROPERTY(TYPE, NAME, ...)                                                                           \
+#define FUI_WIDGET_WRITEONLY_PROPERTY(TYPE, NAME, ...)                                                                 \
 public:                                                                                                                \
   auto NAME(TYPE const& v)->decltype(this) {                                                                           \
     _##NAME = v;                                                                                                       \
@@ -37,18 +37,18 @@ public:                                                                         
 
 #define FUI_WIDGET_PROPERTY_ALT_SETTER(TYPE, NAME, ...)                                                                \
 public:                                                                                                                \
-  template <typename... Args> auto NAME(Args... args)->decltype(this) {                                 \
-    return _##NAME##Setter(std::forward<Args>(args)...);                                                            \
+  template <typename... Args> auto NAME(Args... args)->decltype(this) {                                                \
+    return _##NAME##Setter(std::forward<Args>(args)...);                                                               \
   }                                                                                                                    \
   TYPE const& NAME() const { return _##NAME; }                                                                         \
                                                                                                                        \
 protected:                                                                                                             \
   TYPE _##NAME = __VA_ARGS__;
 
-#define FUI_WIDGET_WRITEONLY_PROPERTY_ALT(TYPE, NAME, ...)                                                                           \
+#define FUI_WIDGET_WRITEONLY_PROPERTY_ALT(TYPE, NAME, ...)                                                             \
 public:                                                                                                                \
-  template <typename... Args> auto NAME(Args... args)->decltype(this) {                                 \
-    return _##NAME##Setter(std::forward<Args>(args)...);                                                            \
+  template <typename... Args> auto NAME(Args... args)->decltype(this) {                                                \
+    return _##NAME##Setter(std::forward<Args>(args)...);                                                               \
   }                                                                                                                    \
                                                                                                                        \
 protected:                                                                                                             \

@@ -20,13 +20,9 @@ Widget::~Widget() {
   }
 }
 
-Widget* Widget::findWidget(const Vector2i& point, int recursiveLevel) {
-  return this;
-}
+Widget* Widget::findWidget(const Vector2i& point, int recursiveLevel) { return this; }
 
-void Widget::prepareTooltip(Tooltip& tooltip) {
-  tooltip.string("");
-}
+void Widget::prepareTooltip(Tooltip& tooltip) { tooltip.string(""); }
 
 void Widget::onFocusChangeEvent(FocusEvent& event) {}
 void Widget::onMouseMoveEvent(MouseMoveEvent& event) {}
@@ -43,28 +39,20 @@ bool Widget::contain(int x, int y) const {
 Recti Widget::mapTo(const Recti& rect, Coordinate coord) const {
   if (_parent == nullptr) {
     switch (coord) {
-      case Coordinate::Framebuffer: 
-        return regionAtFrameBuffer({  _position.x + rect.position.x, 
-                                      _position.y + rect.position.y,
-                                      rect.size.x,
-                                      rect.size.y });
-      case Coordinate::Parent:
-      case Coordinate::TopParent: return rect;
-      case Coordinate::Screen: 
-        return {  _position.x + rect.position.x, 
-                  _position.y + rect.position.y,
-                  rect.size.x,
-                  rect.size.y };  // this widget should be RenderWindow
+    case Coordinate::Framebuffer:
+      return regionAtFrameBuffer(
+          {_position.x + rect.position.x, _position.y + rect.position.y, rect.size.x, rect.size.y});
+    case Coordinate::Parent:
+    case Coordinate::TopParent: return rect;
+    case Coordinate::Screen:
+      return {_position.x + rect.position.x, _position.y + rect.position.y, rect.size.x,
+              rect.size.y}; // this widget should be RenderWindow
     }
   }
   auto origin = _parent->childrenOrigin();
-  Recti outRect = { origin.x + _position.x + rect.position.x, 
-                    origin.y + _position.y + rect.position.y,
-                    rect.size.x,
-                    rect.size.y };
-  if (coord == Coordinate::Parent) {
-    return outRect;
-  }
+  Recti outRect = {origin.x + _position.x + rect.position.x, origin.y + _position.y + rect.position.y, rect.size.x,
+                   rect.size.y};
+  if (coord == Coordinate::Parent) { return outRect; }
   return _parent->mapTo(outRect, coord);
 }
 
@@ -73,11 +61,9 @@ const WidgetStyle& Widget::style() const { return (_style ? *(const WidgetStyle*
 auto Widget::_focusedSetter(bool const& v) -> decltype(this) {
   if (_focused != v) {
     _focused = v;
-    FocusEvent event = { v ? Focus::IN : Focus::OUT, this };  
+    FocusEvent event = {v ? Focus::IN : Focus::OUT, this};
     onFocusChangeEvent(event);
-    if (_parent != nullptr) {
-      _parent->onChildFocusChangeEvent(event);
-    } 
+    if (_parent != nullptr) { _parent->onChildFocusChangeEvent(event); }
   }
   return this;
 }

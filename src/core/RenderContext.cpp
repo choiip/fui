@@ -24,31 +24,29 @@ int RenderContext::loadFont(const std::string& name, const void* fontData, int l
 int RenderContext::loadImage(const std::string& filename) { return nvgCreateImage(vg(), filename.c_str(), 0); }
 
 int RenderContext::createImage(int width, int height, PixelFormat format) {
-  constexpr NVGtexture nvgFormat[] = { NVG_TEXTURE_RGB, NVG_TEXTURE_RGBA, NVG_TEXTURE_YUYV };
+  constexpr NVGtexture nvgFormat[] = {NVG_TEXTURE_RGB, NVG_TEXTURE_RGBA, NVG_TEXTURE_YUYV};
   return nvgCreateImageWithType(_vg, nvgFormat[(int)format], width, height, 0, nullptr);
 }
 
-void RenderContext::updateImage(int image, const unsigned char* data, size_t dataSize, bool compressed) { 
-  if (compressed) { //TODO: Better support for other formats
+void RenderContext::updateImage(int image, const unsigned char* data, size_t dataSize, bool compressed) {
+  if (compressed) { // TODO: Better support for other formats
     int width = 0, height = 0;
     nvgImageSize(_vg, image, &width, &height);
     size_t pixelSize = width * height * 3;
 
     // handle AVI1 (MJPEG)
-    uint8_t *jpegBuf; 
+    uint8_t* jpegBuf;
     int jpegLen;
     int status = mjpeg2jpeg(&jpegBuf, &jpegLen, data, dataSize);
     if (status) {
       int w, h, n;
       auto pixels = stbi_load_from_memory(jpegBuf, jpegLen, &w, &h, &n, 3);
       if (pixels == NULL) {
-		    nvgErrorPrint("Failed to load from data - %s\n", stbi_failure_reason());
+        nvgErrorPrint("Failed to load from data - %s\n", stbi_failure_reason());
         free(jpegBuf);
-		    return;
-    	}
-      if (width == w && height == h) {
-        nvgUpdateImage(_vg, image, pixels);
+        return;
       }
+      if (width == w && height == h) { nvgUpdateImage(_vg, image, pixels); }
       stbi_image_free(pixels);
     }
     free(jpegBuf);
@@ -61,7 +59,7 @@ std::string RenderContext::loadVertexShader(const std::string& filename) {
   size_t contentLength;
   char* content = (char*)stb_file((char*)filename.c_str(), &contentLength);
   if (content == NULL) return "";
-  content[contentLength-1] = 0;
+  content[contentLength - 1] = 0;
 
   std::string finalSource = versionLine();
   finalSource += vertexMacro();
@@ -74,7 +72,7 @@ std::string RenderContext::loadFragmentShader(const std::string& filename) {
   size_t contentLength;
   char* content = (char*)stb_file((char*)filename.c_str(), &contentLength);
   if (content == NULL) return "";
-  content[contentLength-1] = 0;
+  content[contentLength - 1] = 0;
 
   std::string finalSource = versionLine();
   finalSource += fragmentMacro();
@@ -82,5 +80,5 @@ std::string RenderContext::loadFragmentShader(const std::string& filename) {
   free(content);
   return finalSource;
 }
-  
+
 } // namespace fui

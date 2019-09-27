@@ -9,8 +9,8 @@ FontDescriptor::FontDescriptor() {
   monospace = false;
 }
 
-FontDescriptor::FontDescriptor(const char *path, const char *postscriptName, const char *family, const char *style, 
-                const std::string& lang, FontWeight weight, FontWidth width, bool italic, bool monospace)
+FontDescriptor::FontDescriptor(const char* path, const char* postscriptName, const char* family, const char* style,
+                               const std::string& lang, FontWeight weight, FontWidth width, bool italic, bool monospace)
 : path(path)
 , postscriptName(postscriptName)
 , family(family)
@@ -19,7 +19,6 @@ FontDescriptor::FontDescriptor(const char *path, const char *postscriptName, con
 , weight(weight)
 , width(width)
 , italic(italic)
-, monospace(monospace)
-{}
+, monospace(monospace) {}
 
-}
+} // namespace fui

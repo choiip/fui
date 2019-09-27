@@ -31,12 +31,12 @@ protected:
   virtual Widget* findWidget(const Vector2i& point, int recursiveLevel = -1) override;
   void drawChildren(RenderContext& renderContext);
   void onChildFocusChangeEvent(FocusEvent& event);
-  
+
   virtual void onFocusChangeEvent(FocusEvent& event) override;
   virtual void onMouseMoveEvent(MouseMoveEvent& event) override;
   virtual void onMousePressEvent(MouseEvent& event) override;
   virtual void onMouseReleaseEvent(MouseEvent& event) override;
-  
+
 private:
   WidgetList _children;
 

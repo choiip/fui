@@ -27,7 +27,7 @@ public:
   WidgetContainer* parent() const { return _parent; }
 
   virtual void draw(RenderContext& renderContext);
-  
+
 protected:
   /// Check if the widget contains a certain position
   bool contain(int x, int y) const;

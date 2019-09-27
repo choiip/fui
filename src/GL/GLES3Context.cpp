@@ -13,13 +13,11 @@ GLES3Context::GLES3Context() {}
 GLES3Context::~GLES3Context() { nvgDeleteGLES3(_vg); }
 
 Status GLES3Context::initVG() {
-  if (_vg != nullptr) {
-    nvgDeleteGLES3(_vg);
-  }
+  if (_vg != nullptr) { nvgDeleteGLES3(_vg); }
   int flag = NVG_ANTIALIAS | NVG_STENCIL_STROKES;
 #ifdef NDEBUG
   flag |= NVG_DEBUG;
-#endif  
+#endif
   _vg = nvgCreateGLES3(flag);
   if (_vg == NULL) {
     LOGE << "Could not init nanovg (GLES3).";
@@ -33,7 +31,8 @@ auto GLES3Context::setViewport(int x, int y, int width, int height) -> decltype(
   return this;
 }
 
-auto GLES3Context::preDraw(const Recti& renderArea, const Color* clearColor, const float* clearDepth, const int* clearStencil) -> decltype(this) {
+auto GLES3Context::preDraw(const Recti& renderArea, const Color* clearColor, const float* clearDepth,
+                           const int* clearStencil) -> decltype(this) {
   setViewport(renderArea.x, renderArea.y, renderArea.w, renderArea.h);
   GLbitfield clearBits = 0;
   if (clearColor != nullptr) {
@@ -48,19 +47,13 @@ auto GLES3Context::preDraw(const Recti& renderArea, const Color* clearColor, con
     glClearStencil(*clearStencil);
     clearBits |= GL_STENCIL_BUFFER_BIT;
   }
-  if (clearBits != 0) {
-    glClear(clearBits);
-  }
+  if (clearBits != 0) { glClear(clearBits); }
   return this;
 }
 
-auto GLES3Context::postDraw() -> decltype(this) {
-  return this;
-}
+auto GLES3Context::postDraw() -> decltype(this) { return this; }
 
-std::string GLES3Context::versionLine() const {
-  return "#version 300 es";
-}
+std::string GLES3Context::versionLine() const { return "#version 300 es"; }
 
 std::string GLES3Context::vertexMacro() const {
   return R"(

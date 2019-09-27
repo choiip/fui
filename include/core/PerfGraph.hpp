@@ -10,10 +10,10 @@ class RenderContext;
 class PerfGraph : public Widget {
 public:
   enum class Mode {
-    FPS   = 0x01,
-    TIME  = 0x02,
+    FPS = 0x01,
+    TIME = 0x02,
     GRAPH = 0x04,
-    ALL   = FPS | TIME | GRAPH,
+    ALL = FPS | TIME | GRAPH,
   };
 
   PerfGraph(const std::string& name, Mode mode = Mode::ALL);
@@ -34,8 +34,8 @@ protected:
 private:
   constexpr static size_t MAX_HISTORY_COUNT = 100;
 
-	float _fps[MAX_HISTORY_COUNT];
-	int _lastest;
+  float _fps[MAX_HISTORY_COUNT];
+  int _lastest;
 };
 
 } // namespace fui

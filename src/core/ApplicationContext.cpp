@@ -23,7 +23,7 @@ ApplicationContext::ApplicationContext() {}
 ApplicationContext::~ApplicationContext() {}
 
 void ApplicationContext::run(AbstractWindowManager& windowManager) {
-  MainLoopArgument argu = { this, &windowManager };
+  MainLoopArgument argu = {this, &windowManager};
   onEnter();
 
 #if __EMSCRIPTEN__

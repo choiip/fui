@@ -143,13 +143,13 @@ else ()
 endif()
 
 if (Vulkan_FOUND)
-list (APPEND FUI_SOURCES
-  src/glfw/GlfwVulkanProfile.cpp
-  src/vulkan/vku.c
-  src/vulkan/vku.cpp
-  src/vulkan/VulkanContext.cpp
-)
-list(APPEND EXTRA_LIB Vulkan::Vulkan)
+  list (APPEND FUI_SOURCES
+    src/glfw/GlfwVulkanProfile.cpp
+    src/vulkan/vku.c
+    src/vulkan/vku.cpp
+    src/vulkan/VulkanContext.cpp
+  )
+  list(APPEND EXTRA_LIB Vulkan::Vulkan)
 endif()
 
 add_library(fui STATIC ${GLAD_SOURCES} ${NANOVG_SOURCES} ${TINYUTF8_SOURCES} ${FUI_SOURCES})

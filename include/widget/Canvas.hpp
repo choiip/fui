@@ -22,9 +22,9 @@ public:
 protected:
   virtual int drawScene(RenderContext& renderContext) = 0;
 
-//   virtual void onMouseMoveEvent(MouseMoveEvent& event) override;
-//   virtual void onMousePressEvent(MouseEvent& event) override;
-//   virtual void onMouseReleaseEvent(MouseEvent& event) override;
+  //   virtual void onMouseMoveEvent(MouseMoveEvent& event) override;
+  //   virtual void onMousePressEvent(MouseEvent& event) override;
+  //   virtual void onMouseReleaseEvent(MouseEvent& event) override;
 
   /// The canvas border width
   FUI_WIDGET_PROPERTY(float, borderWidth, 1.0f);

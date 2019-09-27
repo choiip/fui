@@ -6,14 +6,14 @@
 #include "nanovg/nanovg.h"
 
 /* FOREGROUND */
-#define RST  "\x1B[0m"
-#define KRED  "\x1B[31m"
-#define KGRN  "\x1B[32m"
-#define KYEL  "\x1B[33m"
-#define KBLU  "\x1B[34m"
-#define KMAG  "\x1B[35m"
-#define KCYN  "\x1B[36m"
-#define KWHT  "\x1B[37m"
+#define RST "\x1B[0m"
+#define KRED "\x1B[31m"
+#define KGRN "\x1B[32m"
+#define KYEL "\x1B[33m"
+#define KBLU "\x1B[34m"
+#define KMAG "\x1B[35m"
+#define KCYN "\x1B[36m"
+#define KWHT "\x1B[37m"
 
 #define FRED(x) KRED x RST
 #define FGRN(x) KGRN x RST
@@ -28,14 +28,13 @@
 
 namespace fui {
 
-template<Logger::Level LOGLEVEL>
-static int logFunction(const char* fmt, ...) {
+template <Logger::Level LOGLEVEL> static int logFunction(const char* fmt, ...) {
   std::unique_ptr<char[]> formattedHeapMem;
   char formattedStackMem[128];
   char* formatted = &formattedStackMem[0];
   int finalWritten = -1, n = sizeof(formattedStackMem);
   va_list ap;
-  for(;;) {
+  for (;;) {
     va_start(ap, fmt);
     finalWritten = vsnprintf(formatted, n, fmt, ap);
     va_end(ap);
@@ -55,11 +54,10 @@ static int logFunction(const char* fmt, ...) {
 Logger::Logger() {
   _handler = ([](Level level, const std::string& message) {
     switch (level) {
-      case Level::ERR: std::cerr << KRED << message << RST << '\n'; break;
-      case Level::WARN: std::cout << KYEL << message << RST << '\n'; break;
-      case Level::DBG: std::cout << KBLU << message <<  RST << '\n'; break;
-      default:
-        std::cout << message << '\n'; break;
+    case Level::ERR: std::cerr << KRED << message << RST << '\n'; break;
+    case Level::WARN: std::cout << KYEL << message << RST << '\n'; break;
+    case Level::DBG: std::cout << KBLU << message << RST << '\n'; break;
+    default: std::cout << message << '\n'; break;
     }
   });
   nvgErrorPrint = logFunction<Level::ERR>;
@@ -71,14 +69,10 @@ Logger::~Logger() {
   nvgErrorPrint = printf;
 }
 
-void Logger::write(Level level, const std::string& message) {
-  (*_handler)(level, message);
-}
+void Logger::write(Level level, const std::string& message) { (*_handler)(level, message); }
 
 void Logger::setHandle(Logger::Handler handler) {
-  if (handler != nullptr) {
-    _handler = handler;
-  }
+  if (handler != nullptr) { _handler = handler; }
 }
 
 } // namespace fui

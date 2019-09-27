@@ -13,7 +13,7 @@ public:
     DBG,
   };
 
-  typedef void (* Handler)(Level level, const std::string& message);
+  typedef void (*Handler)(Level level, const std::string& message);
 
   Logger();
   ~Logger();
@@ -24,24 +24,22 @@ private:
   Handler _handler;
 };
 
-template<Logger::Level LOGLEVEL>
-class LogStream : public std::ostringstream {
+template <Logger::Level LOGLEVEL> class LogStream : public std::ostringstream {
 public:
-  explicit LogStream(Logger& logger) : _logger(logger) {}
+  explicit LogStream(Logger& logger)
+  : _logger(logger) {}
   ~LogStream() { _logger.write(LOGLEVEL, std::ostringstream::str()); }
-  template <typename T>
-  LogStream& operator<<(const T& v) {
+  template <typename T> LogStream& operator<<(const T& v) {
     (*(std::ostringstream*)this) << v;
     return *this;
   }
-  LogStream& operator()() {
-    return *this;
-  }
+  LogStream& operator()() { return *this; }
+
 private:
   Logger& _logger;
 };
 
-}
+} // namespace fui
 
 #define LOGE fui::LogStream<fui::Logger::Level::ERR>(fui::Logger::instance())()
 #define LOGW fui::LogStream<fui::Logger::Level::WARN>(fui::Logger::instance())()

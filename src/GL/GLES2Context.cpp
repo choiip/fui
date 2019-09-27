@@ -13,9 +13,7 @@ GLES2Context::GLES2Context() {}
 GLES2Context::~GLES2Context() { nvgDeleteGLES2(_vg); }
 
 Status GLES2Context::initVG() {
-  if (_vg != nullptr) {
-    nvgDeleteGLES2(_vg);
-  }
+  if (_vg != nullptr) { nvgDeleteGLES2(_vg); }
   int flag = NVG_ANTIALIAS | NVG_STENCIL_STROKES;
 #ifdef NDEBUG
   flag |= NVG_DEBUG;
@@ -33,7 +31,8 @@ auto GLES2Context::setViewport(int x, int y, int width, int height) -> decltype(
   return this;
 }
 
-auto GLES2Context::preDraw(const Recti& renderArea, const Color* clearColor, const float* clearDepth, const int* clearStencil) -> decltype(this) {
+auto GLES2Context::preDraw(const Recti& renderArea, const Color* clearColor, const float* clearDepth,
+                           const int* clearStencil) -> decltype(this) {
   setViewport(renderArea.x, renderArea.y, renderArea.w, renderArea.h);
   GLbitfield clearBits = 0;
   if (clearColor != nullptr) {
@@ -48,19 +47,13 @@ auto GLES2Context::preDraw(const Recti& renderArea, const Color* clearColor, con
     glClearStencil(*clearStencil);
     clearBits |= GL_STENCIL_BUFFER_BIT;
   }
-  if (clearBits != 0) {
-    glClear(clearBits);
-  }
+  if (clearBits != 0) { glClear(clearBits); }
   return this;
 }
 
-auto GLES2Context::postDraw() -> decltype(this) {
-  return this;
-}
+auto GLES2Context::postDraw() -> decltype(this) { return this; }
 
-std::string GLES2Context::versionLine() const {
-  return "#version 100";
-}
+std::string GLES2Context::versionLine() const { return "#version 100"; }
 
 std::string GLES2Context::vertexMacro() const {
   return R"(

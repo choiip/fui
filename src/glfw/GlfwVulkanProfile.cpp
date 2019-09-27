@@ -20,9 +20,7 @@ GlfwVulkanProfile::GlfwVulkanProfile() = default;
 GlfwVulkanProfile::~GlfwVulkanProfile() = default;
 
 void GlfwVulkanProfile::prepare() const {
-  if (!glfwVulkanSupported()) {
-    LOGE << "GLFW failed to find the Vulkan loader.";
-  }
+  if (!glfwVulkanSupported()) { LOGE << "GLFW failed to find the Vulkan loader."; }
 
   //// https://www.glfw.org/docs/latest/window_guide.html#window_hints
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -35,7 +33,7 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
     uint32_t extensionCount = 0;
     const char** requiredExtensions = glfwGetRequiredInstanceExtensions(&extensionCount);
     std::vector<std::string> extensions;
-    for (auto i=0; i<extensionCount; ++i) {
+    for (auto i = 0; i < extensionCount; ++i) {
       extensions.push_back(requiredExtensions[i]);
     }
 
@@ -44,20 +42,22 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
       "VK_LAYER_LUNARG_standard_validation",
       "VK_LAYER_LUNARG_core_validation",
       "VK_LAYER_KHRONOS_validation",
-      // "VK_LAYER_LUNARG_api_dump",
-      // "VK_LAYER_LUNARG_object_tracker",
-      // "VK_LAYER_LUNARG_screenshot",
+    // "VK_LAYER_LUNARG_api_dump",
+    // "VK_LAYER_LUNARG_object_tracker",
+    // "VK_LAYER_LUNARG_screenshot",
 #endif
     };
     auto non_const_this = const_cast<GlfwVulkanProfile*>(this);
-    non_const_this->_instance = std::make_shared<vk::UniqueInstance>(vk::su::createInstance("", "fui", layers, extensions));
+    non_const_this->_instance =
+        std::make_shared<vk::UniqueInstance>(vk::su::createInstance("", "fui", layers, extensions));
 #if !defined(NDEBUG)
-    vk::DebugReportFlagsEXT flags(vk::DebugReportFlagBitsEXT::ePerformanceWarning | 
-                                  vk::DebugReportFlagBitsEXT::eInformation | 
-                                  vk::DebugReportFlagBitsEXT::eWarning | 
-                                  vk::DebugReportFlagBitsEXT::eDebug | 
-                                  vk::DebugReportFlagBitsEXT::eError);
-    non_const_this->_debugReportCallback = std::make_shared<vk::UniqueDebugReportCallbackEXT>((*_instance)->createDebugReportCallbackEXTUnique(vk::DebugReportCallbackCreateInfoEXT(flags, &fui::vulkanDebugReportCallback)));
+    vk::DebugReportFlagsEXT flags(vk::DebugReportFlagBitsEXT::ePerformanceWarning |
+                                  vk::DebugReportFlagBitsEXT::eInformation | vk::DebugReportFlagBitsEXT::eWarning |
+                                  vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::eError);
+    non_const_this->_debugReportCallback = std::make_shared<vk::UniqueDebugReportCallbackEXT>(
+        (*_instance)
+            ->createDebugReportCallbackEXTUnique(
+                vk::DebugReportCallbackCreateInfoEXT(flags, &fui::vulkanDebugReportCallback)));
 #endif
   }
 
@@ -84,9 +84,7 @@ RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
     LOGE << "Could not init framebuffer";
     return nullptr;
   }
-  if (context->initVG() != Status::OK) {
-    return nullptr;
-  }
+  if (context->initVG() != Status::OK) { return nullptr; }
 
   return context.release();
 }
