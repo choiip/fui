@@ -93,6 +93,7 @@ list(APPEND EXTRA_INCLUDE_DIRS ${STB_INCLUDE_DIRS})
 ## vulkan
 if (WITH_VULKAN)
   find_package(Vulkan)
+  include(GLSL2SPIRV)
 endif()
 
 ## fui
