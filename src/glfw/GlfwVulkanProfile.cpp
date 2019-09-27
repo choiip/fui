@@ -9,12 +9,15 @@
 #include <GLFW/glfw3.h>
 #include "core/Log.hpp"
 #include "core/Status.hpp"
-#include "vulkan/vku.h"
+#include "vulkan/debug.hpp"
+#include "vulkan/vku.hpp"
 #include "vulkan/VulkanContext.hpp"
 
 namespace fui {
 
-GlfwVulkanProfile::~GlfwVulkanProfile() {}
+GlfwVulkanProfile::GlfwVulkanProfile() = default;
+
+GlfwVulkanProfile::~GlfwVulkanProfile() = default;
 
 void GlfwVulkanProfile::prepare() const {
   if (!glfwVulkanSupported()) {
@@ -28,44 +31,57 @@ void GlfwVulkanProfile::prepare() const {
 RenderContext* GlfwVulkanProfile::createContext(void* nativeWindow) const {
   GLFWwindow* window = (GLFWwindow*)nativeWindow;
 
-  VulkanContext::Resource resource;
-  uint32_t extensionCount = 0;
-  const char** extensions = glfwGetRequiredInstanceExtensions(&extensionCount);
+  if (_instance == nullptr) {
+    uint32_t extensionCount = 0;
+    const char** requiredExtensions = glfwGetRequiredInstanceExtensions(&extensionCount);
+    std::vector<std::string> extensions;
+    for (auto i=0; i<extensionCount; ++i) {
+      extensions.push_back(requiredExtensions[i]);
+    }
 
-#ifdef NDEBUG
-  resource.instance = createVkInstance(extensions, extensionCount, false);
-#else
-  resource.instance = createVkInstance(extensions, extensionCount, true);
-  resource.debugCallback = CreateDebugReport(resource.instance);
+    std::vector<std::string> layers = {
+#if !defined(NDEBUG)
+      "VK_LAYER_LUNARG_standard_validation",
+      "VK_LAYER_LUNARG_core_validation",
+      "VK_LAYER_KHRONOS_validation",
+      // "VK_LAYER_LUNARG_api_dump",
+      // "VK_LAYER_LUNARG_object_tracker",
+      // "VK_LAYER_LUNARG_screenshot",
 #endif
-
-  VkResult res;
-
-  uint32_t gpu_count = 1;
-  res = vkEnumeratePhysicalDevices(resource.instance, &gpu_count, &resource.gpu);
-  if (res != VK_SUCCESS && res != VK_INCOMPLETE) {
-    LOGE << "vkEnumeratePhysicalDevices failed " << res;
-    return nullptr;
+    };
+    auto non_const_this = const_cast<GlfwVulkanProfile*>(this);
+    non_const_this->_instance = std::make_shared<vk::UniqueInstance>(vk::su::createInstance("", "fui", layers, extensions));
+#if !defined(NDEBUG)
+    vk::DebugReportFlagsEXT flags(vk::DebugReportFlagBitsEXT::ePerformanceWarning | 
+                                  vk::DebugReportFlagBitsEXT::eInformation | 
+                                  vk::DebugReportFlagBitsEXT::eWarning | 
+                                  vk::DebugReportFlagBitsEXT::eDebug | 
+                                  vk::DebugReportFlagBitsEXT::eError);
+    non_const_this->_debugReportCallback = std::make_shared<vk::UniqueDebugReportCallbackEXT>((*_instance)->createDebugReportCallbackEXTUnique(vk::DebugReportCallbackCreateInfoEXT(flags, &fui::vulkanDebugReportCallback)));
+#endif
   }
-  auto device = resource.device = createVulkanDevice(resource.gpu);
 
-  int winWidth, winHeight;
-  glfwGetWindowSize(window, &winWidth, &winHeight);
-
-  vkGetDeviceQueue(device->device, device->graphicsQueueFamilyIndex, 0, &resource.queue);
-
-  res = glfwCreateWindowSurface(resource.instance, window, 0, &resource.surface);
+  VkSurfaceKHR surface;
+  auto res = glfwCreateWindowSurface(_instance->get(), window, 0, &surface);
   if (VK_SUCCESS != res) {
     LOGE << "glfwCreateWindowSurface failed";
     return nullptr;
   }
 
-  resource.frameBuffer = createFrameBuffers(device, resource.surface, resource.queue, winWidth, winHeight, 0);
-  resource.cmdBuffer = createCmdBuffer(device->device, device->commandPool);
+  vk::Extent2D windowExtent;
+  glfwGetFramebufferSize(window, (int*)(&windowExtent.width), (int*)(&windowExtent.height));
 
-  std::unique_ptr<VulkanContext> context(new VulkanContext(resource));
+  std::unique_ptr<VulkanContext> context(new VulkanContext(_instance, _debugReportCallback));
   if (!context) {
     LOGE << "Could not create render context.";
+    return nullptr;
+  }
+  if (context->initSwapchain(surface, windowExtent) != Status::OK) {
+    LOGE << "Could not init swapchain";
+    return nullptr;
+  }
+  if (context->initFramebuffer(windowExtent) != Status::OK) {
+    LOGE << "Could not init framebuffer";
     return nullptr;
   }
   if (context->initVG() != Status::OK) {

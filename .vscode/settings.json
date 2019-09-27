@@ -70,7 +70,7 @@
         "osx": {
             "externalConsole": true,
             "MIMode": "lldb",
-            "miDebuggerPath": "${env:HOME}/.vscode/extensions/ms-vscode.cpptools-0.25.0/debugAdapters/lldb/bin/lldb-mi",
+            "miDebuggerPath": "${env:HOME}/.vscode/extensions/ms-vscode.cpptools-0.25.1/debugAdapters/lldb/bin/lldb-mi",
         },
     },
     "cmake.environment": {
@@ -80,4 +80,8 @@
     "editor.tabSize": 2,
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools",
     "C_Cpp.configurationWarnings": "Disabled",
+    "files.watcherExclude": {
+        "**/build/**": true,
+        "**/vcpkg/**": true
+    },
 }

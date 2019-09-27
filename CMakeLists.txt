@@ -93,7 +93,7 @@ list(APPEND EXTRA_INCLUDE_DIRS ${STB_INCLUDE_DIRS})
 ## vulkan
 if (WITH_VULKAN)
   find_package(Vulkan)
-  list(APPEND EXTRA_LIB Vulkan::Vulkan)
+  include(GLSL2SPIRV)
 endif()
 
 ## fui
@@ -142,12 +142,14 @@ else ()
   message(FATAL_ERROR "Unsupported system: ${CMAKE_SYSTEM_NAME}")
 endif()
 
-if (WITH_VULKAN)
+if (Vulkan_FOUND)
 list (APPEND FUI_SOURCES
   src/glfw/GlfwVulkanProfile.cpp
   src/vulkan/vku.c
+  src/vulkan/vku.cpp
   src/vulkan/VulkanContext.cpp
 )
+list(APPEND EXTRA_LIB Vulkan::Vulkan)
 endif()
 
 add_library(fui STATIC ${GLAD_SOURCES} ${NANOVG_SOURCES} ${TINYUTF8_SOURCES} ${FUI_SOURCES})
@@ -156,7 +158,7 @@ if (FUI_BUILD_SHARED)
   target_compile_definitions(fui PUBLIC GLAD_GLAPI_EXPORT)
 endif()
 
-if (WITH_VULKAN)
+if (Vulkan_FOUND)
   target_compile_definitions(fui PUBLIC FUI_ENABLE_VULKAN)
 endif()
 
