@@ -7,7 +7,7 @@ struct NVGcontext;
 namespace fui {
 
 struct Color;
-template <typename T> class Rect;
+template <typename T> struct Rect;
 typedef Rect<int> Recti;
 
 enum class PixelFormat {

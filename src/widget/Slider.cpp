@@ -1,4 +1,5 @@
 #include "widget/Slider.hpp"
+#include <algorithm>
 #include "core/RenderContext.hpp"
 #include "core/Tooltip.hpp"
 #include "event/MouseEvent.hpp"

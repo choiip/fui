@@ -26,7 +26,7 @@ set (CMAKE_CXX_EXTENSIONS OFF)
 ##
 option(ENABLE_CLANG_TIDY "Enable testing with clang-tidy" FALSE)
 option(ENABLE_CPPCHECK "Enable testing with cppcheck" FALSE)
-cmake_dependent_option(WITH_VULKAN "Build with vulkan." FALSE "NOT EMSCRIPTEN" FALSE)
+cmake_dependent_option(WITH_VULKAN "Build with vulkan." TRUE "NOT EMSCRIPTEN" FALSE)
 
 if(ENABLE_CPPCHECK)
   find_program(CPPCHECK cppcheck)
