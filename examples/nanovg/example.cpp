@@ -19,7 +19,7 @@ protected:
 public:
   ExampleApp(RenderWindow* renderWindow)
   : window(renderWindow)
-  , vg(renderWindow->renderContext()->vg())
+  , vg(renderWindow->renderContext<RenderContext>()->vg())
   , cpuTime(0) {
     renderWindow->onKey([renderWindow](Key key, ButtonAction action, Modifier mods) {
       if (key == Key::KEY_ESCAPE) {
@@ -126,7 +126,7 @@ class VulkanExampleApp : public ExampleApp {
 public:
   VulkanExampleApp(RenderWindow* renderWindow)
   : ExampleApp(renderWindow) {
-    _vulkanContext = static_cast<VulkanContext*>(renderWindow->renderContext());
+    _vulkanContext = renderWindow->renderContext<VulkanContext>();
   }
   virtual ~VulkanExampleApp() {}
 

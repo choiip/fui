@@ -13,10 +13,14 @@
 #include <event/EventEnum.hpp>
 #include <event/MouseEvent.hpp>
 
+#include <GL/OpenGLContext.hpp>
+
 #include <glfw/GlfwWindowManager.hpp>
 
 #include <text/EntypoIconDef.h>
 #include <text/FontDescriptor.hpp>
+
+#include <vulkan/VulkanContext.hpp>
 
 #include <widget/Button.hpp>
 #include <widget/Canvas.hpp>

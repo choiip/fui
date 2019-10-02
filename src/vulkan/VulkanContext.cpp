@@ -1,4 +1,4 @@
-#include "VulkanContext.hpp"
+#include "vulkan/VulkanContext.hpp"
 #include "vku.hpp"
 #define NANOVG_VULKAN_IMPLEMENTATION
 #include "nanovg_vk.h"
@@ -230,22 +230,6 @@ auto VulkanContext::postDraw() -> decltype(this) {
   } catch (const vk::OutOfDateKHRError&) {}
 
   return this;
-}
-
-std::string VulkanContext::versionLine() const { return "#version 400"; }
-
-std::string VulkanContext::vertexMacro() const {
-  return R"(
-    #define VERT_IN in
-    #define VERT_OUT out
-  )";
-}
-
-std::string VulkanContext::fragmentMacro() const {
-  return R"(
-    #define FRAG_IN in
-    #define FRAG_OUT out
-  )";
 }
 
 } // namespace fui

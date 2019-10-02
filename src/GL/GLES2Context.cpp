@@ -26,33 +26,6 @@ Status GLES2Context::initVG() {
   return Status::OK;
 }
 
-auto GLES2Context::setViewport(int x, int y, int width, int height) -> decltype(this) {
-  glViewport(x, y, width, height);
-  return this;
-}
-
-auto GLES2Context::preDraw(const Recti& renderArea, const Color* clearColor, const float* clearDepth,
-                           const int* clearStencil) -> decltype(this) {
-  setViewport(renderArea.x, renderArea.y, renderArea.w, renderArea.h);
-  GLbitfield clearBits = 0;
-  if (clearColor != nullptr) {
-    glClearColor(clearColor->r, clearColor->g, clearColor->b, clearColor->a);
-    clearBits |= GL_COLOR_BUFFER_BIT;
-  }
-  if (clearDepth != nullptr) {
-    glClearDepthf(*clearDepth);
-    clearBits |= GL_DEPTH_BUFFER_BIT;
-  }
-  if (clearStencil != nullptr) {
-    glClearStencil(*clearStencil);
-    clearBits |= GL_STENCIL_BUFFER_BIT;
-  }
-  if (clearBits != 0) { glClear(clearBits); }
-  return this;
-}
-
-auto GLES2Context::postDraw() -> decltype(this) { return this; }
-
 std::string GLES2Context::versionLine() const { return "#version 100"; }
 
 std::string GLES2Context::vertexMacro() const {

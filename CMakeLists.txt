@@ -113,6 +113,7 @@ list(APPEND FUI_SOURCES
   src/GL/GL3Context.cpp
   src/GL/GLES2Context.cpp
   src/GL/GLES3Context.cpp
+  src/GL/OpenGLContext.cpp
   src/image/mjpeg2jpeg.c
   src/text/FontDescriptor.cpp
   src/widget/Button.cpp

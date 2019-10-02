@@ -55,30 +55,4 @@ void RenderContext::updateImage(int image, const unsigned char* data, size_t dat
   }
 }
 
-std::string RenderContext::loadVertexShader(const std::string& filename) {
-  size_t contentLength;
-  char* content = (char*)stb_file((char*)filename.c_str(), &contentLength);
-  if (content == NULL) return "";
-  content[contentLength - 1] = 0;
-
-  std::string finalSource = versionLine();
-  finalSource += vertexMacro();
-  finalSource += content;
-  free(content);
-  return finalSource;
-}
-
-std::string RenderContext::loadFragmentShader(const std::string& filename) {
-  size_t contentLength;
-  char* content = (char*)stb_file((char*)filename.c_str(), &contentLength);
-  if (content == NULL) return "";
-  content[contentLength - 1] = 0;
-
-  std::string finalSource = versionLine();
-  finalSource += fragmentMacro();
-  finalSource += content;
-  free(content);
-  return finalSource;
-}
-
 } // namespace fui

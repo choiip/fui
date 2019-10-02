@@ -23,7 +23,10 @@ public:
   void onMouseMoveEvent(int xpos, int ypos);
   void onResizeEvent(int width, int height);
 
-  RenderContext* renderContext() const { return _renderContext; }
+  template <class T, class = typename std::enable_if<std::is_base_of<RenderContext, T>::value>::type>
+  T* renderContext() const {
+    return static_cast<T*>(_renderContext);
+  }
 
   virtual void* nativeWindow() const = 0;
 

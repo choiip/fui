@@ -1,22 +1,17 @@
 #pragma once
 
-#include "core/RenderContext.hpp"
+#include "GL/OpenGLContext.hpp"
 
 namespace fui {
 
 enum class Status;
 
-class GLES3Context : public RenderContext {
+class GLES3Context : public OpenGLContext {
 public:
   GLES3Context();
-  ~GLES3Context();
+  virtual ~GLES3Context();
 
   Status initVG();
-
-  virtual auto setViewport(int x, int y, int width, int height) -> decltype(this) override;
-  virtual auto preDraw(const Recti& renderArea, const Color* clearColor = nullptr, const float* clearDepth = nullptr,
-                       const int* clearStencil = nullptr) -> decltype(this) override;
-  virtual auto postDraw() -> decltype(this) override;
 
 protected:
   virtual std::string versionLine() const override;

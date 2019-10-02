@@ -12,7 +12,7 @@ class VulkanContext : public RenderContext {
 public:
   VulkanContext(const std::shared_ptr<vk::UniqueInstance>& instance,
                 const std::shared_ptr<vk::UniqueDebugReportCallbackEXT>& debugReportCallback);
-  ~VulkanContext();
+  virtual ~VulkanContext();
 
   Status initSwapchain(const vk::SurfaceKHR& surface, const vk::Extent2D& windowExtent);
   Status initFramebuffer(const vk::Extent2D& extent);
@@ -25,10 +25,6 @@ public:
 
 protected:
   Status rebuildSwapchain();
-
-  virtual std::string versionLine() const override;
-  virtual std::string vertexMacro() const override;
-  virtual std::string fragmentMacro() const override;
 
 private:
   struct Private;
