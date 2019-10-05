@@ -18,7 +18,7 @@ typedef struct VKNVGCreateInfo {
   VkDevice device;
   VkCommandPool commandPool;
   VkQueue queue;
-  VkRenderPass renderpass;
+  VkRenderPass renderPass;
   VkCommandBuffer cmdBuffer;
 
   const VkAllocationCallbacks* allocator; // Allocator for vulkan. can be null
@@ -634,7 +634,7 @@ static VKNVGPipeline* vknvg_createPipeline(VKNVGcontext* vk, VKNVGCreatePipeline
 
   VkDevice device = vk->createInfo.device;
   VkPipelineLayout pipelineLayout = vk->pipelineLayout;
-  VkRenderPass renderpass = vk->createInfo.renderpass;
+  VkRenderPass renderPass = vk->createInfo.renderPass;
   const VkAllocationCallbacks* allocator = vk->createInfo.allocator;
 
   VkDescriptorSetLayout descLayout = vk->descLayout;
@@ -730,7 +730,7 @@ static VKNVGPipeline* vknvg_createPipeline(VKNVGcontext* vk, VKNVGCreatePipeline
   pipelineCreateInfo.pMultisampleState = &ms;
   pipelineCreateInfo.pViewportState = &vp;
   pipelineCreateInfo.pDepthStencilState = &ds;
-  pipelineCreateInfo.renderPass = renderpass;
+  pipelineCreateInfo.renderPass = renderPass;
   pipelineCreateInfo.pDynamicState = &dynamicState;
 
   VkPipeline pipeline;
@@ -1125,7 +1125,6 @@ static void vknvg_triangles(VKNVGcontext* vk, VKNVGcall* call) {
 static int vknvg_renderCreate(void* uptr) {
   VKNVGcontext* vk = (VKNVGcontext*)uptr;
   VkDevice device = vk->createInfo.device;
-  VkRenderPass renderpass = vk->createInfo.renderpass;
   const VkAllocationCallbacks* allocator = vk->createInfo.allocator;
 
   vkGetPhysicalDeviceMemoryProperties(vk->createInfo.gpu, &vk->memoryProperties);
@@ -1320,8 +1319,6 @@ static void vknvg_renderCancel(void* uptr) {
 static void vknvg_renderFlush(void* uptr) {
   VKNVGcontext* vk = (VKNVGcontext*)uptr;
   VkDevice device = vk->createInfo.device;
-  VkCommandBuffer cmdBuffer = vk->createInfo.cmdBuffer;
-  VkRenderPass renderpass = vk->createInfo.renderpass;
   VkPhysicalDeviceMemoryProperties memoryProperties = vk->memoryProperties;
   const VkAllocationCallbacks* allocator = vk->createInfo.allocator;
 

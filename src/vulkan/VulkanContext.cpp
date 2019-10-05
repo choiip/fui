@@ -16,6 +16,7 @@ struct VulkanContext::Private {
   vk::UniqueDevice device;
   vk::UniqueCommandPool commandPool;
   vk::Queue graphicsQueue;
+  vk::Queue presentQueue;
   vk::UniqueCommandBuffer commandBuffer;
   vk::UniqueSemaphore presentComplete;
   vk::UniqueSemaphore renderComplete;
@@ -62,6 +63,8 @@ VulkanContext::VulkanContext(const std::shared_ptr<vk::UniqueInstance>& instance
 }
 
 VulkanContext::~VulkanContext() {
+  _p->device->waitIdle();
+
   nvgDeleteVk(vg());
 
   _p->renderComplete.reset();
@@ -86,6 +89,8 @@ Status VulkanContext::initSwapchain(const vk::SurfaceKHR& surface, const vk::Ext
   auto queueIndices = vk::su::findGraphicsAndPresentQueueFamilyIndex(_p->gpu, surface);
   auto graphicsQueueFamilyIndex = queueIndices.first;
   auto presentQueueFamilyIndex = queueIndices.second;
+  _p->graphicsQueue = _p->device->getQueue(graphicsQueueFamilyIndex, 0);  
+  _p->presentQueue = _p->device->getQueue(presentQueueFamilyIndex, 0);
   auto oldSwapChainData = _p->swapchain ? std::move(_p->swapchain->swapChain) : vk::UniqueSwapchainKHR();
   _p->surface = surface;
   _p->frameExtent = extent;
@@ -125,7 +130,7 @@ Status VulkanContext::initVG() {
   createInfo.device = _p->device.get();
   createInfo.commandPool = _p->commandPool.get();
   createInfo.queue = _p->graphicsQueue;
-  createInfo.renderpass = _p->renderPass.get();
+  createInfo.renderPass = _p->renderPass.get();
   createInfo.cmdBuffer = _p->commandBuffer.get();
   int flag = NVG_ANTIALIAS | NVG_STENCIL_STROKES;
 #ifdef NDEBUG
