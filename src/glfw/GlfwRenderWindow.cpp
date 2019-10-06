@@ -15,7 +15,7 @@ GlfwRenderWindow::GlfwRenderWindow(GLFWwindow* window, RenderContext* renderCont
 
 GlfwRenderWindow::~GlfwRenderWindow() {
   if (_window) {
-    if (!glfwWindowShouldClose(_window)) glfwDestroyWindow(_window);
+    if (glfwWindowShouldClose(_window)) glfwDestroyWindow(_window);
     _window = nullptr;
   }
 }

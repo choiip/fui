@@ -19,14 +19,6 @@ static void errorCallback(int error, const char* description) {
 }
 
 static void setupCallbacks(GLFWwindow* glfwWindow, RenderWindow* renderWindow) {
-  glfwSetWindowCloseCallback(glfwWindow, [](GLFWwindow* window) {
-    const auto& windows = GlfwWindowManager::instance().getWindows();
-    auto targetWindow = windows.find(window);
-    if (targetWindow != windows.end()) {
-      delete targetWindow->second;
-      const_cast<std::unordered_map<GLFWwindow*, GlfwRenderWindow*>&>(windows).erase(targetWindow);
-    }
-  });
   glfwSetWindowSizeCallback(glfwWindow, [](GLFWwindow* window, int width, int height) {
     const auto& windows = GlfwWindowManager::instance().getWindows();
     auto targetWindow = windows.find(window);
@@ -63,7 +55,12 @@ GlfwWindowManager::GlfwWindowManager() {
   if (!glfwInit()) { LOGE << "Failed to init GLFW."; }
 }
 
-GlfwWindowManager::~GlfwWindowManager() { glfwTerminate(); }
+GlfwWindowManager::~GlfwWindowManager() { 
+  for (auto&& w: _disposedWindows) {
+    delete w;
+  }
+  glfwTerminate(); 
+}
 
 RenderWindow* GlfwWindowManager::createWindow(int width, int height, const GraphicsProfile& graphicsProfile) {
   graphicsProfile.prepare();
@@ -110,13 +107,19 @@ GraphicsProfile* GlfwWindowManager::createGraphicsProfile(GraphicsAPI api, int m
 
 void GlfwWindowManager::pollEvent() { glfwPollEvents(); }
 
-bool GlfwWindowManager::shouldQuit() { return !hasRunableWindow(); }
-
-bool GlfwWindowManager::hasRunableWindow() const {
-  for (auto&& w : _windows) {
-    if (!glfwWindowShouldClose(w.first)) { return true; }
+bool GlfwWindowManager::shouldQuit() {
+  auto quit = true;
+  auto w = _windows.begin();
+  while (w != _windows.end()) {
+    if (glfwWindowShouldClose(w->first)) {
+      _disposedWindows.push_back(w->second);
+      w = _windows.erase(w);
+    } else {
+      quit = false;
+      ++w;
+    }
   }
-  return false;
+  return quit;
 }
 
 auto GlfwWindowManager::getWindows() const -> const decltype(_windows)& { return _windows; }

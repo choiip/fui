@@ -2,6 +2,7 @@
 
 #include "core/AbstractWindowManager.hpp"
 #include "core/Singleton.hpp"
+#include <list>
 #include <unordered_map>
 
 struct GLFWwindow;
@@ -15,6 +16,7 @@ class GlfwWindowManager
 , public Singleton<GlfwWindowManager> {
 private:
   std::unordered_map<GLFWwindow*, GlfwRenderWindow*> _windows;
+  std::list<RenderWindow*>  _disposedWindows;
 
 public:
   GlfwWindowManager();
@@ -24,7 +26,6 @@ public:
   virtual void pollEvent() override;
   virtual bool shouldQuit() override;
 
-  bool hasRunableWindow() const;
   auto getWindows() const -> const decltype(_windows)&;
 };
 
