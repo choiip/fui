@@ -16,7 +16,6 @@ enum NVGcreateFlags {
 typedef struct VKNVGCreateInfo {
   VkPhysicalDevice gpu;
   VkDevice device;
-  VkCommandPool commandPool;
   VkQueue queue;
   VkRenderPass renderPass;
   VkCommandBuffer cmdBuffer;
@@ -134,10 +133,14 @@ typedef struct VKNVGDepthSimplePipeline {
 } VKNVGDepthSimplePipeline;
 
 typedef struct VKNVGcontext {
-  VKNVGCreateInfo createInfo;
-
   VkPhysicalDeviceProperties gpuProperties;
   VkPhysicalDeviceMemoryProperties memoryProperties;
+  VkDevice device;
+  VkQueue queue;
+  VkRenderPass renderPass;
+  VkCommandBuffer commandBuffer;
+
+  const VkAllocationCallbacks* allocator; // Allocator for vulkan. can be null
 
   int fragSize;
   int flags;
@@ -249,8 +252,8 @@ static int vknvg_textureId(VKNVGcontext* vk, VKNVGtexture* tex) {
   return (int)id + 1;
 }
 static int vknvg_deleteTexture(VKNVGcontext* vk, VKNVGtexture* tex) {
-  VkDevice device = vk->createInfo.device;
-  const VkAllocationCallbacks* allocator = vk->createInfo.allocator;
+  VkDevice device = vk->device;
+  const VkAllocationCallbacks* allocator = vk->allocator;
   if (tex) {
     if (tex->view != VK_NULL_HANDLE) {
       vkDestroyImageView(device, tex->view, allocator);
@@ -632,10 +635,10 @@ static VkPipelineDepthStencilStateCreateInfo initializeDepthStencilCreateInfo(VK
 }
 static VKNVGPipeline* vknvg_createPipeline(VKNVGcontext* vk, VKNVGCreatePipelineKey* pipelinekey) {
 
-  VkDevice device = vk->createInfo.device;
+  VkDevice device = vk->device;
   VkPipelineLayout pipelineLayout = vk->pipelineLayout;
-  VkRenderPass renderPass = vk->createInfo.renderPass;
-  const VkAllocationCallbacks* allocator = vk->createInfo.allocator;
+  VkRenderPass renderPass = vk->renderPass;
+  const VkAllocationCallbacks* allocator = vk->allocator;
 
   VkDescriptorSetLayout descLayout = vk->descLayout;
   VkShaderModule vert_shader = vk->fillVertShader;
@@ -858,7 +861,7 @@ static void vknvg_vset(NVGvertex* vtx, float x, float y, float u, float v) {
 }
 
 static void vknvg_setUniforms(VKNVGcontext* vk, VkDescriptorSet descSet, int uniformOffset, int image) {
-  VkDevice device = vk->createInfo.device;
+  VkDevice device = vk->device;
 
   VkWriteDescriptorSet writes[3] = {{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET},
                                     {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET},
@@ -921,8 +924,8 @@ static void vknvg_fill(VKNVGcontext* vk, VKNVGcall* call) {
   VKNVGpath* paths = &vk->paths[call->pathOffset];
   int npaths = call->pathCount;
 
-  VkDevice device = vk->createInfo.device;
-  VkCommandBuffer cmdBuffer = vk->createInfo.cmdBuffer;
+  VkDevice device = vk->device;
+  VkCommandBuffer cmdBuffer = vk->commandBuffer;
 
   VKNVGCreatePipelineKey pipelinekey = {0};
   pipelinekey.compositOperation = call->compositOperation;
@@ -983,8 +986,8 @@ static void vknvg_convexFill(VKNVGcontext* vk, VKNVGcall* call) {
   VKNVGpath* paths = &vk->paths[call->pathOffset];
   int npaths = call->pathCount;
 
-  VkDevice device = vk->createInfo.device;
-  VkCommandBuffer cmdBuffer = vk->createInfo.cmdBuffer;
+  VkDevice device = vk->device;
+  VkCommandBuffer cmdBuffer = vk->commandBuffer;
 
   VKNVGCreatePipelineKey pipelinekey = {0};
   pipelinekey.compositOperation = call->compositOperation;
@@ -1021,8 +1024,8 @@ static void vknvg_convexFill(VKNVGcontext* vk, VKNVGcall* call) {
 }
 
 static void vknvg_stroke(VKNVGcontext* vk, VKNVGcall* call) {
-  VkDevice device = vk->createInfo.device;
-  VkCommandBuffer cmdBuffer = vk->createInfo.cmdBuffer;
+  VkDevice device = vk->device;
+  VkCommandBuffer cmdBuffer = vk->commandBuffer;
 
   VKNVGpath* paths = &vk->paths[call->pathOffset];
   int npaths = call->pathCount;
@@ -1098,8 +1101,8 @@ static void vknvg_triangles(VKNVGcontext* vk, VKNVGcall* call) {
   if (call->triangleCount == 0) {
     return;
   }
-  VkDevice device = vk->createInfo.device;
-  VkCommandBuffer cmdBuffer = vk->createInfo.cmdBuffer;
+  VkDevice device = vk->device;
+  VkCommandBuffer cmdBuffer = vk->commandBuffer;
 
   VKNVGCreatePipelineKey pipelinekey = {0};
   pipelinekey.compositOperation = call->compositOperation;
@@ -1124,11 +1127,8 @@ static void vknvg_triangles(VKNVGcontext* vk, VKNVGcall* call) {
 ///==================================================================================================================
 static int vknvg_renderCreate(void* uptr) {
   VKNVGcontext* vk = (VKNVGcontext*)uptr;
-  VkDevice device = vk->createInfo.device;
-  const VkAllocationCallbacks* allocator = vk->createInfo.allocator;
-
-  vkGetPhysicalDeviceMemoryProperties(vk->createInfo.gpu, &vk->memoryProperties);
-  vkGetPhysicalDeviceProperties(vk->createInfo.gpu, &vk->gpuProperties);
+  VkDevice device = vk->device;
+  const VkAllocationCallbacks* allocator = vk->allocator;
 
   static const unsigned char fillVertShader[] = {
 #include "shader/fill_vert_shader_hex.txt"
@@ -1160,8 +1160,8 @@ static int vknvg_renderCreateTexture(void* uptr, int type, int w, int h, int ima
     return 0;
   }
 
-  VkDevice device = vk->createInfo.device;
-  const VkAllocationCallbacks* allocator = vk->createInfo.allocator;
+  VkDevice device = vk->device;
+  const VkAllocationCallbacks* allocator = vk->allocator;
 
   VkImageCreateInfo image_createInfo = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
   image_createInfo.pNext = nullptr;
@@ -1263,13 +1263,20 @@ static int vknvg_renderCreateTexture(void* uptr, int type, int w, int h, int ima
   tex->type = type;
   tex->flags = imageFlags;
 
-  VkCommandBuffer localCommandBuffer = createAndBeginLocalCommandBuffer(vk->createInfo.device, vk->createInfo.commandPool);
-  setupImageLayout(localCommandBuffer, tex->image, tex->type == NVG_TEXTURE_RGBA ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_R8_UNORM, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  VkCommandBufferBeginInfo commandBufferBeginInfo = {
+      VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+  };
+  vkBeginCommandBuffer(vk->commandBuffer, &commandBufferBeginInfo);
 
-  endCommandAndSubmitToQueue(localCommandBuffer, vk->createInfo.queue);
-  vkQueueWaitIdle(vk->createInfo.queue);
+  setupImageLayout(vk->commandBuffer, tex->image, tex->type == NVG_TEXTURE_RGBA ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_R8_UNORM, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  
+  vkEndCommandBuffer(vk->commandBuffer);
+  VkSubmitInfo submitInfo = {VK_STRUCTURE_TYPE_SUBMIT_INFO};
+  submitInfo.commandBufferCount = 1;
+  submitInfo.pCommandBuffers = &vk->commandBuffer;
+  vkQueueSubmit(vk->queue, 1, &submitInfo, VK_NULL_HANDLE);
 
-  vkFreeCommandBuffers(vk->createInfo.device, vk->createInfo.commandPool, 1, &localCommandBuffer);
+  vkQueueWaitIdle(vk->queue);
 
   if (data) {
     vknvg_updateTexture(device, tex, 0, 0, w, h, data);
@@ -1289,7 +1296,7 @@ static int vknvg_renderUpdateTexture(void* uptr, int image, int x, int y, int w,
   VKNVGcontext* vk = (VKNVGcontext*)uptr;
 
   VKNVGtexture* tex = vknvg_findTexture(vk, image);
-  vknvg_updateTexture(vk->createInfo.device, tex, x, y, w, h, data);
+  vknvg_updateTexture(vk->device, tex, x, y, w, h, data);
   return 1;
 }
 static int vknvg_renderGetTextureSize(void* uptr, int image, int* w, int* h) {
@@ -1318,9 +1325,9 @@ static void vknvg_renderCancel(void* uptr) {
 
 static void vknvg_renderFlush(void* uptr) {
   VKNVGcontext* vk = (VKNVGcontext*)uptr;
-  VkDevice device = vk->createInfo.device;
+  VkDevice device = vk->device;
   VkPhysicalDeviceMemoryProperties memoryProperties = vk->memoryProperties;
-  const VkAllocationCallbacks* allocator = vk->createInfo.allocator;
+  const VkAllocationCallbacks* allocator = vk->allocator;
 
   int i;
   if (vk->ncalls > 0) {
@@ -1552,8 +1559,8 @@ static void vknvg_renderDelete(void* uptr) {
 
   VKNVGcontext* vk = (VKNVGcontext*)uptr;
 
-  VkDevice device = vk->createInfo.device;
-  const VkAllocationCallbacks* allocator = vk->createInfo.allocator;
+  VkDevice device = vk->device;
+  const VkAllocationCallbacks* allocator = vk->allocator;
 
   for (int i = 0; i < vk->ntextures; i++) {
     if (vk->textures[i].image != VK_NULL_HANDLE) {
@@ -1586,42 +1593,43 @@ inline NVGcontext* nvgCreateVk(VKNVGCreateInfo createInfo, int flags) {
   NVGcontext* ctx = nullptr;
 	const unsigned char emptyTextureData[2*2*4] = { 0 };
   VKNVGcontext* vk = (VKNVGcontext*)malloc(sizeof(VKNVGcontext));
-  if (vk == nullptr)
-    goto error;
-  memset(vk, 0, sizeof(VKNVGcontext));
+  if (vk != nullptr) {
+    memset(vk, 0, sizeof(VKNVGcontext));
 
-  memset(&params, 0, sizeof(params));
-  params.renderCreate = vknvg_renderCreate;
-  params.renderCreateTexture = vknvg_renderCreateTexture;
-  params.renderDeleteTexture = vknvg_renderDeleteTexture;
-  params.renderUpdateTexture = vknvg_renderUpdateTexture;
-  params.renderGetTextureSize = vknvg_renderGetTextureSize;
-  params.renderViewport = vknvg_renderViewport;
-  params.renderCancel = vknvg_renderCancel;
-  params.renderFlush = vknvg_renderFlush;
-  params.renderFill = vknvg_renderFill;
-  params.renderStroke = vknvg_renderStroke;
-  params.renderTriangles = vknvg_renderTriangles;
-  params.renderDelete = vknvg_renderDelete;
-  params.userPtr = vk;
-  params.edgeAntiAlias = (flags & NVG_ANTIALIAS) ? 1 : 0;
+    vk->flags = flags;
+    vk->device = createInfo.device;
+    vk->queue = createInfo.queue;
+    vk->renderPass = createInfo.renderPass;
+    vk->commandBuffer = createInfo.cmdBuffer;
+    vk->allocator = createInfo.allocator; // Allocator for vulkan. can be null
 
-  vk->flags = flags;
-  vk->createInfo = createInfo;
+    vkGetPhysicalDeviceMemoryProperties(createInfo.gpu, &vk->memoryProperties);
+    vkGetPhysicalDeviceProperties(createInfo.gpu, &vk->gpuProperties);
 
-  ctx = nvgCreateInternal(&params);
-  if (ctx == nullptr)
-    goto error;
-
-  vk->emptyTextureId = vknvg_renderCreateTexture(vk, NVG_TEXTURE_RGBA, 2, 2, NVG_IMAGE_NEAREST, emptyTextureData);
-
+    memset(&params, 0, sizeof(params));
+    params.renderCreate = vknvg_renderCreate;
+    params.renderCreateTexture = vknvg_renderCreateTexture;
+    params.renderDeleteTexture = vknvg_renderDeleteTexture;
+    params.renderUpdateTexture = vknvg_renderUpdateTexture;
+    params.renderGetTextureSize = vknvg_renderGetTextureSize;
+    params.renderViewport = vknvg_renderViewport;
+    params.renderCancel = vknvg_renderCancel;
+    params.renderFlush = vknvg_renderFlush;
+    params.renderFill = vknvg_renderFill;
+    params.renderStroke = vknvg_renderStroke;
+    params.renderTriangles = vknvg_renderTriangles;
+    params.renderDelete = vknvg_renderDelete;
+    params.userPtr = vk;
+    params.edgeAntiAlias = (flags & NVG_ANTIALIAS) ? 1 : 0;
+    
+    ctx = nvgCreateInternal(&params);
+    if (ctx == nullptr) {
+      vknvg_renderDelete(vk);
+    } else {
+      vk->emptyTextureId = vknvg_renderCreateTexture(vk, NVG_TEXTURE_RGBA, 2, 2, NVG_IMAGE_NEAREST, emptyTextureData);
+    }
+  }
   return ctx;
-
-error:
-  // 'gl' is freed by nvgDeleteInternal.
-  if (ctx != nullptr)
-    nvgDeleteInternal(ctx);
-  return nullptr;
 }
 
 inline void nvgDeleteVk(NVGcontext* ctx) { nvgDeleteInternal(ctx); }

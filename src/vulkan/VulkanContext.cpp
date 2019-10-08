@@ -75,8 +75,6 @@ VulkanContext::~VulkanContext() {
   _p->depthBuffer.reset();
   _p->swapchain.reset();
 
-  // destroyFrameBuffers(_p->device.get(), &_p->frameBuffer);
-
   _p->commandBuffer.reset();
   _p->commandPool.reset();
 
@@ -128,7 +126,6 @@ Status VulkanContext::initVG() {
   VKNVGCreateInfo createInfo = {0};
   createInfo.gpu = _p->gpu;
   createInfo.device = _p->device.get();
-  createInfo.commandPool = _p->commandPool.get();
   createInfo.queue = _p->graphicsQueue;
   createInfo.renderPass = _p->renderPass.get();
   createInfo.cmdBuffer = _p->commandBuffer.get();
