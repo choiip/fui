@@ -852,15 +852,15 @@ int nvgCreateFramebuffer(NVGcontext* ctx) {
 }
 
 void nvgBindFramebuffer(NVGcontext* ctx, int framebuffer) {
-	return ctx->params.renderBindFramebuffer(ctx->params.userPtr, framebuffer);	
+	ctx->params.renderBindFramebuffer(ctx->params.userPtr, framebuffer);	
 }
 
 void nvgAttachFramebuffer(NVGcontext* ctx, int framebuffer, int* image, int attachments) {
-	return ctx->params.renderAttachFramebuffer(ctx->params.userPtr, framebuffer, image, attachments);	
+	ctx->params.renderAttachFramebuffer(ctx->params.userPtr, framebuffer, image, attachments);	
 }
 
 void nvgAllocateFramebufferAttachment(NVGcontext* ctx, int framebuffer, int w, int h, int attachments) {
-	return ctx->params.renderAllocateFramebufferAttachment(ctx->params.userPtr, framebuffer, w, h, attachments);
+	ctx->params.renderAllocateFramebufferAttachment(ctx->params.userPtr, framebuffer, w, h, attachments);
 }
 
 void nvgDeleteFramebuffer(NVGcontext* ctx, int framebuffer) {
