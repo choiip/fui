@@ -17,6 +17,7 @@
 #define GL_UNPACK_SKIP_ROWS GL_UNPACK_SKIP_ROWS_EXT
 #define GL_UNPACK_SKIP_PIXELS GL_UNPACK_SKIP_PIXELS_EXT
 
+#define glClearDepth glClearDepthf
 #define glGenVertexArrays glGenVertexArraysOES
 #define glDeleteVertexArrays glDeleteVertexArraysOES
 #define glBindVertexArray glBindVertexArrayOES
