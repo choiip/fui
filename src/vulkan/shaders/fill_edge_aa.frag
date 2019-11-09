@@ -40,7 +40,7 @@ float strokeMask() {
 }
 
 void main(void) {
-   vec4 result;
+  vec4 result = vec4(1.0);
 	float scissor = scissorMask(fpos);
 	float strokeAlpha = strokeMask();
 	if (strokeAlpha < strokeThr) discard;

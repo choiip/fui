@@ -70,7 +70,7 @@
         "osx": {
             "externalConsole": true,
             "MIMode": "lldb",
-            "miDebuggerPath": "${env:HOME}/.vscode/extensions/ms-vscode.cpptools-0.25.1/debugAdapters/lldb/bin/lldb-mi",
+            "miDebuggerPath": "${env:HOME}/.vscode/extensions/ms-vscode.cpptools-0.26.1/debugAdapters/lldb/bin/lldb-mi",
         },
     },
     "editor.formatOnSave": true,

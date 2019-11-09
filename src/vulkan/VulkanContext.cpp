@@ -47,16 +47,18 @@ VulkanContext::VulkanContext(const std::shared_ptr<vk::UniqueInstance>& instance
                                                   queuePriorities);
   const char* deviceExtensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   constexpr auto deviceExtensionsCount = sizeof(deviceExtensions) / sizeof(deviceExtensions[0]);
+  vk::PhysicalDeviceFeatures deviceFeatures;
+  deviceFeatures.samplerAnisotropy = true;
   vk::DeviceCreateInfo deviceCreateInfo(vk::DeviceCreateFlags(), 1, &deviceQueueCreateInfo, 0, nullptr,
-                                        deviceExtensionsCount, deviceExtensions);
+                                        deviceExtensionsCount, deviceExtensions, &deviceFeatures);
   _p->device = _p->gpu.createDeviceUnique(deviceCreateInfo);
+  _p->graphicsQueue = _p->device->getQueue(graphicsQueueFamilyIndex, 0);
 
   auto d = _p->device.get();
 
   /* Create a command pool to allocate our command buffer from */
   _p->commandPool =
       d.createCommandPoolUnique({vk::CommandPoolCreateFlagBits::eResetCommandBuffer, graphicsQueueFamilyIndex});
-  _p->graphicsQueue = d.getQueue(graphicsQueueFamilyIndex, 0);
 
   auto commandBuffers = d.allocateCommandBuffersUnique({_p->commandPool.get(), vk::CommandBufferLevel::ePrimary, 1});
   _p->commandBuffer = std::move(commandBuffers[0]);
@@ -82,6 +84,25 @@ VulkanContext::~VulkanContext() {
 
   _p->instance->get().destroySurfaceKHR(_p->surface, NULL);
 }
+
+vk::PhysicalDevice& VulkanContext::physicalDevice() {
+  return _p->gpu;
+}
+
+vk::Device& VulkanContext::device() {
+  return _p->device.get();
+}
+  
+vk::SurfaceKHR& VulkanContext::surface() {
+  return _p->surface;
+}
+  
+  vk::Queue& VulkanContext::graphicsQueue() {
+    return _p->graphicsQueue;
+  }
+  vk::Queue& VulkanContext::presentQueue() {
+    return _p->presentQueue;
+  }
 
 Status VulkanContext::initSwapchain(const vk::SurfaceKHR& surface, const vk::Extent2D& extent) {
   auto queueIndices = vk::su::findGraphicsAndPresentQueueFamilyIndex(_p->gpu, surface);
