@@ -144,12 +144,20 @@ else ()
 endif()
 
 if (Vulkan_FOUND)
+  glsl2spirv2uchar(${PROJECT_BINARY_DIR}/include/shaders/fill_edge_aa.frag.h ${CMAKE_CURRENT_LIST_DIR}/src/vulkan/shaders/fill_edge_aa.frag)
+  glsl2spirv2uchar(${PROJECT_BINARY_DIR}/include/shaders/fill.frag.h ${CMAKE_CURRENT_LIST_DIR}/src/vulkan/shaders/fill.frag)
+  glsl2spirv2uchar(${PROJECT_BINARY_DIR}/include/shaders/fill.vert.h ${CMAKE_CURRENT_LIST_DIR}/src/vulkan/shaders/fill.vert)
+
   list (APPEND FUI_SOURCES
+    ${PROJECT_BINARY_DIR}/include/shaders/fill_edge_aa.frag.h
+    ${PROJECT_BINARY_DIR}/include/shaders/fill.frag.h
+    ${PROJECT_BINARY_DIR}/include/shaders/fill.vert.h
     src/glfw/GlfwVulkanProfile.cpp
     src/vulkan/vku.c
     src/vulkan/vku.cpp
     src/vulkan/VulkanContext.cpp
   )
+
   list(APPEND EXTRA_LIB Vulkan::Vulkan)
 endif()
 
@@ -160,6 +168,11 @@ if (FUI_BUILD_SHARED)
 endif()
 
 if (Vulkan_FOUND)
+  # file(GLOB_RECURSE GLSL_SOURCE_FILES
+  #   "src/vulkan/shaders/*.frag"
+  #   "src/vulkan/shaders/*.vert"
+  # )
+  # target_glsl2spirv(fui ${PROJECT_BINARY_DIR}/shaders "${GLSL_SOURCE_FILES}")
   target_compile_definitions(fui PUBLIC FUI_ENABLE_VULKAN)
 endif()
 

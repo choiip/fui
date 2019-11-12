@@ -14,6 +14,12 @@ public:
                 const std::shared_ptr<vk::UniqueDebugReportCallbackEXT>& debugReportCallback);
   virtual ~VulkanContext();
 
+  vk::PhysicalDevice& physicalDevice();
+  vk::Device& device();
+  vk::SurfaceKHR& surface();
+  vk::Queue& graphicsQueue();
+  vk::Queue& presentQueue();
+
   Status initSwapchain(const vk::SurfaceKHR& surface, const vk::Extent2D& windowExtent);
   Status initFramebuffer(const vk::Extent2D& extent);
   Status initVG();

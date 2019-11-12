@@ -75,7 +75,7 @@ void mainAA(void) {
 	outColor = result;
 }
 void main(void) {
-   vec4 result;
+  vec4 result = vec4(1.0);
 	float scissor = scissorMask(fpos);
 	float strokeAlpha = 1.0;
 	if (type == 0) {			// Gradient
