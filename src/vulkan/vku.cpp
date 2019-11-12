@@ -565,7 +565,7 @@ namespace vk
       bufferInfos.reserve(bufferData.size());
 
       std::vector<vk::WriteDescriptorSet> writeDescriptorSets;
-      writeDescriptorSets.reserve(bufferData.size() + textureData.empty() ? 0 : 1);
+      writeDescriptorSets.reserve(bufferData.size() + (textureData.empty() ? 0 : 1));
       uint32_t dstBinding = bindingOffset;
       for (auto const& bd : bufferData)
       {
@@ -606,9 +606,9 @@ namespace vk
     {
     }
 
-    ImageData::ImageData(vk::PhysicalDevice const& physicalDevice, vk::UniqueDevice const& device, vk::Format format_, vk::Extent2D const& extent, vk::ImageTiling tiling,
+    ImageData::ImageData(vk::PhysicalDevice const& physicalDevice, vk::UniqueDevice const& device, vk::Format format, vk::Extent2D const& extent, vk::ImageTiling tiling,
                          vk::ImageUsageFlags usage, vk::ImageLayout initialLayout, vk::MemoryPropertyFlags memoryProperties, vk::ImageAspectFlags aspectMask)
-      : format(format_)
+      : format(format)
     {
       vk::ImageCreateInfo imageCreateInfo(vk::ImageCreateFlags(), vk::ImageType::e2D, format, vk::Extent3D(extent, 1), 1, 1,
                                           vk::SampleCountFlagBits::e1, tiling, usage | vk::ImageUsageFlagBits::eSampled, vk::SharingMode::eExclusive, 0, nullptr, initialLayout);
@@ -623,8 +623,9 @@ namespace vk
       imageView = device->createImageViewUnique(imageViewCreateInfo);
     }
 
-    SurfaceData::SurfaceData(vk::UniqueInstance &instance, std::string const& className, std::string const& windowName, vk::Extent2D const& extent_)
-      : extent(extent_)
+    SurfaceData::SurfaceData(vk::UniqueInstance &instance, std::string const& className, std::string const& windowName, vk::Extent2D const& extent)
+      : extent(extent)
+      , window(nullptr)
     {
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
       window = vk::su::initializeWindow(className.c_str(), windowName.c_str(), extent.width, extent.height);
@@ -689,7 +690,7 @@ namespace vk
       , m_rgb1(rgb1)
     {}
 
-    void CheckerboardImageGenerator::operator()(void* data, vk::Extent2D &extent) const
+    void CheckerboardImageGenerator::operator()(void* data, const vk::Extent2D &extent) const
     {
       // Checkerboard of 16x16 pixel squares
       uint8_t *pImageMemory = static_cast<uint8_t *>(data);
@@ -711,7 +712,7 @@ namespace vk
       : m_rgb(rgb)
     {}
 
-    void MonochromeImageGenerator::operator()(void* data, vk::Extent2D &extent) const
+    void MonochromeImageGenerator::operator()(void* data, const vk::Extent2D &extent) const
     {
       // fill in with the monochrome color
       unsigned char *pImageMemory = static_cast<unsigned char*>(data);
@@ -736,7 +737,7 @@ namespace vk
       assert(m_channels == 4);
     }
 
-    void PixelsImageGenerator::operator()(void* data, vk::Extent2D & extent) const
+    void PixelsImageGenerator::operator()(void* data, const vk::Extent2D & extent) const
     {
       assert(extent == m_extent);
       memcpy(data, m_pixels, m_extent.width * m_extent.height * m_channels);
@@ -747,7 +748,6 @@ namespace vk
       : format(vk::Format::eR8G8B8A8Unorm)
       , extent(extent_)
     {
-      vk::PhysicalDeviceMemoryProperties memoryProperties = physicalDevice.getMemoryProperties();
       vk::FormatProperties formatProperties = physicalDevice.getFormatProperties(format);
 
       formatFeatureFlags |= vk::FormatFeatureFlagBits::eSampledImage;

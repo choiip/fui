@@ -10,8 +10,11 @@ using namespace fui;
 
 class WidgetSample : public ApplicationContext {
 public:
-  WidgetSample(RenderWindow* renderWindow)
-  : _renderWindow(renderWindow) {}
+  explicit WidgetSample(RenderWindow* renderWindow)
+  : _renderWindow(renderWindow)
+  , _progressBar(nullptr)
+  , _pictureBox(nullptr)
+  {}
 
 protected:
   virtual Status onEnter() override {
@@ -192,7 +195,7 @@ private:
 
   std::shared_ptr<PerfGraph> _perfGraph;
   Stopwatch<std::chrono::microseconds> _stopwatch;
-  size_t _frameCount;
+  size_t _frameCount = 0;
 
   struct cube* _cube = nullptr;
   unsigned int _programId = 0;

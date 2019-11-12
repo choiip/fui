@@ -610,7 +610,6 @@ static VKNVGPipeline* vknvg_createPipeline(VKNVGcontext* vk, VKNVGCreatePipeline
   VkRenderPass renderPass = vk->renderPass;
   const VkAllocationCallbacks* allocator = vk->allocator;
 
-  VkDescriptorSetLayout descLayout = vk->descLayout;
   VkShaderModule vert_shader = vk->fillVertShader;
   VkShaderModule frag_shader = vk->fillFragShader;
   VkShaderModule frag_shader_aa = vk->fillFragShaderAA;
@@ -1286,7 +1285,6 @@ static void vknvg_renderFlush(void* uptr) {
   VkPhysicalDeviceMemoryProperties memoryProperties = vk->memoryProperties;
   const VkAllocationCallbacks* allocator = vk->allocator;
 
-  int i;
   if (vk->ncalls > 0) {
     vknvg_UpdateBuffer(device, allocator, &vk->vertexBuffer, memoryProperties, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, vk->verts, vk->nverts * sizeof(vk->verts[0]));
@@ -1304,7 +1302,7 @@ static void vknvg_renderFlush(void* uptr) {
       vkResetDescriptorPool(device, vk->descPool, 0);
     }
 
-    for (i = 0; i < vk->ncalls; i++) {
+    for (int i = 0; i < vk->ncalls; i++) {
       VKNVGcall* call = &vk->calls[i];
       if (call->type == VKNVG_FILL)
         vknvg_fill(vk, call);

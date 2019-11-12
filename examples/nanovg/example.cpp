@@ -17,7 +17,7 @@ protected:
   typedef clock::time_point time_point;
 
 public:
-  ExampleApp(RenderWindow* renderWindow)
+  explicit ExampleApp(RenderWindow* renderWindow)
   : window(renderWindow)
   , vg(renderWindow->renderContext<RenderContext>()->vg())
   , cpuTime(0) {
@@ -59,8 +59,7 @@ protected:
 
     int fbWidth, fbHeight;
     float pxRatio;
-    float gpuTimes[3];
-    int i, n;
+    // float gpuTimes[3];
 
     t = clock::now();
     dt = (t - prevt).count() / (double)(1000 * 1000 * 1000);
@@ -124,7 +123,7 @@ protected:
 #ifdef FUI_ENABLE_VULKAN
 class VulkanExampleApp : public ExampleApp {
 public:
-  VulkanExampleApp(RenderWindow* renderWindow)
+  explicit VulkanExampleApp(RenderWindow* renderWindow)
   : ExampleApp(renderWindow) {
     _vulkanContext = renderWindow->renderContext<VulkanContext>();
   }
@@ -137,8 +136,7 @@ protected:
     int winWidth, winHeight;
     int fbWidth, fbHeight;
     float pxRatio;
-    float gpuTimes[3];
-    int i, n;
+    // float gpuTimes[3];
 
     t = clock::now();
     dt = (t - prevt).count() / (double)(1000 * 1000 * 1000);

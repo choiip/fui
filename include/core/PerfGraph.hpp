@@ -16,7 +16,7 @@ public:
     ALL = FPS | TIME | GRAPH,
   };
 
-  PerfGraph(const std::string& name, Mode mode = Mode::ALL);
+  explicit PerfGraph(const std::string& name, Mode mode = Mode::ALL);
 
   virtual ~PerfGraph();
 

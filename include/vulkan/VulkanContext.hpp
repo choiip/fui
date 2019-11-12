@@ -20,7 +20,7 @@ public:
   vk::Queue& graphicsQueue();
   vk::Queue& presentQueue();
 
-  Status initSwapchain(const vk::SurfaceKHR& surface, const vk::Extent2D& windowExtent);
+  Status initSwapchain(const vk::SurfaceKHR& surface, const vk::Extent2D& extent);
   Status initFramebuffer(const vk::Extent2D& extent);
   Status initVG();
 

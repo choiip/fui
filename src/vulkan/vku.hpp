@@ -206,7 +206,7 @@ namespace vk
     struct SwapChainData
     {
       SwapChainData(vk::PhysicalDevice const& physicalDevice, vk::UniqueDevice const& device, vk::SurfaceKHR const& surface, vk::Extent2D const& extent, vk::ImageUsageFlags usage,
-                    vk::UniqueSwapchainKHR const& oldSwapChain, uint32_t graphicsFamilyIndex, uint32_t presentFamilyIndex);
+                    vk::UniqueSwapchainKHR const& oldSwapChain, uint32_t graphicsQueueFamilyIndex, uint32_t presentQueueFamilyIndex);
 
       vk::Format                        colorFormat;
       vk::UniqueSwapchainKHR            swapChain;
@@ -219,7 +219,7 @@ namespace vk
     public:
       CheckerboardImageGenerator(std::array<uint8_t, 3> const& rgb0 = {0, 0, 0}, std::array<uint8_t, 3> const& rgb1 = {255, 255, 255});
 
-      void operator()(void* data, vk::Extent2D &extent) const;
+      void operator()(void* data, const vk::Extent2D &extent) const;
 
     private:
       std::array<uint8_t, 3> const& m_rgb0;
@@ -229,9 +229,9 @@ namespace vk
     class MonochromeImageGenerator
     {
       public:
-      MonochromeImageGenerator(std::array<unsigned char, 3> const& rgb);
+      explicit MonochromeImageGenerator(std::array<unsigned char, 3> const& rgb);
 
-      void operator()(void* data, vk::Extent2D &extent) const;
+      void operator()(void* data, const vk::Extent2D &extent) const;
 
       private:
       std::array<unsigned char, 3> const& m_rgb;
@@ -242,7 +242,7 @@ namespace vk
       public:
       PixelsImageGenerator(vk::Extent2D const& extent, size_t channels, unsigned char const* pixels);
 
-      void operator()(void* data, vk::Extent2D & extent) const;
+      void operator()(void* data, const vk::Extent2D & extent) const;
 
       private:
       vk::Extent2D          m_extent;
@@ -292,7 +292,7 @@ namespace vk
     struct UUID
     {
       public:
-      UUID(uint8_t data[VK_UUID_SIZE]);
+      explicit UUID(uint8_t data[VK_UUID_SIZE]);
 
       uint8_t m_data[VK_UUID_SIZE];
     };

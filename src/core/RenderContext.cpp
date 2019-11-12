@@ -32,7 +32,6 @@ void RenderContext::updateImage(int image, const unsigned char* data, size_t dat
   if (compressed) { // TODO: Better support for other formats
     int width = 0, height = 0;
     nvgImageSize(_vg, image, &width, &height);
-    size_t pixelSize = width * height * 3;
 
     // handle AVI1 (MJPEG)
     uint8_t* jpegBuf;
