@@ -64,6 +64,87 @@
       "dependsOn": [
         "CMake: Configure (Emscripten)"
       ]
+    },
+    {
+      "label": "CMake: Configure (Test)",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "-GNinja",
+        "-Bbuild/test/",
+        "-H.",
+        "-DCMAKE_TOOLCHAIN_FILE=${workspaceRoot}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "-DENABLE_CPPCHECK=ON",
+        // "-DENABLE_COVERAGE=ON",
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "dependsOn": []
+    },
+    {
+      "label": "CMake: Build (Test)",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "build/test/",
+        "--config",
+        "Debug",
+        "--target",
+        "all"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "dependsOn": [
+        "CMake: Configure (Test)"
+      ],
+    },
+    {
+      "label": "Test MemCheck",
+      "type": "shell",
+      "command": "ctest",
+      "args": [
+        "-T",
+        "MemCheck",
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceRoot}/build/test",
+      },
+      "problemMatcher": [],
+      "dependsOn": [
+        "CMake: Build (Test)"
+      ]
+    },
+    {
+      "label": "Perform CppCheck",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "build/test/",
+        "--config",
+        "Debug",
+        "--target",
+        "check"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "dependsOn": [
+        "CMake: Configure (Test)"
+      ],
     }
   ],
   "inputs": [

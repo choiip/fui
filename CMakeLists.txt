@@ -12,11 +12,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 include(CMakeDependentOption)
 
-##
-## Compiler flags
-##
-include(CompilerFlags)
-
 set (CMAKE_CXX_STANDARD 14)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
@@ -26,31 +21,13 @@ set (CMAKE_CXX_EXTENSIONS OFF)
 ##
 option(ENABLE_CLANG_TIDY "Enable testing with clang-tidy" FALSE)
 option(ENABLE_CPPCHECK "Enable testing with cppcheck" FALSE)
+option(ENABLE_COVERAGE "Enable testing with code coverage" FALSE)
 cmake_dependent_option(WITH_VULKAN "Build with vulkan." TRUE "NOT EMSCRIPTEN" FALSE)
 
-if(ENABLE_CPPCHECK)
-  find_program(CPPCHECK cppcheck)
-  if(CPPCHECK)
-    list(APPEND CPPCHECK_SUPPRESS
-      --suppress=*:*/glad.h
-      --suppress=*:*/nanovg.h
-      --suppress=*:*/Signal.hpp
-      --suppress=*:*/stb.h
-    )
-    set(CMAKE_CXX_CPPCHECK ${CPPCHECK} --enable=style --inconclusive ${CPPCHECK_SUPPRESS})
-  else()
-    message(SEND_ERROR "cppcheck requested but executable not found")
-  endif()
-endif()
-
-if(ENABLE_CLANG_TIDY)
-  find_program(CLANGTIDY clang-tidy)
-  if(CLANGTIDY)
-    set(CMAKE_CXX_CLANG_TIDY ${CLANGTIDY})
-  else()
-    message(SEND_ERROR "clang-tidy requested but executable not found")
-  endif()
-endif()
+##
+## Code Analysis
+##
+include(CodeAnalysis)
 
 ##
 ## Project Setup
@@ -169,11 +146,6 @@ if (FUI_BUILD_SHARED)
 endif()
 
 if (Vulkan_FOUND)
-  # file(GLOB_RECURSE GLSL_SOURCE_FILES
-  #   "src/vulkan/shaders/*.frag"
-  #   "src/vulkan/shaders/*.vert"
-  # )
-  # target_glsl2spirv(fui ${PROJECT_BINARY_DIR}/shaders "${GLSL_SOURCE_FILES}")
   target_compile_definitions(fui PUBLIC FUI_ENABLE_VULKAN)
 endif()
 
@@ -181,6 +153,9 @@ target_include_directories(fui PUBLIC ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(fui PRIVATE ${EXTRA_INCLUDE_DIRS} ${PROJECT_BINARY_DIR}/include ${PROJECT_SOURCE_DIR}/src)
 
 target_link_libraries(fui PUBLIC ${CMAKE_DL_LIBS} ${EXTRA_LIB})
+
+enable_testing()
+include(CTest)
 
 ## examples
 add_subdirectory(examples)
