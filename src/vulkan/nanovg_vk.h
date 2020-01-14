@@ -747,7 +747,7 @@ static int vknvg_updateTexture(VkDevice device, VKNVGtexture* tex, int dx, int d
 static int vknvg_maxVertCount(const NVGpath* paths, int npaths) {
   int i, count = 0;
   for (i = 0; i < npaths; i++) {
-    count += paths[i].nfill;
+    count += (paths[i].nfill - 2) * 3;  // assume nfill >= 3
     count += paths[i].nstroke;
   }
   return count;
@@ -890,7 +890,7 @@ static void vknvg_fill(VKNVGcontext* vk, VKNVGcall* call) {
 
   VKNVGCreatePipelineKey pipelinekey = {0};
   pipelinekey.compositOperation = call->compositOperation;
-  pipelinekey.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+  pipelinekey.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   pipelinekey.stencilFill = true;
   pipelinekey.edgeAAShader = vk->flags & NVG_ANTIALIAS;
 
@@ -952,7 +952,7 @@ static void vknvg_convexFill(VKNVGcontext* vk, VKNVGcall* call) {
 
   VKNVGCreatePipelineKey pipelinekey = {0};
   pipelinekey.compositOperation = call->compositOperation;
-  pipelinekey.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+  pipelinekey.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   pipelinekey.edgeAAShader = vk->flags & NVG_ANTIALIAS;
 
   vknvg_bindPipeline(vk, cmdBuffer, &pipelinekey);
@@ -1328,7 +1328,7 @@ static void vknvg_renderFill(void* uptr, NVGpaint* paint, NVGcompositeOperationS
   VKNVGcall* call = vknvg_allocCall(vk);
   NVGvertex* quad;
   VKNVGfragUniforms* frag;
-  int i, maxverts, offset;
+  int i, j, maxverts, offset;
 
   if (call == NULL) return;
 
@@ -1354,17 +1354,22 @@ static void vknvg_renderFill(void* uptr, NVGpaint* paint, NVGcompositeOperationS
     VKNVGpath* copy = &vk->paths[call->pathOffset + i];
     const NVGpath* path = &paths[i];
     memset(copy, 0, sizeof(VKNVGpath));
-    if (path->nfill > 0) {
+    if (path->nfill >= 3) {
       copy->fillOffset = offset;
-      copy->fillCount = path->nfill;
-      memcpy(&vk->verts[offset], path->fill, sizeof(NVGvertex) * path->nfill);
-      offset += path->nfill;
+      copy->fillCount = (path->nfill - 2) * 3;
+      NVGvertex firstVertex = path->fill[0];
+      for (j = 0; j < (path->nfill-2) ; ++j) {
+        vk->verts[offset+3*j] = firstVertex;
+        vk->verts[offset+3*j+1] = path->fill[j+1];
+        vk->verts[offset+3*j+2] = path->fill[j+2];
+      }
+      offset += copy->fillCount;
     }
     if (path->nstroke > 0) {
       copy->strokeOffset = offset;
       copy->strokeCount = path->nstroke;
-      memcpy(&vk->verts[offset], path->stroke, sizeof(NVGvertex) * path->nstroke);
-      offset += path->nstroke;
+      memcpy(&vk->verts[offset], path->stroke, sizeof(NVGvertex) * copy->strokeCount);
+      offset += copy->strokeCount;
     }
   }
 
@@ -1407,7 +1412,7 @@ static void vknvg_renderStroke(void* uptr, NVGpaint* paint, NVGcompositeOperatio
                                NVGscissor* scissor, float fringe, float strokeWidth, const NVGpath* paths, int npaths) {
   VKNVGcontext* vk = (VKNVGcontext*)uptr;
   VKNVGcall* call = vknvg_allocCall(vk);
-  int i, maxverts, offset;
+  int i, maxverts = 0, offset;
 
   if (call == NULL) return;
 
@@ -1419,7 +1424,9 @@ static void vknvg_renderStroke(void* uptr, NVGpaint* paint, NVGcompositeOperatio
   call->compositOperation = compositeOperation;
 
   // Allocate vertices for all the paths.
-  maxverts = vknvg_maxVertCount(paths, npaths);
+  for (i = 0; i < npaths; i++) {
+    maxverts += paths[i].nstroke;
+  }
   offset = vknvg_allocVerts(vk, maxverts);
   if (offset == -1) goto error;
 
